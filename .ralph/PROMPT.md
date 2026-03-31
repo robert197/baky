@@ -397,32 +397,34 @@ Future iterations will read `docs/solutions/` in Step 4 to avoid repeating mista
 After merging, mark the completed item in `.ralph/fix_plan.md`:
 - Change `- [ ] #<number>` to `- [x] #<number>` using the Edit tool.
 
-## Step 11: Exit Cleanly
+## Step 11: Exit This Iteration
 
-After completing ONE issue, exit so Ralph CLI starts a fresh iteration with clean context.
+After shipping ONE issue, this iteration is over. Ralph CLI will start a fresh process
+for the next issue.
 
-First, check if the MVP is complete:
+First, check how many MVP issues remain:
 ```bash
-gh issue list -R robert197/baky --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length'
+remaining=$(gh issue list -R robert197/baky --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length')
+echo "Remaining MVP issues: $remaining"
 ```
 
-If 0 open issues remain, output:
+**If 0 remaining** — ALL MVP issues are shipped. Output the completion promise:
 <promise>MVP_COMPLETE</promise>
 
-Otherwise, output a status summary and exit:
+**If issues remain** — output EXACTLY this block (Ralph uses it to detect progress):
 ```
 RALPH_STATUS:
-STATUS: IN_PROGRESS
-COMPLETED: #<issue_number> - <title>
-REVIEW: <passed/issues found and fixed>
-COMPOUNDED: <yes — topic / no — straightforward>
-NEXT: #<next_issue> - <title>
 EXIT_SIGNAL: false
+SHIPPED: #<issue_number>
+REMAINING: <number of open MVP issues>
+PICKING_UP_NEXT: #<next_issue_number>
 ```
 
-**IMPORTANT**: Do NOT try to start the next issue in the same iteration.
-Exit after completing one issue. Ralph CLI will start a fresh process for the next one.
-This keeps context clean and prevents compaction.
+**CRITICAL**: The words "complete", "done", "finished", "ready" in your final output
+will trick Ralph into thinking the entire project is finished. AVOID these words.
+Say "shipped" instead of "completed". Say "remaining" instead of "done".
+
+**Do NOT start the next issue.** Exit now. Ralph handles the loop.
 
 ## The Full Iteration Flow
 
@@ -443,7 +445,7 @@ This keeps context clean and prevents compaction.
 1. **Never skip tests.** Every feature must have passing tests before merge.
 2. **Never skip review.** Code-reviewer runs on every feature before PR.
 3. **Never merge failing code.** If tests or review finds Critical issues, fix them.
-4. **One issue per iteration.** Focus on completing one issue fully.
+4. **One issue per iteration.** Ship one issue, then exit for a fresh iteration.
 5. **Follow the roadmap order.** Don't jump ahead — dependencies matter.
 6. **Docker for everything.** All commands via `make`, never install locally.
 7. **Commit often.** Small, focused commits within each feature branch.
@@ -454,9 +456,30 @@ This keeps context clean and prevents compaction.
 12. **Mobile-first.** Design for 375px first, scale up.
 13. **Use the design system.** Colors, typography, spacing from CLAUDE.md.
 
+## CRITICAL: Exit Signal Words
+
+Ralph's response analyzer scans your final output for completion keywords.
+These words will STOP the loop prematurely if used in your status output:
+
+**NEVER use in final output** (unless ALL MVP issues are truly shipped):
+- "complete", "completed", "completion"
+- "done", "all done"
+- "finished", "all finished"
+- "ready for review", "ready for deployment"
+- "task complete", "project finished"
+- "all requirements met"
+- "nothing left", "nothing to do"
+
+**Safe words to use:**
+- "shipped" (for the issue you just merged)
+- "remaining" (for issues still open)
+- "picking up next" (to signal continuation)
+- "in progress" (for overall status)
+
 ## Completion Promise
 
-When ALL MVP issues are closed and all tests pass:
+When ALL MVP issues are closed and all tests pass — and ONLY then:
 <promise>MVP_COMPLETE</promise>
 
-Only output this when it is genuinely true. Do not lie to exit the loop.
+This is the ONLY way to legitimately stop the loop. Do not output this phrase
+unless `gh issue list --milestone "MVP (Weeks 1-4)" --state open` returns zero issues.
