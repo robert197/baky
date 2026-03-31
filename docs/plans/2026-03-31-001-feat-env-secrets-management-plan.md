@@ -78,7 +78,7 @@ if env_file.exists():
   ```python
   # Before
   AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")
-  
+
   # After
   AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")  # Required in production
   ```

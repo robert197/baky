@@ -46,10 +46,10 @@ if [ "$branch" != "main" ]; then
   make lint
   make test
 
-  # Push and create PR
+  # If both pass, push and create PR
   git push -u origin "$branch"
-  gh pr create \
-    --title "feat: $(gh issue view $issue_num -R robert197/baky --json title -q .title)" \
+
+  gh pr create --title "feat: $(gh issue view $issue_num -R robert197/baky --json title -q .title)" \
     --body "$(cat <<PRBODY
 ## Summary
 Implements #$issue_num
@@ -57,15 +57,14 @@ Implements #$issue_num
 ## Validation
 - [x] \`make lint\` passes
 - [x] \`make test\` passes
+- [x] \`make manage CMD="check"\` passes
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 PRBODY
 )"
 
-  # Merge PR and clean up
+  # Merge the PR (closes the linked issue automatically via "Implements #N")
   gh pr merge --merge --delete-branch
-  git checkout main
-  git pull origin main
 fi
 ```
 
@@ -162,10 +161,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 
-# Push feature branch
+# Push the feature branch
 git push -u origin feat/<number>-<short-description>
 
-# Create Pull Request
+# Create a Pull Request
 gh pr create \
   --title "feat(<scope>): <short description>" \
   --body "$(cat <<'PRBODY'
@@ -183,8 +182,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 PRBODY
 )"
 
-# Merge PR and clean up
+# Merge the PR and delete the branch
 gh pr merge --merge --delete-branch
+
+# Pull main to stay up to date
 git checkout main
 git pull origin main
 ```
