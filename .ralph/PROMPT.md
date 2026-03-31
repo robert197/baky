@@ -35,11 +35,10 @@ docker compose ps 2>/dev/null || make up
 If you're on a feature branch (not `main`):
 1. Check if the feature is complete (all acceptance criteria met)
 2. Run `make test` and `make lint`
-3. If tests pass: merge to main and close the issue
+3. If tests pass: create PR and merge
 4. If tests fail: fix them first
 
 ```bash
-# Merge completed feature to main
 branch=$(git branch --show-current)
 if [ "$branch" != "main" ]; then
   # Extract issue number from branch name: feat/7-core-models -> 7
@@ -48,15 +47,25 @@ if [ "$branch" != "main" ]; then
   make lint
   make test
 
-  # If both pass, merge
-  git checkout main
-  git pull origin main
-  git merge "$branch" --no-edit
-  git push origin main
-  git branch -d "$branch"
+  # If both pass, push and create PR
+  git push -u origin "$branch"
 
-  # Close issue and update roadmap
-  gh issue close "$issue_num" -R robert197/baky
+  gh pr create --title "feat: $(gh issue view $issue_num -R robert197/baky --json title -q .title)" \
+    --body "$(cat <<PRBODY
+## Summary
+Implements #$issue_num
+
+## Validation
+- [x] \`make lint\` passes
+- [x] \`make test\` passes
+- [x] \`make manage CMD="check"\` passes
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+PRBODY
+)"
+
+  # Merge the PR (closes the linked issue automatically via "Implements #N")
+  gh pr merge --merge --delete-branch
 fi
 ```
 
@@ -153,15 +162,33 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 
-# Merge to main
+# Push the feature branch
+git push -u origin feat/<number>-<short-description>
+
+# Create a Pull Request
+gh pr create \
+  --title "feat(<scope>): <short description>" \
+  --body "$(cat <<'PRBODY'
+## Summary
+<What was built and why>
+
+Closes #<issue_number>
+
+## Validation
+- [x] `make lint` passes
+- [x] `make test` passes
+- [x] `make manage CMD="check"` passes
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+PRBODY
+)"
+
+# Merge the PR and delete the branch
+gh pr merge --merge --delete-branch
+
+# Pull main to stay up to date
 git checkout main
 git pull origin main
-git merge feat/<number>-<short-description> --no-edit
-git push origin main
-git branch -d feat/<number>-<short-description>
-
-# Close issue
-gh issue close <number> -R robert197/baky
 ```
 
 After merging, also update the `.ralph/fix_plan.md` — mark the corresponding item `[x]`.
