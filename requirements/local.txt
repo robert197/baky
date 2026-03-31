@@ -17,5 +17,9 @@ djlint>=1.34
 # Pre-commit
 pre-commit>=3.7
 
+# E2E testing
+pytest-playwright>=0.5
+playwright>=1.40
+
 # Dev utilities
 ipython>=8.0

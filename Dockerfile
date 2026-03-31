@@ -43,6 +43,9 @@ COPY requirements/base.txt requirements/base.txt
 COPY requirements/local.txt requirements/local.txt
 RUN pip install -r requirements/local.txt
 
+# Install Playwright browsers for e2e tests
+RUN playwright install --with-deps chromium
+
 ENV DJANGO_SETTINGS_MODULE=baky.settings.local
 
 EXPOSE 8000

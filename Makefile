@@ -60,7 +60,7 @@ manage:
 # ---------------------------------------------------------------------------
 
 test:
-	docker compose exec web pytest $(ARGS)
+	docker compose exec web pytest --ignore=tests/e2e $(ARGS)
 
 coverage:  ## Run tests with coverage report
 	docker compose exec web pytest --cov=apps --cov-report=term-missing $(ARGS)
@@ -72,9 +72,9 @@ lint:
 	docker compose exec web djlint templates/ --check
 
 e2e:
-	@echo "E2E tests not yet configured (see issue #5)"
+	docker compose exec web pytest tests/e2e/ -v --tb=short
 
-validate: lint test
+validate: lint test e2e
 
 # ---------------------------------------------------------------------------
 # Logs
