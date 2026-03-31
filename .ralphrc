@@ -15,8 +15,11 @@ MAX_TOKENS_PER_HOUR=0
 ALLOWED_TOOLS="Write,Read,Edit,Bash(make *),Bash(docker compose *),Bash(git add *),Bash(git commit *),Bash(git diff *),Bash(git log *),Bash(git status),Bash(git status *),Bash(git push *),Bash(git pull *),Bash(git fetch *),Bash(git checkout *),Bash(git branch *),Bash(git stash *),Bash(git merge *),Bash(git tag *),Bash(gh issue *),Bash(gh pr *),Bash(gh api *),Bash(python manage.py *),Bash(pytest *),Bash(ls *),Bash(mkdir *),Bash(cat *)"
 
 # Session management
-SESSION_CONTINUITY=true
-SESSION_EXPIRY_HOURS=48
+# IMPORTANT: Disabled session continuity so each iteration gets a FRESH context window.
+# All state lives in files (git, roadmap, fix_plan.md), not in conversation memory.
+# This prevents context compaction from losing mid-feature state.
+SESSION_CONTINUITY=false
+SESSION_EXPIRY_HOURS=1
 
 # Circuit breaker — slightly generous for large features
 CB_NO_PROGRESS_THRESHOLD=5

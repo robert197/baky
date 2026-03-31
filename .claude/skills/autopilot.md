@@ -55,20 +55,43 @@ You can build these manually or use `/ce:work` on each issue. Once `make test` a
 
 ## Phase 1: Start Autopilot
 
-Once bootstrap is confirmed:
+**IMPORTANT: Use the Ralph CLI, NOT the in-session `/ralph-loop` stop hook.**
+
+The CLI starts a **fresh Claude Code process per iteration** — clean context window every time.
+The stop hook keeps the same session, which causes context compaction after 3-4 features
+and loses mid-feature state. All state lives in files (git, roadmap, fix_plan.md), so
+fresh context is fine — Ralph re-reads everything from disk each iteration.
+
+Once bootstrap is confirmed, **exit Claude Code** and run from your terminal:
 
 ```bash
-/ralph-loop "$(cat .ralph/PROMPT.md)" --max-iterations 100 --completion-promise "MVP_COMPLETE"
+# Recommended: tmux monitor (3-pane: Ralph + live output + status dashboard)
+cd /Users/robert/projects/baky
+ralph --monitor --timeout 30
+
+# Alternative: simple mode with live output
+ralph --live --verbose
+
+# Alternative: background mode
+ralph --timeout 30
 ```
 
-This starts the Ralph Loop which will autonomously:
-1. Assess current state (git branch, uncommitted work)
-2. Complete any in-progress feature
-3. Pick next unblocked issue from roadmap #44
-4. Implement with TDD
-5. Run full validation (tests + lint + e2e)
-6. Merge to main, close issue, update roadmap
-7. Repeat until all MVP issues are closed
+This starts the Ralph CLI loop which will autonomously:
+1. Invoke Claude Code with PROMPT.md (fresh context each time)
+2. Claude assesses git state, picks next issue, builds it
+3. Claude validates (tests + lint), merges to main, closes issue
+4. Claude exits → Ralph detects progress → starts next iteration
+5. Repeats until fix_plan.md is fully checked off or circuit breaker trips
+
+### Why CLI, not stop hook?
+
+| | `/ralph-loop` (stop hook) | `ralph` CLI |
+|---|---|---|
+| Context | Same session, accumulates | Fresh each iteration |
+| Compaction risk | HIGH after 3-4 features | NONE |
+| State management | In conversation memory (fragile) | In files: git, roadmap, fix_plan.md (durable) |
+| Recovery from crash | Lost context | Just re-run, reads file state |
+| Recommended for | Small tasks (1-2 iterations) | Full MVP build (30+ iterations) |
 
 ## Monitoring
 
@@ -77,7 +100,7 @@ In a separate terminal:
 # Watch Ralph's progress
 ralph --status
 
-# Live monitoring dashboard (tmux 3-pane)
+# Live monitoring dashboard (tmux 3-pane — best option)
 ralph --monitor
 
 # Tail logs
@@ -106,12 +129,15 @@ ralph --circuit-status
 
 # Reset and restart
 ralph --reset-circuit
-/ralph-loop "$(cat .ralph/PROMPT.md)" --max-iterations 100 --completion-promise "MVP_COMPLETE"
+ralph --monitor --timeout 30
 ```
 
 ## Emergency Stop
 
 ```bash
-/cancel-ralph
+# From another terminal:
+Ctrl+C in the Ralph terminal
+
+# Or kill the tmux session:
+tmux kill-session -t ralph-*
 ```
-This removes the Ralph state file and stops the loop immediately.

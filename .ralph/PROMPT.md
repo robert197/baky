@@ -5,6 +5,12 @@ This prompt runs in a loop. Each iteration, you wake up, assess where you are, a
 
 ## CRITICAL: Read This Every Iteration
 
+You are running inside Ralph CLI. Each iteration is a FRESH Claude Code process with a clean
+context window. You have NO memory of previous iterations. All state is in files:
+- Git history and branch state → what's been built
+- Roadmap issue #44 → what's done (checked) and what's next (unchecked)
+- `.ralph/fix_plan.md` → local progress tracker
+
 1. Read CLAUDE.md for project conventions
 2. Check git status to understand current state
 3. Read the roadmap to find your next task
@@ -160,19 +166,35 @@ gh issue close <number> -R robert197/baky
 
 After merging, also update the `.ralph/fix_plan.md` — mark the corresponding item `[x]`.
 
-## Step 8: Check Completion
+## Step 8: Update Fix Plan
 
-After closing the issue, check: are ALL MVP issues closed?
+After merging and closing the issue, mark it done in `.ralph/fix_plan.md`:
+- Change `- [ ] #<number>` to `- [x] #<number>` using the Edit tool.
 
+## Step 9: Exit Cleanly
+
+After completing ONE issue, exit so Ralph CLI starts a fresh iteration with clean context.
+
+First, check if the MVP is complete:
 ```bash
 gh issue list -R robert197/baky --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length'
 ```
 
-If 0 open issues remain: the MVP is complete.
+If 0 open issues remain, output:
+<promise>MVP_COMPLETE</promise>
 
-Output: <promise>MVP_COMPLETE</promise>
+Otherwise, output a status summary and exit:
+```
+RALPH_STATUS:
+STATUS: IN_PROGRESS
+COMPLETED: #<issue_number> - <title>
+NEXT: #<next_issue> - <title>
+EXIT_SIGNAL: false
+```
 
-Otherwise: continue to the next iteration (go back to Step 1).
+**IMPORTANT**: Do NOT try to start the next issue in the same iteration.
+Exit after completing one issue. Ralph CLI will start a fresh process for the next one.
+This keeps context clean and prevents compaction.
 
 ## Rules
 
