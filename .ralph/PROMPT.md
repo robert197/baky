@@ -241,36 +241,8 @@ git pull origin main
 - A workaround was needed for a library or framework limitation
 - A test approach was found that's worth reusing
 
-**Write to `docs/solutions/`** using compact-safe mode (single pass, no subagents — context efficient):
-
-```bash
-# Determine category
-# Categories: build-errors, test-failures, runtime-errors, database-issues,
-#             ui-bugs, integration-issues, patterns, conventions
-
-# Create solution doc
-cat > docs/solutions/<category>/<short-name>.md << 'SOLUTIONDOC'
----
-title: <Clear title>
-category: <category>
-issue: <issue_number>
-date: <YYYY-MM-DD>
-tags: [<relevant>, <tags>]
----
-
-## Problem
-<What went wrong or what was non-obvious>
-
-## Root Cause
-<Why it happened>
-
-## Solution
-<What fixed it, with code examples if relevant>
-
-## Prevention
-<How to avoid this in the future>
-SOLUTIONDOC
-```
+**Run `/ce:compound` to document the learning.** This will use parallel subagents to create
+a thorough solution doc in `docs/solutions/`.
 
 **Skip compounding if** the feature was straightforward with no surprises.
 
