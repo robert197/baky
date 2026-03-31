@@ -1,0 +1,37 @@
+from .base import *  # noqa: F401,F403
+
+DEBUG = False
+ALLOWED_HOSTS = env("ALLOWED_HOSTS")  # noqa: F405
+
+# Security
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Static files with Whitenoise
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# S3/R2 for media
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")  # noqa: F405
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default="")  # noqa: F405
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default="")  # noqa: F405
+AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="")  # noqa: F405
+AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default="")  # noqa: F405
+AWS_DEFAULT_ACL = None
+AWS_S3_FILE_OVERWRITE = False
+
+# Sentry
+import sentry_sdk  # noqa: E402
+
+sentry_sdk.init(
+    dsn=env("SENTRY_DSN", default=""),  # noqa: F405
+    traces_sample_rate=0.1,
+)
