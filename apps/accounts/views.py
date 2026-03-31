@@ -1,17 +1,19 @@
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
 
 from .forms import BakyPasswordResetForm, BakySetPasswordForm, LoginForm
+from .models import User
 
 
+@login_required
 def login_redirect(request):
     """Redirect authenticated users to the correct dashboard based on their role."""
     user = request.user
-    if not user.is_authenticated:
-        return redirect("accounts:login")
-    if user.role == "inspector":
+    if user.role == User.Role.INSPECTOR:
         return redirect("inspections:index")
-    if user.role == "admin":
+    if user.role == User.Role.ADMIN:
         return redirect("admin:index")
     # Default: owner
     return redirect("dashboard:index")
@@ -27,7 +29,7 @@ class LoginView(auth_views.LoginView):
         url = super().get_redirect_url()
         if url:
             return url
-        return self.request.build_absolute_uri("/accounts/redirect/")
+        return reverse("accounts:login-redirect")
 
 
 class LogoutView(auth_views.LogoutView):
@@ -39,7 +41,7 @@ class PasswordResetView(auth_views.PasswordResetView):
     email_template_name = "accounts/password_reset_email.html"
     subject_template_name = "accounts/password_reset_subject.txt"
     form_class = BakyPasswordResetForm
-    success_url = "/accounts/password-reset/done/"
+    success_url = reverse_lazy("accounts:password-reset-done")
 
 
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
@@ -49,7 +51,7 @@ class PasswordResetDoneView(auth_views.PasswordResetDoneView):
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = "accounts/password_reset_confirm.html"
     form_class = BakySetPasswordForm
-    success_url = "/accounts/password-reset/complete/"
+    success_url = reverse_lazy("accounts:password-reset-complete")
 
 
 class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):

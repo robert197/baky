@@ -3,6 +3,8 @@ from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 
+from .models import User
+
 
 def role_required(role: str):
     """Decorator that requires the user to be logged in and have the specified role.
@@ -25,9 +27,9 @@ def role_required(role: str):
 
 def owner_required(view_func):
     """Require authenticated user with Owner role."""
-    return role_required("owner")(view_func)
+    return role_required(User.Role.OWNER)(view_func)
 
 
 def inspector_required(view_func):
     """Require authenticated user with Inspector role."""
-    return role_required("inspector")(view_func)
+    return role_required(User.Role.INSPECTOR)(view_func)
