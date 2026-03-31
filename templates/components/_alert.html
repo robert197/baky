@@ -1,0 +1,26 @@
+{# Component: _alert.html                                                      #}
+{# Context: type="success"|"warning"|"error"|"info", message=str, dismissible=bool #}
+{% with alert_type=type|default:"info" %}
+  <div x-data="{ show: true }" x-show="show" x-init="{% if dismissible %}setTimeout(() => show = false, 5000)
+  {% endif %}
+  " x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" role="alert" class="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm
+  {% if alert_type == 'success' %}
+    border-emerald-200 bg-emerald-50 text-emerald-800
+  {% elif alert_type == 'warning' %}
+    border-amber-200 bg-amber-50 text-amber-800
+  {% elif alert_type == 'error' %}
+    border-rose-200 bg-rose-50 text-rose-800
+  {% else %}
+    border-sky-200 bg-sky-50 text-sky-800
+  {% endif %}
+  ">
+  <span class="flex-1">{{ message }}</span>
+  {% if dismissible %}
+    <button @click="show = false" class="ml-2 opacity-50 hover:opacity-100" aria-label="Schließen">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  {% endif %}
+</div>
+{% endwith %}
