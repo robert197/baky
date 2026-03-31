@@ -1,7 +1,7 @@
 from .base import *  # noqa: F401,F403
 
 DEBUG = False
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")  # noqa: F405
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")  # noqa: F405
 
 # Security
 SECURE_SSL_REDIRECT = True
@@ -20,10 +20,10 @@ STORAGES = {
 }
 
 # S3/R2 for media
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")  # noqa: F405
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default="")  # noqa: F405
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default="")  # noqa: F405
-AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default="")  # noqa: F405
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")  # noqa: F405
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")  # noqa: F405
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")  # noqa: F405
+AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL")  # noqa: F405
 AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN", default="")  # noqa: F405
 AWS_DEFAULT_ACL = None
 AWS_S3_FILE_OVERWRITE = False
