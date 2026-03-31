@@ -1,15 +1,21 @@
 import pytest
 
+from tests.factories import AdminFactory, InspectorFactory, UserFactory
+
 
 @pytest.fixture
 def user(db):
-    from apps.accounts.models import User
-
-    return User.objects.create_user(username="testuser", password="testpass123", role=User.Role.OWNER)
+    """Owner user (default role)."""
+    return UserFactory()
 
 
 @pytest.fixture
 def inspector(db):
-    from apps.accounts.models import User
+    """Inspector user."""
+    return InspectorFactory()
 
-    return User.objects.create_user(username="inspector", password="testpass123", role=User.Role.INSPECTOR)
+
+@pytest.fixture
+def admin_user(db):
+    """Admin user."""
+    return AdminFactory()
