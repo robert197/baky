@@ -2,8 +2,10 @@ from django.conf import settings
 from django.db import models
 from encrypted_model_fields.fields import EncryptedTextField
 
+from apps.accounts.models import TimeStampedModel
 
-class Apartment(models.Model):
+
+class Apartment(TimeStampedModel):
     class AccessMethod(models.TextChoices):
         KEY_HANDOVER = "key_handover", "Schlüsselübergabe"
         LOCKBOX = "lockbox", "Schlüsselbox"
@@ -25,8 +27,6 @@ class Apartment(models.Model):
     access_notes = EncryptedTextField(blank=True)
     special_instructions = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -38,15 +38,13 @@ class Apartment(models.Model):
         return f"{self.address} ({self.get_status_display()})"
 
 
-class ChecklistTemplate(models.Model):
+class ChecklistTemplate(TimeStampedModel):
     apartment = models.OneToOneField(Apartment, on_delete=models.CASCADE, related_name="checklist_template")
     name = models.CharField(max_length=255)
     items = models.JSONField(
         default=list,
         help_text="Array of {category, label, type} objects",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]

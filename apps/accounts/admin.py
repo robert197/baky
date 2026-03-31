@@ -8,7 +8,7 @@ from .models import Subscription, User
 class UserAdmin(BaseUserAdmin):
     list_display = ["username", "email", "role", "phone", "is_active"]
     list_filter = ["role", "is_active"]
-    fieldsets = BaseUserAdmin.fieldsets + (("BAKY", {"fields": ("role", "phone")}),)
+    fieldsets = BaseUserAdmin.fieldsets + (("BAKY", {"fields": ("role", "phone", "address", "availability")}),)
 
 
 @admin.register(Subscription)

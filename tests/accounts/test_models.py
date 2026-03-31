@@ -4,7 +4,7 @@ import pytest
 from django.db import IntegrityError
 
 from apps.accounts.models import Subscription, User
-from tests.factories import InspectorFactory, OwnerFactory, SubscriptionFactory, UserFactory
+from tests.factories import AdminFactory, InspectorFactory, OwnerFactory, SubscriptionFactory, UserFactory
 
 
 class TestUserModel:
@@ -44,9 +44,31 @@ class TestUserModel:
         assert User.Role.INSPECTOR == "inspector"
         assert User.Role.ADMIN == "admin"
 
+    def test_admin_factory(self, db):
+        admin = AdminFactory()
+        assert admin.role == User.Role.ADMIN
+
     def test_default_role_is_owner(self, db):
         user = User.objects.create_user(username="newuser", password="test123")
         assert user.role == User.Role.OWNER
+
+    def test_address_field(self, db):
+        user = UserFactory(address="Stephansplatz 1, 1010 Wien")
+        assert user.address == "Stephansplatz 1, 1010 Wien"
+
+    def test_address_blank_by_default(self, db):
+        user = UserFactory()
+        assert user.address == ""
+
+    def test_availability_field(self, db):
+        schedule = {"monday": ["09:00-17:00"], "tuesday": ["09:00-17:00"]}
+        inspector = InspectorFactory(availability=schedule)
+        inspector.refresh_from_db()
+        assert inspector.availability == schedule
+
+    def test_availability_empty_by_default(self, db):
+        inspector = InspectorFactory()
+        assert inspector.availability == {}
 
 
 class TestSubscriptionModel:

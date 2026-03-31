@@ -123,5 +123,4 @@ Q_CLUSTER = {
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# Encrypted fields
-FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="")
+# Encrypted fields — FIELD_ENCRYPTION_KEY must be set in environment or overridden in local/production settings

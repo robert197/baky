@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import models
 
+from apps.accounts.models import TimeStampedModel
 
-class Inspection(models.Model):
+
+class Inspection(TimeStampedModel):
     class Status(models.TextChoices):
         SCHEDULED = "scheduled", "Geplant"
         IN_PROGRESS = "in_progress", "Laufend"
@@ -31,8 +33,6 @@ class Inspection(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
     overall_rating = models.CharField(max_length=20, choices=OverallRating.choices, blank=True)
     general_notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-scheduled_at"]

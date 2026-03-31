@@ -2,6 +2,14 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         OWNER = "owner", "Owner"
@@ -10,6 +18,8 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.OWNER)
     phone = models.CharField(max_length=30, blank=True)
+    address = models.TextField(blank=True)
+    availability = models.JSONField(default=dict, blank=True, help_text="Inspector schedule data")
 
     def __str__(self) -> str:
         return f"{self.get_full_name() or self.username} ({self.role})"
@@ -23,7 +33,7 @@ class User(AbstractUser):
         return self.role == self.Role.INSPECTOR
 
 
-class Subscription(models.Model):
+class Subscription(TimeStampedModel):
     class Plan(models.TextChoices):
         BASIS = "basis", "Basis"
         EXTRA = "extra", "Extra"
@@ -44,8 +54,6 @@ class Subscription(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
     started_at = models.DateField()
     billing_cycle = models.CharField(max_length=20, choices=BillingCycle.choices, default=BillingCycle.MONTHLY)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-started_at"]
