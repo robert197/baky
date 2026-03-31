@@ -51,14 +51,15 @@ class ApartmentFactory(factory.django.DjangoModelFactory):
 class ChecklistTemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ChecklistTemplate
+        django_get_or_create = ("apartment",)
 
     apartment = factory.SubFactory(ApartmentFactory)
     name = factory.LazyAttribute(lambda obj: f"Checkliste — {obj.apartment.address}")
     items = factory.LazyFunction(
         lambda: [
-            {"category": "Eingang", "label": "Tür schließt korrekt", "type": "boolean"},
-            {"category": "Küche", "label": "Herd sauber", "type": "boolean"},
-            {"category": "Bad", "label": "Keine Wasserschäden", "type": "boolean"},
+            {"category": "Eingang", "label": "Tür schließt korrekt", "allowed_results": ["ok", "flagged"], "order": 1},
+            {"category": "Küche", "label": "Herd sauber", "allowed_results": ["ok", "flagged"], "order": 2},
+            {"category": "Bad", "label": "Keine Wasserschäden", "allowed_results": ["ok", "flagged"], "order": 3},
         ]
     )
 
