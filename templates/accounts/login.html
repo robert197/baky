@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Anmelden — BAKY{% endblock %}
+{% block body %}
+  <div class="flex min-h-screen items-center justify-center bg-surface px-4">
+    <div class="w-full max-w-md">
+      <div class="rounded-2xl bg-white p-8 shadow-lg">
+        <div class="mb-8 text-center">
+          <h1 class="text-2xl font-bold text-primary">Anmelden</h1>
+          <p class="mt-2 text-sm text-secondary">Willkommen zurück bei BAKY</p>
+        </div>
+        {% if form.errors %}
+          <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            Benutzername oder Passwort ist falsch.
+          </div>
+        {% endif %}
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          {% for field in form %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}<p class="mt-1 text-sm text-rose-600">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+          {% endfor %}
+          <input type="hidden" name="next" value="{{ next }}">
+          <button type="submit" class="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white transition hover:bg-slate-700">
+            Anmelden
+          </button>
+        </form>
+        <div class="mt-6 text-center">
+          <a href="{% url 'accounts:password-reset' %}" class="text-sm text-accent hover:underline">Passwort vergessen?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
