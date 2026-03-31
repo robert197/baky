@@ -1,0 +1,134 @@
+[
+  {
+    "category": "Allgemeiner Eindruck",
+    "label": "Wohnung wirkt sauber und ordentlich",
+    "allowed_results": ["ok", "flagged"],
+    "order": 1
+  },
+  {
+    "category": "Allgemeiner Eindruck",
+    "label": "Keine ungewöhnlichen Gerüche festgestellt",
+    "allowed_results": ["ok", "flagged"],
+    "order": 2
+  },
+  {
+    "category": "Allgemeiner Eindruck",
+    "label": "Temperatur und Belüftung angemessen",
+    "allowed_results": ["ok", "flagged"],
+    "order": 3
+  },
+  {
+    "category": "Küche",
+    "label": "Kühlschrank sauber und funktionsfähig",
+    "allowed_results": ["ok", "flagged"],
+    "order": 4
+  },
+  {
+    "category": "Küche",
+    "label": "Geschirrspüler sauber und funktionsfähig",
+    "allowed_results": ["ok", "flagged"],
+    "order": 5
+  },
+  {
+    "category": "Küche",
+    "label": "Herd/Ofen sauber und funktionsfähig",
+    "allowed_results": ["ok", "flagged"],
+    "order": 6
+  },
+  {
+    "category": "Küche",
+    "label": "Keine abgelaufenen Lebensmittel oder Abfall vorhanden",
+    "allowed_results": ["ok", "flagged"],
+    "order": 7
+  },
+  {
+    "category": "Badezimmer",
+    "label": "Badezimmer sauber und hygienisch",
+    "allowed_results": ["ok", "flagged"],
+    "order": 8
+  },
+  {
+    "category": "Badezimmer",
+    "label": "Kein Schimmel oder Feuchtigkeitsschäden sichtbar",
+    "allowed_results": ["ok", "flagged"],
+    "order": 9
+  },
+  {
+    "category": "Badezimmer",
+    "label": "Hygieneartikel/Zubehör laut Vereinbarung aufgefüllt",
+    "allowed_results": ["ok", "flagged", "na"],
+    "order": 10
+  },
+  {
+    "category": "Wohnbereiche",
+    "label": "Möbel intakt, keine sichtbaren Schäden",
+    "allowed_results": ["ok", "flagged"],
+    "order": 11
+  },
+  {
+    "category": "Wohnbereiche",
+    "label": "Fenster schließen und verriegeln korrekt",
+    "allowed_results": ["ok", "flagged"],
+    "order": 12
+  },
+  {
+    "category": "Wohnbereiche",
+    "label": "Alle Lampen und Leuchten funktionsfähig",
+    "allowed_results": ["ok", "flagged"],
+    "order": 13
+  },
+  {
+    "category": "Wohnbereiche",
+    "label": "TV/Unterhaltungssysteme funktionsfähig",
+    "allowed_results": ["ok", "flagged", "na"],
+    "order": 14
+  },
+  {
+    "category": "Geräte",
+    "label": "Waschmaschine sauber und funktionsfähig",
+    "allowed_results": ["ok", "flagged", "na"],
+    "order": 15
+  },
+  {
+    "category": "Geräte",
+    "label": "Trockner sauber und funktionsfähig",
+    "allowed_results": ["ok", "flagged", "na"],
+    "order": 16
+  },
+  {
+    "category": "Schlafzimmer",
+    "label": "Bettwäsche frisch und ordentlich gemacht",
+    "allowed_results": ["ok", "flagged"],
+    "order": 17
+  },
+  {
+    "category": "Schlafzimmer",
+    "label": "Matratze in gutem Zustand",
+    "allowed_results": ["ok", "flagged"],
+    "order": 18
+  },
+  {
+    "category": "Zugang & Sicherheit",
+    "label": "Alle Schlüssel/Schlüsselbox vollständig",
+    "allowed_results": ["ok", "flagged"],
+    "order": 19
+  },
+  {
+    "category": "Zugang & Sicherheit",
+    "label": "Eingangstür schließt ordnungsgemäß",
+    "allowed_results": ["ok", "flagged"],
+    "order": 20
+  },
+  {
+    "category": "Nach der Reinigung",
+    "label": "Reinigung entspricht vereinbartem Standard",
+    "allowed_results": ["ok", "flagged"],
+    "order": 21
+  },
+  {
+    "category": "Nach der Reinigung",
+    "label": "Alle Gästeartikel aufgefüllt",
+    "allowed_results": ["ok", "flagged", "na"],
+    "order": 22
+  }
+]
