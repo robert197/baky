@@ -17,7 +17,7 @@ context window. You have NO memory of previous iterations. All state is in files
 3. Read the roadmap to find your next task
 4. Check `docs/solutions/` for relevant past learnings
 
-## Step 1: Assess Current State
+## Step 1: Assess and Recover
 
 ```bash
 # Where am I?
@@ -27,30 +27,67 @@ git log --oneline -5
 
 # Is Docker running? If not, start it.
 docker compose ps 2>/dev/null || make up
+```
 
-# Are there uncommitted changes from a previous iteration?
-# If yes: finish that work first (run tests, commit, merge).
+**Handle dirty state from a crashed previous iteration:**
 
-# Check for past learnings relevant to current work
-ls docs/solutions/ 2>/dev/null
+```bash
+branch=$(git branch --show-current)
+status=$(git status --porcelain)
+
+# Case A: On main with uncommitted changes → discard (leftover from crash)
+if [ "$branch" = "main" ] && [ -n "$status" ]; then
+  git checkout -- .
+  git clean -fd
+fi
+
+# Case B: On a feature branch with a merged PR → the PR was merged but
+# the iteration crashed before returning to main. Clean up.
+if [ "$branch" != "main" ]; then
+  issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
+  # Check if a PR for this branch was already merged
+  pr_state=$(gh pr list -R robert197/baky --head "$branch" --state merged --json number -q 'length' 2>/dev/null)
+  if [ "$pr_state" = "1" ]; then
+    # PR already merged — just return to main
+    git checkout main
+    git pull origin main
+    git branch -D "$branch" 2>/dev/null
+    # Skip to Step 3 (pick next issue)
+  fi
+fi
+```
+
+Check for past learnings:
+```bash
+ls docs/solutions/*/ 2>/dev/null | head -20
 ```
 
 ## Step 2: Check if Current Feature Branch Has Work
 
-If you're on a feature branch (not `main`):
+If you're on a feature branch (not `main`) and the PR was NOT already merged:
 1. Check if the feature is complete (all acceptance criteria met)
 2. Run `make test` and `make lint`
 3. If tests pass: go to Step 7 (Review) to finish shipping
-4. If tests fail: fix them first
+4. If tests fail: fix them, then proceed to Step 7
 
 ```bash
 branch=$(git branch --show-current)
 if [ "$branch" != "main" ]; then
   issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
-  make lint
-  make test
-  # If passing → skip to Step 7
-  # If failing → fix issues, then proceed to Step 7
+
+  # Check if issue is already closed (previous iteration completed it)
+  issue_state=$(gh issue view "$issue_num" -R robert197/baky --json state -q .state 2>/dev/null)
+  if [ "$issue_state" = "CLOSED" ]; then
+    git checkout main
+    git pull origin main
+    git branch -D "$branch" 2>/dev/null
+    # Skip to Step 3
+  else
+    make lint
+    make test
+    # If passing → skip to Step 7 (Review)
+    # If failing → fix issues, then proceed to Step 7
+  fi
 fi
 ```
 
@@ -178,13 +215,10 @@ make lint
 ## Step 8: Ship — Create PR and Merge
 
 ```bash
-# Stage any remaining changes
+# Stage any remaining changes (skip if nothing to commit)
 git add -A
-git status
-git diff --staged | head -200
-
-# Final commit with issue reference
-git commit -m "$(cat <<'EOF'
+if [ -n "$(git status --porcelain)" ]; then
+  git commit -m "$(cat <<'EOF'
 feat(<scope>): <description>
 
 Closes #<issue_number>
@@ -192,14 +226,20 @@ Closes #<issue_number>
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
+fi
 
 # Push feature branch
-git push -u origin feat/<number>-<short-description>
+branch=$(git branch --show-current)
+git push -u origin "$branch"
 
-# Create Pull Request with full context
-gh pr create \
-  --title "feat(<scope>): <short description>" \
-  --body "$(cat <<'PRBODY'
+# Check if PR already exists for this branch (from a crashed previous attempt)
+existing_pr=$(gh pr list -R robert197/baky --head "$branch" --state open --json number -q '.[0].number' 2>/dev/null)
+
+if [ -z "$existing_pr" ]; then
+  # Create new PR
+  gh pr create \
+    --title "feat(<scope>): <short description>" \
+    --body "$(cat <<'PRBODY'
 ## Summary
 <What was built and why>
 
@@ -221,13 +261,17 @@ Closes #<issue_number>
 Co-Authored-By: Claude <noreply@anthropic.com>
 PRBODY
 )"
+fi
 
-# Merge the PR and delete the branch
-gh pr merge --merge --delete-branch
+# Merge the PR (auto-deletes branch via repo setting)
+gh pr merge --merge
 
 # Return to main
 git checkout main
 git pull origin main
+
+# Clean up local branch if it still exists
+git branch -D "$branch" 2>/dev/null
 ```
 
 ## Step 9: Compound — Document Learnings
