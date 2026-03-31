@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.accounts.models import TimeStampedModel
+from baky.storage import generate_thumbnail_path, generate_upload_path, validate_photo_file
 
 
 class Inspection(TimeStampedModel):
@@ -85,8 +86,8 @@ class Photo(models.Model):
         null=True,
         blank=True,
     )
-    file = models.ImageField(upload_to="photos/%Y/%m/")
-    thumbnail = models.ImageField(upload_to="photos/thumbs/%Y/%m/", blank=True)
+    file = models.ImageField(upload_to=generate_upload_path, validators=[validate_photo_file])
+    thumbnail = models.ImageField(upload_to=generate_thumbnail_path, blank=True)
     caption = models.CharField(max_length=255, blank=True)
     taken_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,3 +97,20 @@ class Photo(models.Model):
 
     def __str__(self) -> str:
         return f"Photo #{self.pk} — {self.caption or 'Kein Titel'}"
+
+    def save(self, *args, **kwargs) -> None:
+        import os
+
+        from baky.storage import convert_heic_to_jpeg, create_thumbnail
+
+        # Convert HEIC/HEIF to JPEG before saving
+        if self.file and not self.pk:
+            ext = os.path.splitext(self.file.name)[1].lower()
+            if ext in (".heic", ".heif"):
+                self.file = convert_heic_to_jpeg(self.file)
+
+        # Auto-generate thumbnail on first save
+        if self.file and not self.thumbnail:
+            self.thumbnail = create_thumbnail(self.file)
+
+        super().save(*args, **kwargs)
