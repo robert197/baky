@@ -11,6 +11,10 @@ factory-boy>=3.3
 
 # Linting
 ruff>=0.5
+djlint>=1.34
+
+# Pre-commit
+pre-commit>=3.7
 
 # Dev utilities
 ipython>=8.0

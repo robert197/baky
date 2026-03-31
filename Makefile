@@ -65,6 +65,8 @@ test:
 lint:
 	docker compose exec web ruff check .
 	docker compose exec web ruff format --check .
+	docker compose exec web djlint templates/ --lint
+	docker compose exec web djlint templates/ --check
 
 e2e:
 	@echo "E2E tests not yet configured (see issue #5)"

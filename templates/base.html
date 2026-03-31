@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}BAKY{% endblock %}</title>
+    <title>
+      {% block title %}BAKY{% endblock %}
+    </title>
     {% block extra_head %}{% endblock %}
-</head>
-<body>
+  </head>
+  <body>
     {% block content %}{% endblock %}
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>
