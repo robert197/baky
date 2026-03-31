@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body %}
+  <!-- Top bar -->
+  <header class="fixed inset-x-0 top-0 z-40 border-b border-border bg-white">
+    <div class="flex items-center justify-between px-4 py-3">
+      <span class="text-lg font-bold text-primary">BAKY</span>
+      <h1 class="text-sm font-medium text-secondary">
+        {% block page_title %}{% endblock %}
+      </h1>
+      <div>
+        {% block page_actions %}{% endblock %}
+      </div>
+    </div>
+  </header>
+  <!-- Content area with top/bottom padding for fixed bars -->
+  <main id="main-content" role="main" class="bg-surface pb-20 pt-14">
+    <div class="px-4 py-4">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  {% include "components/_bottom_nav.html" %}
+{% endblock %}
