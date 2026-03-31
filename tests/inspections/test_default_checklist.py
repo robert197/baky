@@ -98,17 +98,17 @@ class TestDefaultChecklistFixture:
 
 
 @pytest.mark.django_db
-class TestLoadDefaultChecklistCommand:
+class TestShowDefaultChecklistCommand:
     def test_command_runs_successfully(self):
         out = StringIO()
-        call_command("load_default_checklist", stdout=out)
+        call_command("show_default_checklist", stdout=out)
         output = out.getvalue()
         assert "22" in output
         assert "Loaded" in output
 
     def test_command_lists_all_categories(self):
         out = StringIO()
-        call_command("load_default_checklist", stdout=out)
+        call_command("show_default_checklist", stdout=out)
         output = out.getvalue()
         for category in EXPECTED_CATEGORIES:
             assert category in output, f"Category '{category}' not in command output"
