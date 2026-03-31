@@ -29,8 +29,9 @@ CB_PERMISSION_DENIAL_THRESHOLD=2
 CB_COOLDOWN_MINUTES=15
 CB_AUTO_RESET=true
 
-# Exit signal thresholds — high to prevent premature exit
-# Ralph's response analyzer picks up "done"/"complete" from normal dev output
-# (git logs, issue titles, etc.) so we need high thresholds
-MAX_CONSECUTIVE_DONE_SIGNALS=10
-MAX_CONSECUTIVE_TEST_LOOPS=8
+# Exit signal thresholds — effectively disabled
+# The ONLY valid exit is the completion promise (MVP_COMPLETE) which fires
+# when gh issue list returns 0 open MVP issues. All other exit detection
+# is disabled to prevent false stops from keywords in normal dev output.
+MAX_CONSECUTIVE_DONE_SIGNALS=9999
+MAX_CONSECUTIVE_TEST_LOOPS=9999
