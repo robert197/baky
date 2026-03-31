@@ -2,7 +2,7 @@ import pytest
 from django.db import IntegrityError
 
 from apps.apartments.models import Apartment, ChecklistTemplate
-from tests.factories import ApartmentFactory, ChecklistTemplateFactory, OwnerFactory
+from tests.factories import ApartmentFactory, OwnerFactory
 
 
 class TestApartmentModel:
@@ -103,8 +103,8 @@ class TestChecklistTemplateModel:
         assert len(template.items) > 0
 
     def test_related_name(self, db, apartment):
-        template = ChecklistTemplateFactory(apartment=apartment)
-        assert apartment.checklist_template == template
+        assert apartment.checklist_template is not None
+        assert apartment.checklist_template.apartment == apartment
 
     def test_ordering(self, db):
         owner = OwnerFactory()

@@ -155,6 +155,34 @@ class TestChecklistItemsValidation:
         with pytest.raises(ValidationError):
             template.full_clean()
 
+    def test_empty_allowed_results_rejected(self, db):
+        apartment = ApartmentFactory()
+        template = apartment.checklist_template
+        template.items = [
+            {
+                "category": "Test",
+                "label": "Test",
+                "allowed_results": [],
+                "order": 1,
+            },
+        ]
+        with pytest.raises(ValidationError, match="allowed_results"):
+            template.full_clean()
+
+    def test_boolean_order_rejected(self, db):
+        apartment = ApartmentFactory()
+        template = apartment.checklist_template
+        template.items = [
+            {
+                "category": "Test",
+                "label": "Test",
+                "allowed_results": ["ok", "flagged"],
+                "order": True,
+            },
+        ]
+        with pytest.raises(ValidationError, match="order"):
+            template.full_clean()
+
     def test_german_characters_in_labels(self, db):
         apartment = ApartmentFactory()
         template = apartment.checklist_template

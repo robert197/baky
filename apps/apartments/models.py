@@ -28,14 +28,14 @@ def validate_checklist_items(value: list) -> None:
         if not isinstance(item["label"], str) or not item["label"]:
             raise ValidationError(f"Item {i}: label must be a non-empty string.")
 
-        if not isinstance(item["allowed_results"], list):
-            raise ValidationError(f"Item {i}: allowed_results must be a list.")
+        if not isinstance(item["allowed_results"], list) or not item["allowed_results"]:
+            raise ValidationError(f"Item {i}: allowed_results must be a non-empty list.")
 
         invalid = set(item["allowed_results"]) - VALID_RESULTS
         if invalid:
             raise ValidationError(f"Item {i}: allowed_results contains invalid values: {', '.join(sorted(invalid))}")
 
-        if not isinstance(item["order"], int) or item["order"] < 1:
+        if not isinstance(item["order"], int) or isinstance(item["order"], bool) or item["order"] < 1:
             raise ValidationError(f"Item {i}: order must be a positive integer.")
 
 
