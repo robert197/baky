@@ -6,7 +6,7 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from PIL import Image
+from PIL import Image, ImageOps
 
 # Maximum upload size: 10 MB
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024
@@ -58,11 +58,17 @@ def generate_thumbnail_path(instance, filename: str) -> str:
     return f"photos/thumbs/{now.year}/{now.month:02d}/{unique_name}"
 
 
+_heif_registered = False
+
+
 def convert_heic_to_jpeg(file) -> ContentFile:
     """Convert a HEIC/HEIF file to JPEG format."""
-    import pillow_heif
+    global _heif_registered  # noqa: PLW0603
+    if not _heif_registered:
+        import pillow_heif
 
-    pillow_heif.register_heif_opener()
+        pillow_heif.register_heif_opener()
+        _heif_registered = True
 
     img = Image.open(file)
     img = img.convert("RGB")
@@ -77,7 +83,9 @@ def convert_heic_to_jpeg(file) -> ContentFile:
 
 def create_thumbnail(file) -> ContentFile:
     """Create a JPEG thumbnail from an image file, max 300x300 maintaining aspect ratio."""
+    file.seek(0)
     img = Image.open(file)
+    img = ImageOps.exif_transpose(img)
     img = img.convert("RGB")
     img.thumbnail(THUMBNAIL_MAX_SIZE, Image.LANCZOS)
 
@@ -100,16 +108,9 @@ def get_signed_url(file_field, expiry: int = 86400) -> str | None:
 
     storage = file_field.storage
     if hasattr(storage, "url"):
-        # S3Boto3Storage.url() generates signed URLs when AWS_QUERYSTRING_AUTH is True
+        # S3Boto3Storage supports passing parameters for signed URL generation
         if hasattr(storage, "querystring_auth"):
-            # Temporarily set expiry for this URL generation
-            original_expire = getattr(storage, "querystring_expire", None)
-            storage.querystring_expire = expiry
-            try:
-                return storage.url(file_field.name)
-            finally:
-                if original_expire is not None:
-                    storage.querystring_expire = original_expire
+            return storage.url(file_field.name, expire=expiry)
         # Local filesystem — just return the regular URL
         return file_field.url
     return None

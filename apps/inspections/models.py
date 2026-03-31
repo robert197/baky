@@ -111,6 +111,7 @@ class Photo(models.Model):
 
         # Auto-generate thumbnail on first save
         if self.file and not self.thumbnail:
+            self.file.seek(0)
             self.thumbnail = create_thumbnail(self.file)
 
         super().save(*args, **kwargs)
