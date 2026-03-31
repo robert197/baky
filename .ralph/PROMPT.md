@@ -147,7 +147,94 @@ For each piece of functionality:
 4. **Run tests** to confirm green: `make test`
 5. **Commit** with conventional message: `feat(<scope>): description`
 
-Follow CLAUDE.md conventions:
+### Testing Requirements — NON-NEGOTIABLE
+
+Every feature MUST have comprehensive tests. Weak or missing tests are a blocker — do not
+ship without them. The test suite is our safety net for the entire autopilot pipeline.
+
+**For every model:**
+```python
+# tests/<app>/test_models.py
+class TestModelName:
+    def test_create(self): ...                    # Basic creation works
+    def test_str(self): ...                       # __str__ returns expected value
+    def test_field_constraints(self): ...         # Required fields, max_length, choices
+    def test_relationships(self): ...             # ForeignKey, related_name, cascade
+    def test_ordering(self): ...                  # Default ordering from Meta
+    def test_business_logic(self): ...            # Any model methods
+    def test_invalid_data_rejected(self): ...     # ValidationError on bad input
+```
+
+**For every view:**
+```python
+# tests/<app>/test_views.py
+class TestViewName:
+    def test_get_success(self): ...               # 200 on valid request
+    def test_requires_auth(self): ...             # 302 redirect when not logged in
+    def test_wrong_role_gets_404(self): ...       # Owner can't access inspector views
+    def test_scoped_to_user(self): ...            # Owner only sees own data
+    def test_post_creates_object(self): ...       # Form submission works
+    def test_post_invalid_data(self): ...         # Form validation errors shown
+    def test_htmx_partial_response(self): ...     # HX-Request header returns partial
+    def test_context_contains_expected_data(self): ... # Template gets correct context
+```
+
+**For every form/serializer:**
+```python
+# tests/<app>/test_forms.py
+class TestFormName:
+    def test_valid_data(self): ...                # Clean data accepted
+    def test_required_fields(self): ...           # Missing required → error
+    def test_field_validation(self): ...          # Email format, phone format, etc.
+    def test_custom_clean_methods(self): ...      # Business logic in clean()
+```
+
+**For every background task:**
+```python
+# tests/<app>/test_tasks.py
+class TestTaskName:
+    def test_task_completes(self): ...            # Happy path
+    def test_task_with_invalid_input(self): ...   # Handles bad data gracefully
+    def test_task_idempotent(self): ...           # Safe to run twice
+```
+
+**For every API endpoint / integration point:**
+```python
+class TestIntegration:
+    def test_full_flow(self): ...                 # Complete user journey
+    def test_error_handling(self): ...            # External service failure
+```
+
+### Test Quality Rules
+
+1. **Use factories, not fixtures.** `OwnerFactory()`, `ApartmentFactory()`, `InspectionFactory()` — never hardcode test data inline.
+2. **Test behavior, not implementation.** Assert on what the user sees, not internal state.
+3. **One assertion per concept.** Multiple related asserts in one test is fine, but each test should have a single reason to fail.
+4. **Name tests descriptively.** `test_owner_cannot_see_other_owners_apartment` not `test_apartment_2`.
+5. **Test edge cases.** Empty lists, maximum lengths, boundary values, unicode (German umlauts: ä, ö, ü, ß).
+6. **Test permissions seriously.** Every authenticated view needs tests for: unauthenticated, wrong role, correct role but wrong data (owner A accessing owner B's data).
+7. **No mocking the database.** Tests hit the real PostgreSQL via pytest-django. Mock only external services (S3, email API).
+8. **Run tests after EVERY change.** Not at the end. `make test` after each commit.
+
+### Minimum Test Coverage Per Issue
+
+Before shipping any issue, verify:
+```bash
+make test ARGS="--tb=short -q"
+# Count: does this feature have at least the tests listed above?
+```
+
+| Feature Type | Minimum Tests |
+|-------------|---------------|
+| New model | 5+ tests (create, str, constraints, relationships, business logic) |
+| New view | 5+ tests (success, auth, role, scope, form handling) |
+| New form | 3+ tests (valid, required fields, validation) |
+| New task | 3+ tests (happy path, bad input, idempotent) |
+| Full feature (model + view + form) | 15+ tests combined |
+
+**If a feature has fewer tests than the minimum, write more before proceeding.**
+
+### Conventions
 - All commands via `make` (Docker)
 - Django patterns: fat models, thin views
 - Tailwind CSS for styling (use color tokens from CLAUDE.md Design Context)
@@ -166,17 +253,30 @@ Before moving to review, run the full validation suite:
 # 1. Linting
 make lint
 
-# 2. Full test suite
-make test
+# 2. Full test suite with verbose output
+make test ARGS="-v --tb=short"
 
 # 3. Django system checks
 make manage CMD="check"
 
 # 4. E2E validation (if UI features exist)
 make e2e 2>/dev/null || echo "E2E tests not yet set up"
+
+# 5. Test coverage check — count tests added in this branch
+git diff main --stat -- 'tests/' | tail -1
+# Verify new test files were added/modified for this feature
 ```
 
 ALL must pass. If any fail, fix and re-run. Do NOT proceed to review with failing tests.
+
+**Test completeness check:** Before moving on, verify:
+- Did you write tests for every model added/modified?
+- Did you write tests for every view added/modified?
+- Did you test authentication and authorization for every endpoint?
+- Did you test edge cases (empty data, invalid input, German characters)?
+- Does the test count meet the minimums from Step 5?
+
+If the answer to ANY of these is no, go back and write the missing tests.
 
 ## Step 7: Review (Compound Engineering)
 
