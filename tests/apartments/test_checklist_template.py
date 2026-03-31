@@ -183,6 +183,35 @@ class TestChecklistItemsValidation:
         with pytest.raises(ValidationError, match="order"):
             template.full_clean()
 
+    def test_order_zero_rejected(self, db):
+        apartment = ApartmentFactory()
+        template = apartment.checklist_template
+        template.items = [
+            {
+                "category": "Test",
+                "label": "Test",
+                "allowed_results": ["ok", "flagged"],
+                "order": 0,
+            },
+        ]
+        with pytest.raises(ValidationError, match="order"):
+            template.full_clean()
+
+    def test_extra_keys_rejected(self, db):
+        apartment = ApartmentFactory()
+        template = apartment.checklist_template
+        template.items = [
+            {
+                "category": "Test",
+                "label": "Test",
+                "allowed_results": ["ok", "flagged"],
+                "order": 1,
+                "extra_field": "should not be allowed",
+            },
+        ]
+        with pytest.raises(ValidationError, match="unexpected keys"):
+            template.full_clean()
+
     def test_german_characters_in_labels(self, db):
         apartment = ApartmentFactory()
         template = apartment.checklist_template

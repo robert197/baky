@@ -22,6 +22,10 @@ def validate_checklist_items(value: list) -> None:
         if missing:
             raise ValidationError(f"Item {i} is missing required keys: {', '.join(sorted(missing))}")
 
+        extra = item.keys() - REQUIRED_ITEM_KEYS
+        if extra:
+            raise ValidationError(f"Item {i} contains unexpected keys: {', '.join(sorted(extra))}")
+
         if not isinstance(item["category"], str) or not item["category"]:
             raise ValidationError(f"Item {i}: category must be a non-empty string.")
 
