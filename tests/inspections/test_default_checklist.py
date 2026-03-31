@@ -52,9 +52,8 @@ class TestDefaultChecklistFixture:
         items = get_default_checklist_items()
         for item in items:
             for result in item["allowed_results"]:
-                assert (
-                    result in VALID_RESULTS
-                ), f"Item '{item['label']}' has invalid result '{result}'. Valid: {VALID_RESULTS}"
+                msg = f"Item '{item['label']}' has invalid result '{result}'. Valid: {VALID_RESULTS}"
+                assert result in VALID_RESULTS, msg
 
     def test_order_is_sequential(self):
         items = get_default_checklist_items()
