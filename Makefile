@@ -62,6 +62,9 @@ manage:
 test:
 	docker compose exec web pytest $(ARGS)
 
+coverage:  ## Run tests with coverage report
+	docker compose exec web pytest --cov=apps --cov-report=term-missing $(ARGS)
+
 lint:
 	docker compose exec web ruff check .
 	docker compose exec web ruff format --check .
