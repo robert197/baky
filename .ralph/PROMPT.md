@@ -41,7 +41,6 @@ If you're on a feature branch (not `main`):
 ```bash
 branch=$(git branch --show-current)
 if [ "$branch" != "main" ]; then
-  # Extract issue number from branch name: feat/7-core-models -> 7
   issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
 
   make lint
