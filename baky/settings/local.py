@@ -9,5 +9,17 @@ INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
 INTERNAL_IPS = ["127.0.0.1", "0.0.0.0"]
 
-# Console email
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Docker: add gateway IPs so debug toolbar works inside containers
+import socket  # noqa: E402
+
+_, _, ips = socket.gethostbyname_ex(socket.gethostname())
+INTERNAL_IPS += [ip[: ip.rfind(".")] + ".1" for ip in ips]
+
+# Email: use Mailpit SMTP when EMAIL_HOST is set (Docker), else console
+EMAIL_HOST = env("EMAIL_HOST", default="")  # noqa: F405
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = env.int("EMAIL_PORT", default=1025)  # noqa: F405
+    EMAIL_USE_TLS = False
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

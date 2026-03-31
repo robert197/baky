@@ -1,0 +1,74 @@
+services:
+  web:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8010:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://baky:baky@db:5432/baky
+      - SECRET_KEY=django-insecure-docker-dev-key
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - EMAIL_HOST=mailpit
+      - EMAIL_PORT=1025
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=baky
+      - POSTGRES_USER=baky
+      - POSTGRES_PASSWORD=baky
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baky"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: dev
+    command: python manage.py qcluster
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://baky:baky@db:5432/baky
+      - SECRET_KEY=django-insecure-docker-dev-key
+      - DEBUG=True
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  tailwind:
+    image: node:20-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - tailwind_node_modules:/app/node_modules
+    command: ["sh", "-c", "npm install && npx tailwindcss -i static/css/input.css -o static/css/output.css --watch"]
+    tty: true
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8026:8025"
+      - "1026:1025"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  tailwind_node_modules:
