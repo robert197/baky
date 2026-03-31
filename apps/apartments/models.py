@@ -1,8 +1,42 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from encrypted_model_fields.fields import EncryptedTextField
 
 from apps.accounts.models import TimeStampedModel
+
+VALID_RESULTS = {"ok", "flagged", "na"}
+REQUIRED_ITEM_KEYS = {"category", "label", "allowed_results", "order"}
+
+
+def validate_checklist_items(value: list) -> None:
+    """Validate that checklist items conform to the expected JSON schema."""
+    if not isinstance(value, list):
+        raise ValidationError("items must be a list.")
+
+    for i, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise ValidationError(f"Item {i} must be a dict.")
+
+        missing = REQUIRED_ITEM_KEYS - item.keys()
+        if missing:
+            raise ValidationError(f"Item {i} is missing required keys: {', '.join(sorted(missing))}")
+
+        if not isinstance(item["category"], str) or not item["category"]:
+            raise ValidationError(f"Item {i}: category must be a non-empty string.")
+
+        if not isinstance(item["label"], str) or not item["label"]:
+            raise ValidationError(f"Item {i}: label must be a non-empty string.")
+
+        if not isinstance(item["allowed_results"], list):
+            raise ValidationError(f"Item {i}: allowed_results must be a list.")
+
+        invalid = set(item["allowed_results"]) - VALID_RESULTS
+        if invalid:
+            raise ValidationError(f"Item {i}: allowed_results contains invalid values: {', '.join(sorted(invalid))}")
+
+        if not isinstance(item["order"], int) or item["order"] < 1:
+            raise ValidationError(f"Item {i}: order must be a positive integer.")
 
 
 class Apartment(TimeStampedModel):
@@ -43,7 +77,9 @@ class ChecklistTemplate(TimeStampedModel):
     name = models.CharField(max_length=255)
     items = models.JSONField(
         default=list,
-        help_text="Array of {category, label, type} objects",
+        blank=True,
+        validators=[validate_checklist_items],
+        help_text="Array of {category, label, allowed_results, order} objects",
     )
 
     class Meta:

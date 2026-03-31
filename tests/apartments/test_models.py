@@ -77,23 +77,30 @@ class TestChecklistTemplateModel:
         assert checklist_template.name in result
         assert checklist_template.apartment.address in result
 
-    def test_one_template_per_apartment(self, db, apartment):
-        ChecklistTemplateFactory(apartment=apartment)
+    def test_one_template_per_apartment(self, db):
+        owner = OwnerFactory()
+        apartment = ApartmentFactory(owner=owner)
+        # Signal already created one template
+        assert ChecklistTemplate.objects.filter(apartment=apartment).count() == 1
+        # Manually trying to create another should fail
         with pytest.raises(IntegrityError):
-            ChecklistTemplateFactory(apartment=apartment)
+            ChecklistTemplate.objects.create(
+                apartment=apartment,
+                name="Duplicate",
+                items=[],
+            )
 
     def test_items_json_structure(self, checklist_template):
         for item in checklist_template.items:
             assert "category" in item
             assert "label" in item
-            assert "type" in item
+            assert "allowed_results" in item
+            assert "order" in item
 
-    def test_empty_items_default(self, db, apartment):
-        template = ChecklistTemplate.objects.create(
-            apartment=apartment,
-            name="Empty template",
-        )
-        assert template.items == []
+    def test_auto_created_template_has_items(self, db, apartment):
+        # The signal auto-creates a template with default items
+        template = apartment.checklist_template
+        assert len(template.items) > 0
 
     def test_related_name(self, db, apartment):
         template = ChecklistTemplateFactory(apartment=apartment)
@@ -103,8 +110,12 @@ class TestChecklistTemplateModel:
         owner = OwnerFactory()
         apt1 = ApartmentFactory(owner=owner)
         apt2 = ApartmentFactory(owner=owner)
-        t1 = ChecklistTemplateFactory(apartment=apt1, name="B-Template")
-        t2 = ChecklistTemplateFactory(apartment=apt2, name="A-Template")
+        t1 = apt1.checklist_template
+        t2 = apt2.checklist_template
+        t1.name = "B-Template"
+        t1.save()
+        t2.name = "A-Template"
+        t2.save()
         templates = list(ChecklistTemplate.objects.all())
         assert templates[0] == t2  # Alphabetical by name
         assert templates[1] == t1
