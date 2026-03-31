@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-exclude = [".update_roadmap.py", ".pr_body.md"]
+exclude = [".update_roadmap*.py", ".pr_body*.md", ".roadmap_*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "DJ"]
