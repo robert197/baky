@@ -33,6 +33,7 @@ THIRD_PARTY_APPS = [
     "django_htmx",
     "storages",
     "django_q",
+    "encrypted_model_fields",
 ]
 
 LOCAL_APPS = [
@@ -121,3 +122,6 @@ Q_CLUSTER = {
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Encrypted fields
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="")
