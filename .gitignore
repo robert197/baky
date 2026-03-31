@@ -40,6 +40,7 @@ Thumbs.db
 # Node (Tailwind)
 node_modules/
 package-lock.json
+static/css/output.css
 
 # Static files (collected)
 staticfiles/
