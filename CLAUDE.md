@@ -163,6 +163,49 @@ baky/
 6. **Commit and PR**: Follow git conventions above
 7. **Close issue** and update roadmap
 
+## Autopilot Development (Ralph Loop)
+
+BAKY can be built autonomously using Ralph Loop. The autopilot:
+
+1. Reads the roadmap (#44) each iteration
+2. Picks the first unblocked issue
+3. Creates a feature branch
+4. Implements with TDD (failing test → implementation → passing test)
+5. Runs full validation (lint + tests + e2e)
+6. Merges to main, closes the issue
+7. Updates the roadmap checklist
+8. Repeats until MVP is complete
+
+### Commands
+- `/autopilot` — Pre-flight check and start Ralph Loop
+- `/autopilot --status` — Check autopilot progress
+- `/validate` — Run validation suite manually
+- `/validate --full` — Full validation including e2e
+- `/baky-status` — Overall project status
+- `/cancel-ralph` — Stop the autopilot
+
+### Seed Data
+Seeds grow incrementally with features. See `/seed-strategy` skill.
+Each layer is added when its feature is built, and all previous seeds remain valid.
+E2E tests rely on seed data being present.
+
+### Validation Gates
+| Gate | When | What Runs |
+|------|------|-----------|
+| Pre-merge | Before merging feature to main | `make lint` + `make test` + `make e2e` |
+| Post-merge | After merge to main | `make test` (smoke) |
+| Phase complete | After roadmap phase done | Full validation |
+
+### Makefile Targets (Docker)
+
+The Makefile must include these targets (implemented in issue #3):
+
+```makefile
+e2e:          # Run pytest-playwright e2e tests
+validate:     # Run full validation suite (lint + test + check + e2e)
+seed:         # Load all seed data via seed_all management command
+```
+
 ## Design Context
 
 ### Users

@@ -36,6 +36,14 @@ This project is built with Claude Code. See [CLAUDE.md](CLAUDE.md) for conventio
 | `/design-page` | Design a beautiful page with BAKY's design system |
 | `/inspect-flow` | Domain guide for inspection features |
 
+### Autopilot (Ralph Loop)
+
+| Skill | Description |
+|-------|------------|
+| `/autopilot` | Start Ralph Loop for autonomous MVP development |
+| `/validate` | Run full validation suite (lint + tests + e2e) |
+| `/seed-strategy` | Reference for incremental seed data |
+
 ### Compound Engineering Workflows
 
 | Workflow | When to Use |
@@ -45,6 +53,22 @@ This project is built with Claude Code. See [CLAUDE.md](CLAUDE.md) for conventio
 | `/ce:work` | Executing a plan |
 | `/ce:compound` | Documenting a solved problem |
 | `/ce:review` | Code review before merging |
+
+## Autopilot Development
+
+BAKY supports fully autonomous development via [Ralph Loop](https://github.com/frankbria/ralph-claude-code):
+
+```bash
+# Phase 0: Bootstrap (manual — sets up Django, Docker, tests)
+# Complete issues #1, #29, #3, #5 first
+
+# Phase 1: Autopilot (autonomous)
+/autopilot
+# Ralph picks issues from roadmap, implements with TDD,
+# validates with e2e tests, and merges automatically.
+```
+
+See [CLAUDE.md](CLAUDE.md) for full autopilot documentation.
 
 ## Tech Stack
 

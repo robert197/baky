@@ -1,0 +1,195 @@
+# BAKY Autopilot — Ralph Development Loop
+
+You are building BAKY, an apartment inspection platform for short-term rentals in Vienna.
+This prompt runs in a loop. Each iteration, you wake up, assess where you are, and continue building.
+
+## CRITICAL: Read This Every Iteration
+
+1. Read CLAUDE.md for project conventions
+2. Check git status to understand current state
+3. Read the roadmap to find your next task
+
+## Step 1: Assess Current State
+
+```bash
+# Where am I?
+git branch --show-current
+git status
+git log --oneline -5
+
+# Is Docker running? If not, start it.
+docker compose ps 2>/dev/null || make up
+
+# Are there uncommitted changes from a previous iteration?
+# If yes: finish that work first (run tests, commit, merge).
+```
+
+## Step 2: Check if Current Feature Branch Has Work
+
+If you're on a feature branch (not `main`):
+1. Check if the feature is complete (all acceptance criteria met)
+2. Run `make test` and `make lint`
+3. If tests pass: merge to main and close the issue
+4. If tests fail: fix them first
+
+```bash
+# Merge completed feature to main
+branch=$(git branch --show-current)
+if [ "$branch" != "main" ]; then
+  # Extract issue number from branch name: feat/7-core-models -> 7
+  issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
+
+  make lint
+  make test
+
+  # If both pass, merge
+  git checkout main
+  git pull origin main
+  git merge "$branch" --no-edit
+  git push origin main
+  git branch -d "$branch"
+
+  # Close issue and update roadmap
+  gh issue close "$issue_num" -R robert197/baky
+fi
+```
+
+## Step 3: Pick the Next Issue from Roadmap
+
+```bash
+# Read the roadmap
+gh issue view 44 -R robert197/baky
+```
+
+Parse the roadmap body. Find the first `- [ ]` item where ALL dependencies (issues after `←`) are closed.
+
+To check if a dependency is closed:
+```bash
+gh issue view <number> -R robert197/baky --json state -q .state
+# Returns "CLOSED" or "OPEN"
+```
+
+The first unchecked item with all dependencies CLOSED is your next task.
+
+## Step 4: Read the Issue and Plan
+
+```bash
+gh issue view <number> -R robert197/baky
+```
+
+Read the full issue. Understand:
+- What needs to be built
+- Acceptance criteria (the checkboxes)
+- Dependencies on other code already in the codebase
+
+Create a feature branch:
+```bash
+git checkout main
+git pull origin main
+git checkout -b feat/<number>-<short-description>
+```
+
+## Step 5: Implement with TDD
+
+For each piece of functionality:
+1. **Write a failing test** first
+2. **Run it** to confirm it fails: `make test ARGS="-k test_name"`
+3. **Write minimal code** to make it pass
+4. **Run tests** to confirm green: `make test`
+5. **Commit** with conventional message: `feat(<scope>): description`
+
+Follow CLAUDE.md conventions:
+- All commands via `make` (Docker)
+- Django patterns: fat models, thin views
+- Tailwind CSS for styling (use color tokens from CLAUDE.md Design Context)
+- HTMX for dynamic content
+- Mobile-first design
+- German for user-facing text, English for code
+
+When implementing seed data for a new feature, add it as an idempotent management command
+following the seed strategy in `.claude/skills/seed-strategy.md`.
+
+## Step 6: Run Full Validation
+
+Before declaring a feature complete:
+
+```bash
+# 1. Full test suite
+make test
+
+# 2. Linting
+make lint
+
+# 3. Django system checks
+make manage CMD="check"
+
+# 4. E2E validation (if UI features exist)
+make e2e 2>/dev/null || echo "E2E tests not yet set up"
+```
+
+ALL must pass. If any fail, fix and re-run.
+
+## Step 7: Complete the Feature
+
+```bash
+# Stage and review changes
+git add -A
+git status
+git diff --staged | head -200
+
+# Commit with issue reference
+git commit -m "$(cat <<'EOF'
+feat(<scope>): <description>
+
+Closes #<issue_number>
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+
+# Merge to main
+git checkout main
+git pull origin main
+git merge feat/<number>-<short-description> --no-edit
+git push origin main
+git branch -d feat/<number>-<short-description>
+
+# Close issue
+gh issue close <number> -R robert197/baky
+```
+
+After merging, also update the `.ralph/fix_plan.md` — mark the corresponding item `[x]`.
+
+## Step 8: Check Completion
+
+After closing the issue, check: are ALL MVP issues closed?
+
+```bash
+gh issue list -R robert197/baky --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length'
+```
+
+If 0 open issues remain: the MVP is complete.
+
+Output: <promise>MVP_COMPLETE</promise>
+
+Otherwise: continue to the next iteration (go back to Step 1).
+
+## Rules
+
+1. **Never skip tests.** Every feature must have passing tests before merge.
+2. **Never merge failing code.** If tests fail, fix them.
+3. **One issue per iteration.** Focus on completing one issue fully.
+4. **Follow the roadmap order.** Don't jump ahead — dependencies matter.
+5. **Docker for everything.** All commands via `make`, never install locally.
+6. **Commit often.** Small, focused commits within each feature branch.
+7. **German for UI, English for code.** Public-facing text in German.
+8. **Add seeds incrementally.** Each feature adds the seed data it needs.
+9. **Mobile-first.** Design for 375px first, scale up.
+10. **Use the design system.** Colors, typography, spacing from CLAUDE.md.
+
+## Completion Promise
+
+When ALL MVP issues are closed and all tests pass:
+<promise>MVP_COMPLETE</promise>
+
+Only output this when it is genuinely true. Do not lie to exit the loop.

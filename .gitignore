@@ -56,3 +56,21 @@ coverage.xml
 
 # ruff
 .ruff_cache/
+
+# Ralph Loop (runtime state, not config)
+.ralph/logs/
+.ralph/.call_count
+.ralph/.token_count
+.ralph/.last_reset
+.ralph/.circuit_breaker_state
+.ralph/.circuit_breaker_history
+.ralph/.ralph_session
+.ralph/.ralph_session_history
+.ralph/status.json
+.ralph/live.log
+.claude/ralph-loop.local.md
+
+# E2E test artifacts
+tests/e2e/screenshots/
+tests/e2e/videos/
+test-results/
