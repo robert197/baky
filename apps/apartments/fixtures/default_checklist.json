@@ -1,0 +1,58 @@
+[
+  {
+    "category": "Eingang",
+    "items": [
+      {"label": "Wohnungstür schließt korrekt", "type": "boolean"},
+      {"label": "Schlüssel/Zugang funktioniert", "type": "boolean"},
+      {"label": "Eingangsbereich sauber", "type": "boolean"}
+    ]
+  },
+  {
+    "category": "Wohnzimmer",
+    "items": [
+      {"label": "Allgemeiner Zustand", "type": "boolean"},
+      {"label": "Möbel unbeschädigt", "type": "boolean"},
+      {"label": "Fenster schließen korrekt", "type": "boolean"},
+      {"label": "Beleuchtung funktioniert", "type": "boolean"}
+    ]
+  },
+  {
+    "category": "Küche",
+    "items": [
+      {"label": "Herd/Ofen sauber und funktionsfähig", "type": "boolean"},
+      {"label": "Kühlschrank Temperatur und Sauberkeit", "type": "boolean"},
+      {"label": "Geschirrspüler funktioniert", "type": "boolean"},
+      {"label": "Arbeitsflächen sauber", "type": "boolean"},
+      {"label": "Geschirr und Besteck vollständig", "type": "boolean"}
+    ]
+  },
+  {
+    "category": "Badezimmer",
+    "items": [
+      {"label": "Keine Wasserschäden", "type": "boolean"},
+      {"label": "Sanitäranlagen funktionieren", "type": "boolean"},
+      {"label": "Abfluss frei", "type": "boolean"},
+      {"label": "Handtücher vorhanden und sauber", "type": "boolean"},
+      {"label": "Spiegel und Oberflächen sauber", "type": "boolean"}
+    ]
+  },
+  {
+    "category": "Schlafzimmer",
+    "items": [
+      {"label": "Bettwäsche sauber und vollständig", "type": "boolean"},
+      {"label": "Matratze in gutem Zustand", "type": "boolean"},
+      {"label": "Schränke und Stauraum", "type": "boolean"},
+      {"label": "Fenster und Verdunkelung", "type": "boolean"}
+    ]
+  },
+  {
+    "category": "Allgemein",
+    "items": [
+      {"label": "WLAN funktioniert", "type": "boolean"},
+      {"label": "Heizung/Klimaanlage funktioniert", "type": "boolean"},
+      {"label": "Rauchmelder vorhanden", "type": "boolean"},
+      {"label": "Keine Schädlinge", "type": "boolean"},
+      {"label": "Gesamteindruck", "type": "rating"}
+    ]
+  }
+]

@@ -4,6 +4,12 @@ DEBUG = True
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-dev-only-key-not-for-production")  # noqa: F405
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "0.0.0.0"])  # noqa: F405
 
+# Encrypted model fields — dev-only key (NOT for production)
+FIELD_ENCRYPTION_KEY = env(  # noqa: F405
+    "FIELD_ENCRYPTION_KEY",
+    default="VqoBSMFYSOdCd8o0zDBDArfpQfhoYjLC2rBrqQyK8us=",
+)
+
 # Debug Toolbar
 INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405

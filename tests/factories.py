@@ -1,6 +1,11 @@
-import factory
+import datetime
 
-from apps.accounts.models import User
+import factory
+from django.utils import timezone
+
+from apps.accounts.models import Subscription, User
+from apps.apartments.models import Apartment, ChecklistTemplate
+from apps.inspections.models import Inspection, InspectionItem, Photo
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -29,3 +34,73 @@ class AdminFactory(UserFactory):
 
 # Alias for readability — UserFactory already defaults to OWNER
 OwnerFactory = UserFactory
+
+
+class ApartmentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Apartment
+
+    owner = factory.SubFactory(OwnerFactory)
+    address = factory.Sequence(lambda n: f"Musterstraße {n}, 1010 Wien")
+    access_method = Apartment.AccessMethod.KEY_HANDOVER
+    access_notes = "Schlüssel beim Portier"
+    special_instructions = ""
+    status = Apartment.Status.ACTIVE
+
+
+class ChecklistTemplateFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ChecklistTemplate
+
+    apartment = factory.SubFactory(ApartmentFactory)
+    name = factory.LazyAttribute(lambda obj: f"Checkliste — {obj.apartment.address}")
+    items = factory.LazyFunction(
+        lambda: [
+            {"category": "Eingang", "label": "Tür schließt korrekt", "type": "boolean"},
+            {"category": "Küche", "label": "Herd sauber", "type": "boolean"},
+            {"category": "Bad", "label": "Keine Wasserschäden", "type": "boolean"},
+        ]
+    )
+
+
+class InspectionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Inspection
+
+    apartment = factory.SubFactory(ApartmentFactory)
+    inspector = factory.SubFactory(InspectorFactory)
+    scheduled_at = factory.LazyFunction(lambda: timezone.now() + datetime.timedelta(days=1))
+    status = Inspection.Status.SCHEDULED
+
+
+class InspectionItemFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = InspectionItem
+
+    inspection = factory.SubFactory(InspectionFactory)
+    checklist_label = "Tür schließt korrekt"
+    category = "Eingang"
+    result = InspectionItem.Result.OK
+    severity = InspectionItem.Severity.NONE
+    order = factory.Sequence(lambda n: n)
+
+
+class PhotoFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Photo
+
+    inspection = factory.SubFactory(InspectionFactory)
+    inspection_item = None
+    file = factory.django.ImageField(filename="test_photo.jpg")
+    caption = "Testfoto"
+
+
+class SubscriptionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Subscription
+
+    owner = factory.SubFactory(OwnerFactory)
+    plan = Subscription.Plan.BASIS
+    status = Subscription.Status.ACTIVE
+    started_at = factory.LazyFunction(lambda: datetime.date.today())
+    billing_cycle = Subscription.BillingCycle.MONTHLY
