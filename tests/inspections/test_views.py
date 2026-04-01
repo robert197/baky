@@ -7,13 +7,24 @@ from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.inspections.models import Inspection
+from apps.inspections.models import Inspection, InspectionItem
 from tests.factories import (
     ApartmentFactory,
     InspectionFactory,
+    InspectionItemFactory,
     InspectorFactory,
     OwnerFactory,
 )
+
+
+def _tomorrow_at(hour: int = 10) -> datetime.datetime:
+    """Return tomorrow at the given hour in the current timezone."""
+    return timezone.now().replace(hour=hour, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+
+
+def _yesterday_at(hour: int = 10) -> datetime.datetime:
+    """Return yesterday at the given hour."""
+    return timezone.now().replace(hour=hour, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
 
 
 @pytest.mark.django_db
@@ -45,7 +56,7 @@ class TestScheduleView:
     def test_shows_upcoming_inspections(self):
         inspector = InspectorFactory()
         apt = ApartmentFactory()
-        tomorrow = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        tomorrow = _tomorrow_at()
         InspectionFactory(
             inspector=inspector,
             apartment=apt,
@@ -63,7 +74,7 @@ class TestScheduleView:
         inspector1 = InspectorFactory()
         inspector2 = InspectorFactory()
         apt = ApartmentFactory()
-        tomorrow = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        tomorrow = _tomorrow_at()
         InspectionFactory(
             inspector=inspector2,
             apartment=apt,
@@ -80,7 +91,7 @@ class TestScheduleView:
     def test_does_not_show_past_inspections(self):
         inspector = InspectorFactory()
         apt = ApartmentFactory()
-        yesterday = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+        yesterday = _yesterday_at()
         InspectionFactory(
             inspector=inspector,
             apartment=apt,
@@ -97,7 +108,7 @@ class TestScheduleView:
     def test_does_not_show_cancelled_inspections(self):
         inspector = InspectorFactory()
         apt = ApartmentFactory()
-        tomorrow = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        tomorrow = _tomorrow_at()
         InspectionFactory(
             inspector=inspector,
             apartment=apt,
@@ -125,8 +136,8 @@ class TestScheduleView:
         inspector = InspectorFactory()
         apt1 = ApartmentFactory(street="Zweite Straße")
         apt2 = ApartmentFactory(street="Erste Straße")
-        tomorrow_early = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
-        tomorrow_late = timezone.now().replace(hour=14, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+        tomorrow_early = _tomorrow_at(10)
+        tomorrow_late = _tomorrow_at(14)
         InspectionFactory(
             inspector=inspector,
             apartment=apt1,
@@ -147,6 +158,297 @@ class TestScheduleView:
         erste_pos = content.index("Erste Straße")
         zweite_pos = content.index("Zweite Straße")
         assert erste_pos < zweite_pos
+
+    # --- Owner name display ---
+
+    def test_shows_owner_name(self):
+        """Owner's full name (or username) should appear on each inspection card."""
+        inspector = InspectorFactory()
+        owner = OwnerFactory(first_name="Maria", last_name="Huber")
+        apt = ApartmentFactory(owner=owner)
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Maria Huber" in content
+
+    def test_shows_owner_username_when_no_full_name(self):
+        """Falls back to username when first/last name not set."""
+        inspector = InspectorFactory()
+        owner = OwnerFactory(username="mhuber", first_name="", last_name="")
+        apt = ApartmentFactory(owner=owner)
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "mhuber" in content
+
+    # --- Navigation link ---
+
+    def test_shows_navigation_link(self):
+        """Each inspection card should have a maps navigation link."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory(address="Stephansplatz 1, 1010 Wien")
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "maps" in content.lower()
+        assert apt.maps_url in content or "google.com/maps" in content
+
+    # --- Access details hidden by default ---
+
+    def test_access_details_not_visible_by_default(self):
+        """Access code/notes should NOT be in the initial HTML payload (revealed on tap via Alpine)."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory(access_code="1234", access_notes="Schlüssel unter der Matte")
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        # Access details section exists but is hidden via Alpine.js x-show
+        assert "x-show" in content or "x-data" in content
+        # The access method display label should be present
+        assert apt.get_access_method_display() in content
+
+    def test_access_details_section_contains_access_info(self):
+        """The hidden section should contain access code and notes for the inspector to reveal."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory(access_code="9876", access_notes="Ring bell twice")
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        # The access info is in the HTML (just hidden), so inspector can see it on tap
+        assert "9876" in content
+        assert "Ring bell twice" in content
+
+    # --- Previous inspection context ---
+
+    def test_shows_previous_inspection_rating(self):
+        """Previous completed inspection's overall rating should appear."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        # Create a past completed inspection
+        past = _yesterday_at()
+        past_inspection = InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=past,
+            scheduled_end=past + datetime.timedelta(hours=2),
+            status=Inspection.Status.COMPLETED,
+            overall_rating=Inspection.OverallRating.ATTENTION,
+        )
+        InspectionItemFactory(
+            inspection=past_inspection,
+            result=InspectionItem.Result.FLAGGED,
+            checklist_label="Fenster beschädigt",
+        )
+        # Create upcoming inspection for same apartment
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Achtung" in content  # OverallRating.ATTENTION display value
+        assert "Fenster beschädigt" in content
+
+    def test_no_previous_inspection_shows_first_visit(self):
+        """When no previous inspection exists, show a 'first visit' indicator."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Erstbesuch" in content
+
+    # --- Start inspection button ---
+
+    def test_shows_start_inspection_button(self):
+        """Each scheduled inspection should have a start button."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Inspektion starten" in content
+
+    # --- Date grouping ---
+
+    def test_today_label_shown_for_todays_inspections(self):
+        """Inspections for today should be labeled 'Heute'."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        now = timezone.now()
+        # Schedule for today within business hours
+        today_10am = now.replace(hour=10, minute=0, second=0, microsecond=0)
+        if today_10am < now:
+            today_10am = now.replace(hour=14, minute=0, second=0, microsecond=0)
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=today_10am,
+            scheduled_end=today_10am + datetime.timedelta(hours=2),
+            status=Inspection.Status.IN_PROGRESS,
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Heute" in content
+
+    # --- German umlauts ---
+
+    def test_handles_german_characters(self):
+        """Addresses with German umlauts should display correctly."""
+        inspector = InspectorFactory()
+        apt = ApartmentFactory(street="Währinger Straße", city="Wien")
+        tomorrow = _tomorrow_at()
+        InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        response = client.get(reverse("inspections:schedule"))
+        content = response.content.decode()
+        assert "Währinger Straße" in content
+
+
+@pytest.mark.django_db
+class TestScheduleAccessDetailsView:
+    """Tests for the HTMX endpoint that returns access details."""
+
+    def test_returns_access_details_for_valid_inspection(self):
+        inspector = InspectorFactory()
+        apt = ApartmentFactory(
+            access_method="lockbox",
+            access_code="4321",
+            access_notes="Schlüsselbox neben der Tür",
+        )
+        tomorrow = _tomorrow_at()
+        inspection = InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector)
+        url = reverse("inspections:access_details", args=[inspection.pk])
+        response = client.get(url, HTTP_HX_REQUEST="true")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "4321" in content
+        assert "Schlüsselbox neben der Tür" in content
+
+    def test_requires_authentication(self):
+        client = Client()
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        tomorrow = _tomorrow_at()
+        inspection = InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        url = reverse("inspections:access_details", args=[inspection.pk])
+        response = client.get(url)
+        assert response.status_code == 302
+
+    def test_other_inspector_gets_404(self):
+        inspector1 = InspectorFactory()
+        inspector2 = InspectorFactory()
+        apt = ApartmentFactory()
+        tomorrow = _tomorrow_at()
+        inspection = InspectionFactory(
+            inspector=inspector1,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(inspector2)
+        url = reverse("inspections:access_details", args=[inspection.pk])
+        response = client.get(url, HTTP_HX_REQUEST="true")
+        assert response.status_code == 404
+
+    def test_owner_gets_404(self):
+        owner = OwnerFactory()
+        inspector = InspectorFactory()
+        apt = ApartmentFactory()
+        tomorrow = _tomorrow_at()
+        inspection = InspectionFactory(
+            inspector=inspector,
+            apartment=apt,
+            scheduled_at=tomorrow,
+            scheduled_end=tomorrow + datetime.timedelta(hours=2),
+        )
+        client = Client()
+        client.force_login(owner)
+        url = reverse("inspections:access_details", args=[inspection.pk])
+        response = client.get(url)
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

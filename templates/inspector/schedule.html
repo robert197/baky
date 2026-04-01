@@ -14,23 +14,93 @@
         </h2>
         <div class="space-y-3">
           {% for inspection in inspections %}
-            <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
-              <div class="flex items-start justify-between">
-                <div class="min-w-0 flex-1">
-                  <p class="truncate font-medium text-primary">
-                    {{ inspection.apartment.street }}, {{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}
-                  </p>
-                  <p class="mt-1 text-sm text-secondary">
-                    {{ inspection.scheduled_at|date:"H:i" }}
-                    {% if inspection.scheduled_end %}– {{ inspection.scheduled_end|date:"H:i" }}{% endif %}
-                  </p>
-                  {% if inspection.apartment.access_method %}
-                    <p class="mt-1 text-xs text-secondary">{{ inspection.apartment.get_access_method_display }}</p>
+            <div class="rounded-xl border border-border bg-white shadow-sm" x-data="{ showAccess: false }">
+              <div class="p-4">
+                {# Header: address + status #}
+                <div class="flex items-start justify-between">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-medium text-primary">
+                      {{ inspection.apartment.street }}, {{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}
+                    </p>
+                    <p class="mt-0.5 text-sm text-secondary">
+                      {{ inspection.scheduled_at|date:"H:i" }}
+                      {% if inspection.scheduled_end %}– {{ inspection.scheduled_end|date:"H:i" }}{% endif %}
+                    </p>
+                  </div>
+                  <span class="ml-3 inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium {% if inspection.status == 'scheduled' %}bg-amber-100 text-amber-700{% elif inspection.status == 'in_progress' %}bg-emerald-100 text-emerald-700{% endif %}">
+                    {{ inspection.get_status_display }}
+                  </span>
+                </div>
+                {# Owner name #}
+                <p class="mt-2 text-sm text-secondary">
+                  {% if inspection.apartment.owner.get_full_name %}
+                    {{ inspection.apartment.owner.get_full_name }}
+                  {% else %}
+                    {{ inspection.apartment.owner.username }}
+                  {% endif %}
+                </p>
+                {# Previous inspection context #}
+                {% if inspection.previous_inspection %}
+                  <div class="mt-2 rounded-lg bg-slate-50 px-3 py-2">
+                    <p class="text-xs font-medium text-secondary">
+                      Letzte Inspektion:
+                      <span class="{% if inspection.previous_inspection.overall_rating == 'ok' %}text-emerald-600{% elif inspection.previous_inspection.overall_rating == 'attention' %}text-amber-600{% elif inspection.previous_inspection.overall_rating == 'urgent' %}text-rose-600{% endif %}">
+                        {{ inspection.previous_inspection.get_overall_rating_display }}
+                      </span>
+                    </p>
+                    {% if inspection.previous_inspection.flagged_labels %}
+                      <ul class="mt-1 space-y-0.5">
+                        {% for label in inspection.previous_inspection.flagged_labels %}
+                          <li class="text-xs text-secondary">• {{ label }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <p class="mt-2 text-xs font-medium text-emerald-600">Erstbesuch</p>
+                {% endif %}
+                {# Action row: access toggle + navigation #}
+                <div class="mt-3 flex items-center gap-2">
+                  {# Access details toggle #}
+                  <button @click="showAccess = !showAccess"
+                          class="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-secondary transition-colors hover:bg-slate-50 active:bg-slate-100"
+                          type="button">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    {{ inspection.apartment.get_access_method_display }}
+                  </button>
+                  {# Navigation link #}
+                  <a href="{{ inspection.apartment.maps_url }}"
+                     target="_blank"
+                     rel="noopener"
+                     class="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-secondary transition-colors hover:bg-slate-50 active:bg-slate-100">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Navigation
+                  </a>
+                </div>
+                {# Access details (hidden by default, revealed on tap) #}
+                <div x-show="showAccess" x-transition class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                  {% if inspection.apartment.access_code %}
+                    <p class="text-sm font-medium text-amber-800">Code: {{ inspection.apartment.access_code }}</p>
+                  {% endif %}
+                  {% if inspection.apartment.access_notes %}
+                    <p class="mt-1 text-sm text-amber-700">{{ inspection.apartment.access_notes }}</p>
+                  {% endif %}
+                  {% if not inspection.apartment.access_code and not inspection.apartment.access_notes %}
+                    <p class="text-sm text-amber-700">Keine weiteren Zugangsinformationen.</p>
                   {% endif %}
                 </div>
-                <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {% if inspection.status == 'scheduled' %}bg-amber-100 text-amber-700{% elif inspection.status == 'in_progress' %}bg-emerald-100 text-emerald-700{% endif %}">
-                  {{ inspection.get_status_display }}
-                </span>
+              </div>
+              {# Start inspection button #}
+              <div class="border-t border-border px-4 py-3">
+                <button type="button"
+                        class="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-700 active:bg-slate-900">
+                  Inspektion starten
+                </button>
               </div>
             </div>
           {% endfor %}
