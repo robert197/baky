@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from encrypted_model_fields.fields import EncryptedTextField
+from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField
 
 from apps.accounts.models import TimeStampedModel
 
@@ -62,6 +62,7 @@ class Apartment(TimeStampedModel):
     )
     address = models.CharField(max_length=255)
     access_method = models.CharField(max_length=20, choices=AccessMethod.choices, default=AccessMethod.KEY_HANDOVER)
+    access_code = EncryptedCharField(max_length=50, blank=True, help_text="Lockbox PIN or smart lock code")
     access_notes = EncryptedTextField(blank=True)
     special_instructions = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)

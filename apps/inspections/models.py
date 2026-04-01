@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from apps.accounts.models import TimeStampedModel
-from baky.storage import generate_thumbnail_path, generate_upload_path, validate_photo_file
+from baky.storage import generate_thumbnail_path, generate_upload_path, get_signed_url, validate_photo_file
 
 
 class Inspection(TimeStampedModel):
@@ -115,3 +115,11 @@ class Photo(models.Model):
             self.thumbnail = create_thumbnail(self.file)
 
         super().save(*args, **kwargs)
+
+    def get_file_url(self, expiry: int = 86400) -> str | None:
+        """Get a signed URL for the photo file (default 24h expiry)."""
+        return get_signed_url(self.file, expiry=expiry)
+
+    def get_thumbnail_url(self, expiry: int = 86400) -> str | None:
+        """Get a signed URL for the thumbnail (default 24h expiry)."""
+        return get_signed_url(self.thumbnail, expiry=expiry)

@@ -77,3 +77,6 @@ coverage.xml
 tests/e2e/screenshots/
 tests/e2e/videos/
 test-results/
+.pr_body*
+.roadmap_*
+.update_roadmap*

@@ -43,6 +43,7 @@ class ApartmentFactory(factory.django.DjangoModelFactory):
     owner = factory.SubFactory(OwnerFactory)
     address = factory.Sequence(lambda n: f"Musterstraße {n}, 1010 Wien")
     access_method = Apartment.AccessMethod.KEY_HANDOVER
+    access_code = ""
     access_notes = "Schlüssel beim Portier"
     special_instructions = ""
     status = Apartment.Status.ACTIVE
