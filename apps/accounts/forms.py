@@ -104,9 +104,23 @@ class SignupForm(forms.ModelForm):
 class ApartmentOnboardingForm(forms.ModelForm):
     class Meta:
         model = Apartment
-        fields = ["address", "access_method", "access_code", "access_notes", "special_instructions"]
+        fields = [
+            "address",
+            "street",
+            "zip_code",
+            "city",
+            "latitude",
+            "longitude",
+            "access_method",
+            "access_code",
+            "access_notes",
+            "special_instructions",
+        ]
         labels = {
             "address": "Adresse der Wohnung",
+            "street": "Straße und Hausnummer",
+            "zip_code": "PLZ",
+            "city": "Stadt",
             "access_method": "Zugangsart",
             "access_code": "Zugangscode",
             "access_notes": "Zugangshinweise",
@@ -114,8 +128,19 @@ class ApartmentOnboardingForm(forms.ModelForm):
         }
         widgets = {
             "address": forms.TextInput(
-                attrs={"class": INPUT_CSS, "placeholder": "Musterstraße 1/5, 1010 Wien", "autofocus": True}
+                attrs={
+                    "class": INPUT_CSS,
+                    "placeholder": "Musterstraße 1/5, 1010 Wien",
+                    "autofocus": True,
+                    "id": "id_address",
+                    "autocomplete": "off",
+                }
             ),
+            "street": forms.HiddenInput(),
+            "zip_code": forms.HiddenInput(),
+            "city": forms.HiddenInput(),
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
             "access_method": forms.Select(attrs={"class": INPUT_CSS}),
             "access_code": forms.TextInput(attrs={"class": INPUT_CSS, "placeholder": "PIN oder Code"}),
             "access_notes": forms.Textarea(

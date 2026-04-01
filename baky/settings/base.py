@@ -135,6 +135,9 @@ Q_CLUSTER = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "BAKY <noreply@baky.at>"
 
+# Google Maps — this key is exposed client-side; restrict it to Places API + your domains in Google Cloud Console
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
+
 # Encrypted fields — FIELD_ENCRYPTION_KEY must be set in environment or overridden in local/production settings
 
 # Django Unfold Admin

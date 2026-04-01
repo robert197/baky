@@ -8,12 +8,28 @@
         hx-swap="innerHTML"
         class="mt-6 space-y-5">
     {% csrf_token %}
-    <div>
+    {{ form.street }}
+    {{ form.zip_code }}
+    {{ form.city }}
+    {{ form.latitude }}
+    {{ form.longitude }}
+    <div x-data="addressAutocomplete()" x-init="init()">
       <label for="{{ form.address.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
         {{ form.address.label }}
       </label>
-      {{ form.address }}
+      <div class="relative">
+        {{ form.address }}
+        <div x-show="loading" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          <svg class="h-4 w-4 animate-spin text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </div>
+      </div>
       {% if form.address.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.address.errors.0 }}</p>{% endif %}
+      <p x-show="!apiAvailable" x-cloak class="mt-1 text-xs text-secondary">
+        Adresse manuell eingeben (z.B. Musterstraße 1/5, 1010 Wien)
+      </p>
     </div>
     <div>
       <label for="{{ form.access_method.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
@@ -69,3 +85,79 @@
     </button>
   </form>
 </div>
+{% if GOOGLE_MAPS_API_KEY %}
+  <script>
+    (function() {
+      var s = document.createElement('script');
+      s.src = 'https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY|escapejs }}&libraries=places&callback=_gmapsReady';
+      s.async = true;
+      s.defer = true;
+      document.head.appendChild(s);
+    })();
+    window._gmapsReady = function() {
+      window._gmapsLoaded = true;
+      document.dispatchEvent(new Event('gmaps:ready'));
+    };
+  </script>
+{% endif %}
+<script>
+  function addressAutocomplete() {
+    return {
+      loading: false,
+      apiAvailable: false,
+      autocomplete: null,
+      init() {
+        var self = this;
+        if (window._gmapsLoaded) {
+          self.setupAutocomplete();
+        } else {
+          document.addEventListener('gmaps:ready', function() {
+            self.setupAutocomplete();
+          }, { once: true });
+        }
+      },
+      setupAutocomplete() {
+        var input = document.getElementById('id_address');
+        if (!input || !window.google || !window.google.maps || !window.google.maps.places) return;
+
+        this.apiAvailable = true;
+        this.autocomplete = new google.maps.places.Autocomplete(input, {
+          types: ['address'],
+          componentRestrictions: { country: 'at' },
+          fields: ['address_components', 'formatted_address', 'geometry']
+        });
+
+        var self = this;
+        this.autocomplete.addListener('place_changed', function() {
+          var place = self.autocomplete.getPlace();
+          if (!place.address_components) return;
+
+          var street_number = '';
+          var route = '';
+          var postal_code = '';
+          var locality = '';
+
+          for (var i = 0; i < place.address_components.length; i++) {
+            var comp = place.address_components[i];
+            var types = comp.types;
+            if (types.indexOf('street_number') !== -1) street_number = comp.long_name;
+            if (types.indexOf('route') !== -1) route = comp.long_name;
+            if (types.indexOf('postal_code') !== -1) postal_code = comp.long_name;
+            if (types.indexOf('locality') !== -1) locality = comp.long_name;
+          }
+
+          var street = route + (street_number ? ' ' + street_number : '');
+          document.getElementById('id_address').value = place.formatted_address || '';
+          document.getElementById('id_street').value = street;
+          document.getElementById('id_zip_code').value = postal_code;
+          document.getElementById('id_city').value = locality || 'Wien';
+
+          if (place.geometry && place.geometry.location) {
+            document.getElementById('id_latitude').value = place.geometry.location.lat();
+            document.getElementById('id_longitude').value = place.geometry.location.lng();
+          }
+        });
+      }
+    };
+  }
+</script>
