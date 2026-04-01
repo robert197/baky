@@ -1,0 +1,13 @@
+Hallo {{ user.first_name }},
+
+willkommen bei BAKY! Ihr Konto ist vollständig eingerichtet.
+
+Nächste Schritte:
+- Melden Sie sich in Ihrem Dashboard an
+- Überprüfen Sie die Checkliste Ihrer Wohnung
+- Ihre erste Inspektion wird bald geplant
+
+Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.
+
+Mit freundlichen Grüßen,
+Ihr BAKY-Team

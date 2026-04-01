@@ -1,0 +1,14 @@
+Hallo {{ user.first_name }},
+
+vielen Dank für Ihre Registrierung bei BAKY!
+
+Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
+
+{{ verify_url }}
+
+Dieser Link ist 48 Stunden gültig.
+
+Falls Sie sich nicht bei BAKY registriert haben, können Sie diese E-Mail ignorieren.
+
+Mit freundlichen Grüßen,
+Ihr BAKY-Team

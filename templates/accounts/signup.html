@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Registrieren — BAKY{% endblock %}
+{% block body %}
+  <div class="flex min-h-screen items-center justify-center bg-surface px-4 py-12">
+    <div class="w-full max-w-md">
+      <div class="rounded-2xl bg-white p-8 shadow-lg">
+        <div class="mb-8 text-center">
+          <h1 class="text-2xl font-bold text-primary">Konto erstellen</h1>
+          <p class="mt-2 text-sm text-secondary">Starten Sie in wenigen Minuten mit BAKY</p>
+        </div>
+        {% if form.non_field_errors %}
+          <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" class="space-y-5">
+          {% csrf_token %}
+          <input type="hidden" name="selected_plan" value="{{ selected_plan }}">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+                {{ form.first_name.label }}
+              </label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.first_name.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+              <label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+                {{ form.last_name.label }}
+              </label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.last_name.errors.0 }}</p>{% endif %}
+            </div>
+          </div>
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+              {{ form.email.label }}
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.email.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.phone.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+              {{ form.phone.label }}
+            </label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.phone.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.password1.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+              {{ form.password1.label }}
+            </label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.password1.errors.0 }}</p>{% endif %}
+          </div>
+          <div>
+            <label for="{{ form.password2.id_for_label }}" class="mb-1 block text-sm font-medium text-primary">
+              {{ form.password2.label }}
+            </label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.password2.errors.0 }}</p>{% endif %}
+          </div>
+          <button type="submit"
+                  class="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-amber-600">
+            Konto erstellen
+          </button>
+        </form>
+        <div class="mt-6 text-center">
+          <p class="text-sm text-secondary">
+            Bereits ein Konto?
+            <a href="{% url 'accounts:login' %}" class="font-medium text-accent hover:underline">Anmelden</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

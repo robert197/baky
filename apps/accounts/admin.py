@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db.models import Count
 from unfold.admin import ModelAdmin
 
-from .models import Subscription, User
+from .models import EmailVerificationToken, OnboardingProgress, Subscription, User
 
 
 @admin.register(User)
@@ -27,3 +27,20 @@ class SubscriptionAdmin(ModelAdmin):
     list_filter = ["plan", "status", "billing_cycle"]
     search_fields = ["owner__username", "owner__email"]
     raw_id_fields = ["owner"]
+
+
+@admin.register(EmailVerificationToken)
+class EmailVerificationTokenAdmin(ModelAdmin):
+    list_display = ["user", "token", "verified_at", "created_at"]
+    list_filter = ["verified_at"]
+    search_fields = ["user__email"]
+    raw_id_fields = ["user"]
+    readonly_fields = ["token"]
+
+
+@admin.register(OnboardingProgress)
+class OnboardingProgressAdmin(ModelAdmin):
+    list_display = ["user", "current_step", "is_complete", "created_at"]
+    list_filter = ["current_step", "is_complete"]
+    search_fields = ["user__username", "user__email"]
+    raw_id_fields = ["user", "apartment"]

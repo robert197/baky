@@ -1,0 +1,67 @@
+<div class="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+  <h2 class="text-xl font-bold text-primary">Checkliste anpassen</h2>
+  <p class="mt-2 text-sm text-secondary">
+    Wählen Sie die Prüfpunkte aus, die bei der Inspektion Ihrer Wohnung kontrolliert werden sollen.
+    Sie können auch eigene Punkte hinzufügen.
+  </p>
+  <form method="post"
+        action="{% url 'accounts:onboarding-checklist' %}"
+        hx-post="{% url 'accounts:onboarding-checklist' %}"
+        hx-target="#onboarding-step"
+        hx-swap="innerHTML"
+        class="mt-6"
+        x-data="{ customOpen: false }">
+    {% csrf_token %}
+    <div class="space-y-6">
+      {% for category, items in items_by_category.items %}
+        <div>
+          <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-secondary">{{ category }}</h3>
+          <div class="space-y-2">
+            {% for item in items %}
+              <label class="flex items-center gap-3 rounded-lg border border-border px-4 py-3 transition hover:border-accent hover:bg-amber-50/50 cursor-pointer">
+                <input type="checkbox"
+                       name="enabled_items"
+                       value="{{ item.label }}"
+                       checked
+                       class="h-4 w-4 rounded border-border text-accent focus:ring-accent">
+                <span class="text-sm text-primary">{{ item.label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {# Custom items #}
+    <div class="mt-6 border-t border-border pt-6">
+      <button type="button"
+              @click="customOpen = !customOpen"
+              class="flex items-center gap-2 text-sm font-medium text-accent hover:underline">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Eigene Prüfpunkte hinzufügen
+      </button>
+      <div x-show="customOpen" x-cloak class="mt-3">
+        <label for="custom_items" class="mb-1 block text-sm font-medium text-primary">Eigene Prüfpunkte</label>
+        <textarea name="custom_items"
+                  id="custom_items"
+                  rows="3"
+                  class="w-full rounded-lg border border-border px-4 py-3"
+                  placeholder="Ein Prüfpunkt pro Zeile, z.B.&#10;Balkonpflanzen gegossen&#10;Briefkasten geleert"></textarea>
+        <p class="mt-1 text-xs text-secondary">
+          Ein Prüfpunkt pro Zeile. Diese werden der Kategorie „Individuell" zugeordnet.
+        </p>
+      </div>
+    </div>
+    <div class="mt-6 flex gap-3">
+      <a href="{% url 'accounts:onboarding-apartment' %}"
+         class="rounded-lg border border-border px-4 py-3 text-sm font-medium text-secondary transition hover:bg-slate-50">
+        Zurück
+      </a>
+      <button type="submit"
+              class="flex-1 rounded-lg bg-accent px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-amber-600">
+        Weiter zum Plan
+      </button>
+    </div>
+  </form>
+</div>
