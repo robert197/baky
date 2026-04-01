@@ -16,4 +16,8 @@ urlpatterns = [
     path("<int:inspection_id>/photos/upload/", views.upload_photo, name="upload_photo"),
     path("photos/<int:photo_id>/delete/", views.delete_photo, name="delete_photo"),
     path("photos/<int:photo_id>/caption/", views.update_photo_caption, name="update_photo_caption"),
+    # Submission flow
+    path("<int:inspection_id>/review/", views.review_inspection, name="review_inspection"),
+    path("<int:inspection_id>/submit/", views.submit_inspection, name="submit_inspection"),
+    path("<int:inspection_id>/submitted/", views.inspection_submitted, name="inspection_submitted"),
 ]

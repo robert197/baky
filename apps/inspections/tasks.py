@@ -56,6 +56,38 @@ def send_inspection_reminder(inspection_id: int) -> dict:
     return {"inspection_id": inspection_id, "inspector_email": inspection.inspector.email, "status": "sent"}
 
 
+def send_urgent_notification(inspection_id: int) -> dict:
+    """Send an immediate notification to the owner when an inspection is rated URGENT.
+
+    Triggered at submission time for inspections with critical issues.
+    """
+    from apps.inspections.models import Inspection
+
+    inspection = Inspection.objects.select_related("apartment", "apartment__owner", "inspector").get(pk=inspection_id)
+
+    if inspection.status != Inspection.Status.COMPLETED:
+        logger.warning(
+            "Skipping urgent notification for inspection %d — status is %s", inspection_id, inspection.status
+        )
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": inspection.status}
+
+    if inspection.overall_rating != Inspection.OverallRating.URGENT:
+        logger.info(
+            "Skipping urgent notification for inspection %d — rating is %s", inspection_id, inspection.overall_rating
+        )
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": "not_urgent"}
+
+    owner = inspection.apartment.owner
+    logger.info(
+        "URGENT notification sent to %s for inspection %d at %s",
+        owner.email,
+        inspection_id,
+        inspection.apartment.address,
+    )
+    # Actual email dispatch will be implemented in #24.
+    return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "sent"}
+
+
 def send_owner_reminder(inspection_id: int) -> dict:
     """Send a day-before reminder to the apartment owner.
 
