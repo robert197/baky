@@ -21,16 +21,14 @@
       <div class="relative aspect-square overflow-hidden rounded-lg bg-slate-100">
         <img :src="upload.preview" class="h-full w-full object-cover opacity-50" alt="">
         {# Compressing spinner #}
-        <div x-show="upload.status === 'compressing'"
-             class="absolute inset-0 flex items-center justify-center bg-black/30">
+        <div x-show="upload.status === 'compressing'" class="absolute inset-0 flex items-center justify-center bg-black/30">
           <svg class="h-5 w-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
         </div>
         {# Upload progress #}
-        <div x-show="upload.status === 'uploading'"
-             class="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
+        <div x-show="upload.status === 'uploading'" class="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
           <div class="mb-1 h-1 w-3/4 overflow-hidden rounded-full bg-white/30">
             <div class="h-full rounded-full bg-white transition-all" :style="'width:' + upload.progress + '%'"></div>
           </div>
