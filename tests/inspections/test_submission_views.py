@@ -313,8 +313,8 @@ class TestSubmitInspectionView:
 
     @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_triggers_email_delivery(self, mock_queue, _on_commit):
-        """Should trigger background task for email delivery to owner."""
+    def test_submit_does_not_queue_email_directly(self, mock_queue, _on_commit):
+        """Email delivery is chained from generate_report, not queued directly from submit."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
 
@@ -323,9 +323,10 @@ class TestSubmitInspectionView:
         url = reverse("inspections:submit_inspection", args=[inspection.pk])
         client.post(url, {"overall_rating": "ok"})
 
-        # Check that email send was queued
-        calls = [c for c in mock_queue.call_args_list if "send_report_email" in str(c)]
-        assert len(calls) == 1
+        # send_report_email should NOT be directly queued (it's chained from generate_report)
+        queued_tasks = [c.args[0] for c in mock_queue.call_args_list]
+        assert "apps.reports.tasks.generate_report" in queued_tasks
+        assert "apps.reports.tasks.send_report_email" not in queued_tasks
 
     @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")

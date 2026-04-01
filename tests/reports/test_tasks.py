@@ -3,6 +3,8 @@
 from unittest.mock import patch
 
 import pytest
+from django.core import mail
+from django.utils import timezone
 
 from apps.inspections.models import Inspection, InspectionItem
 from apps.reports.models import Report
@@ -233,12 +235,106 @@ class TestReportTemplateRendering:
 
 
 @pytest.mark.django_db
+class TestGenerateReportChaining:
+    """Test that generate_report chains send_report_email on success."""
+
+    @patch("baky.tasks.queue_task")
+    def test_queues_email_on_success(self, mock_queue):
+        inspection = InspectionFactory(status=Inspection.Status.COMPLETED, overall_rating="ok")
+        InspectionItemFactory(inspection=inspection)
+        result = generate_report(inspection.pk)
+        assert result["status"] == "completed"
+        mock_queue.assert_called_once_with(
+            "apps.reports.tasks.send_report_email",
+            inspection.pk,
+            task_name=f"send_report_email_{inspection.pk}",
+        )
+
+    @patch("baky.tasks.queue_task")
+    def test_does_not_queue_email_on_failure(self, mock_queue):
+        inspection = InspectionFactory(status=Inspection.Status.COMPLETED, overall_rating="ok")
+        InspectionItemFactory(inspection=inspection)
+        with patch("apps.reports.tasks._render_report_html", side_effect=Exception("boom")):
+            result = generate_report(inspection.pk)
+        assert result["status"] == "failed"
+        mock_queue.assert_not_called()
+
+    @patch("baky.tasks.queue_task")
+    def test_does_not_queue_email_on_skip(self, mock_queue):
+        report = ReportFactory(status=Report.Status.COMPLETED)
+        result = generate_report(report.inspection.pk)
+        assert result["status"] == "skipped"
+        mock_queue.assert_not_called()
+
+
+@pytest.mark.django_db
 class TestSendReportEmail:
-    def test_returns_owner_email(self):
-        inspection = InspectionFactory()
+    def test_sends_html_email_to_owner(self):
+        """Report with is_ready=True sends an email to the owner."""
+        report = ReportFactory(status=Report.Status.COMPLETED)
+        result = send_report_email(report.inspection.pk)
+
+        assert result["status"] == "sent"
+        assert result["owner_email"] == report.inspection.apartment.owner.email
+        assert len(mail.outbox) == 1
+        email = mail.outbox[0]
+        assert email.to == [report.inspection.apartment.owner.email]
+        assert "Inspektionsbericht" in email.subject
+        assert report.inspection.apartment.address in email.subject
+        assert len(email.alternatives) == 1  # HTML version
+
+        report.refresh_from_db()
+        assert report.email_sent_at is not None
+
+    def test_skips_if_already_sent(self):
+        """Idempotency: does not re-send if email_sent_at is set."""
+        report = ReportFactory(status=Report.Status.COMPLETED, email_sent_at=timezone.now())
+        result = send_report_email(report.inspection.pk)
+        assert result["status"] == "skipped"
+        assert result["reason"] == "already_sent"
+        assert len(mail.outbox) == 0
+
+    def test_skips_if_report_not_ready(self):
+        """If report is not yet generated, skip."""
+        report = ReportFactory(status=Report.Status.GENERATING, html_content="", generated_at=None)
+        result = send_report_email(report.inspection.pk)
+        assert result["status"] == "skipped"
+        assert result["reason"] == "report_not_ready"
+        assert len(mail.outbox) == 0
+
+    def test_skips_if_no_report_exists(self):
+        """If report doesn't exist yet, skip gracefully."""
+        inspection = InspectionFactory(status=Inspection.Status.COMPLETED)
         result = send_report_email(inspection.pk)
-        assert result["owner_email"] == inspection.apartment.owner.email
-        assert result["inspection_id"] == inspection.pk
+        assert result["status"] == "skipped"
+        assert result["reason"] == "no_report"
+        assert len(mail.outbox) == 0
+
+    def test_subject_format(self):
+        """Subject follows format: BAKY Inspektionsbericht — [Address] — [Date]"""
+        report = ReportFactory(status=Report.Status.COMPLETED)
+        inspection = report.inspection
+        inspection.completed_at = timezone.now()
+        inspection.save(update_fields=["completed_at"])
+
+        send_report_email(inspection.pk)
+
+        email = mail.outbox[0]
+        date_str = inspection.completed_at.strftime("%d.%m.%Y")
+        expected_subject = f"BAKY Inspektionsbericht — {inspection.apartment.address} — {date_str}"
+        assert email.subject == expected_subject
+
+    def test_email_has_plain_text_and_html(self):
+        """Email must have both plain text body and HTML alternative."""
+        report = ReportFactory(status=Report.Status.COMPLETED)
+        send_report_email(report.inspection.pk)
+
+        email = mail.outbox[0]
+        assert email.body  # plain text
+        assert len(email.alternatives) == 1
+        html_body, content_type = email.alternatives[0]
+        assert content_type == "text/html"
+        assert "BAKY" in html_body
 
     def test_raises_for_nonexistent_inspection(self):
         with pytest.raises(Inspection.DoesNotExist):

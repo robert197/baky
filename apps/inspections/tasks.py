@@ -1,5 +1,8 @@
 import logging
 
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -46,13 +49,30 @@ def send_inspection_reminder(inspection_id: int) -> dict:
         logger.warning("Inspection %d scheduled_at is in the past, skipping reminder", inspection_id)
         return {"inspection_id": inspection_id, "status": "skipped", "reason": "past_due"}
 
+    subject = f"BAKY Inspektion morgen — {inspection.apartment.address}"
+    scheduled_date = timezone.localtime(inspection.scheduled_at).strftime("%d.%m.%Y")
+    scheduled_time = timezone.localtime(inspection.scheduled_at).strftime("%H:%M")
+
+    context = {
+        "inspection": inspection,
+        "apartment": inspection.apartment,
+        "scheduled_date": scheduled_date,
+        "scheduled_time": scheduled_time,
+    }
+
+    html_body = render_to_string("emails/inspector_reminder.html", context)
+    text_body = render_to_string("emails/inspector_reminder.txt", context)
+
+    msg = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [inspection.inspector.email])
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()
+
     logger.info(
         "Reminder sent to %s for inspection %d at %s",
         inspection.inspector.email,
         inspection_id,
         inspection.apartment.address,
     )
-    # Actual email dispatch will be implemented in #24.
     return {"inspection_id": inspection_id, "inspector_email": inspection.inspector.email, "status": "sent"}
 
 
@@ -78,13 +98,30 @@ def send_urgent_notification(inspection_id: int) -> dict:
         return {"inspection_id": inspection_id, "status": "skipped", "reason": "not_urgent"}
 
     owner = inspection.apartment.owner
+    flagged_items = list(inspection.items.exclude(result="ok").exclude(result="na"))
+    report_url = f"{settings.SITE_URL}/reports/{inspection.pk}/"
+
+    context = {
+        "inspection": inspection,
+        "apartment": inspection.apartment,
+        "flagged_items": flagged_items,
+        "report_url": report_url,
+    }
+
+    subject = f"BAKY Dringender Fund — {inspection.apartment.address}"
+    html_body = render_to_string("emails/urgent_alert.html", context)
+    text_body = render_to_string("emails/urgent_alert.txt", context)
+
+    msg = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [owner.email])
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()
+
     logger.info(
         "URGENT notification sent to %s for inspection %d at %s",
         owner.email,
         inspection_id,
         inspection.apartment.address,
     )
-    # Actual email dispatch will be implemented in #24.
     return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "sent"}
 
 
@@ -104,6 +141,24 @@ def send_owner_reminder(inspection_id: int) -> dict:
         return {"inspection_id": inspection_id, "status": "skipped", "reason": inspection.status}
 
     owner = inspection.apartment.owner
+    subject = f"BAKY Inspektion morgen — {inspection.apartment.address}"
+    scheduled_date = timezone.localtime(inspection.scheduled_at).strftime("%d.%m.%Y")
+    scheduled_time = timezone.localtime(inspection.scheduled_at).strftime("%H:%M")
+
+    context = {
+        "inspection": inspection,
+        "apartment": inspection.apartment,
+        "scheduled_date": scheduled_date,
+        "scheduled_time": scheduled_time,
+    }
+
+    html_body = render_to_string("emails/owner_reminder.html", context)
+    text_body = render_to_string("emails/owner_reminder.txt", context)
+
+    msg = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [owner.email])
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()
+
     logger.info(
         "Owner reminder sent to %s for inspection %d at %s on %s",
         owner.email,
@@ -111,5 +166,4 @@ def send_owner_reminder(inspection_id: int) -> dict:
         inspection.apartment.address,
         inspection.scheduled_at.strftime("%d.%m.%Y %H:%M"),
     )
-    # Actual email dispatch will be implemented in #24.
     return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "sent"}

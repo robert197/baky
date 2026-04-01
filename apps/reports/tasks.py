@@ -60,6 +60,15 @@ def generate_report(inspection_id: int) -> dict:
     report.generated_at = timezone.now()
     report.save(update_fields=["html_content", "status", "generated_at", "updated_at"])
 
+    # Chain: queue email delivery now that the report is ready
+    from baky.tasks import queue_task
+
+    queue_task(
+        "apps.reports.tasks.send_report_email",
+        inspection_id,
+        task_name=f"send_report_email_{inspection_id}",
+    )
+
     logger.info("Report %d generated for inspection %d (%s)", report.pk, inspection_id, inspection.apartment.address)
     return {"report_id": report.pk, "inspection_id": inspection_id, "status": "completed"}
 
@@ -120,13 +129,55 @@ def _calculate_duration(inspection) -> str | None:
 def send_report_email(inspection_id: int) -> dict:
     """Send the generated report to the apartment owner via email.
 
-    Called after report generation succeeds.
+    Chained from generate_report on success. Idempotent via email_sent_at check.
     """
+    from django.conf import settings
+    from django.core.mail import EmailMultiAlternatives
+
     from apps.inspections.models import Inspection
+    from apps.reports.models import Report
 
-    inspection = Inspection.objects.select_related("apartment__owner").get(pk=inspection_id)
+    inspection = Inspection.objects.select_related("apartment__owner", "inspector").get(pk=inspection_id)
+
+    try:
+        report = Report.objects.get(inspection=inspection)
+    except Report.DoesNotExist:
+        logger.warning("No report for inspection %d, skipping email", inspection_id)
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": "no_report"}
+
+    if not report.is_ready:
+        logger.info("Report %d not ready for inspection %d, skipping", report.pk, inspection_id)
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": "report_not_ready"}
+
+    if report.email_sent_at:
+        logger.info("Email already sent for report %d at %s", report.pk, report.email_sent_at)
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": "already_sent"}
+
     owner = inspection.apartment.owner
+    apartment = inspection.apartment
+    date_str = inspection.completed_at.strftime("%d.%m.%Y")
+    subject = f"BAKY Inspektionsbericht — {apartment.address} — {date_str}"
 
-    logger.info("Report email queued for owner %s (inspection %d)", owner.email, inspection_id)
-    # Email dispatch logic will be implemented in #24.
-    return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "pending_implementation"}
+    report_url = f"{settings.SITE_URL}/reports/{report.pk}/"
+    flagged_items = list(inspection.items.exclude(result="ok").exclude(result="na"))
+
+    context = {
+        "inspection": inspection,
+        "apartment": apartment,
+        "report_url": report_url,
+        "rating_display": inspection.get_overall_rating_display(),
+        "flagged_items": flagged_items,
+    }
+
+    html_body = render_to_string("emails/report_email.html", context)
+    text_body = render_to_string("emails/report_email.txt", context)
+
+    msg = EmailMultiAlternatives(subject, text_body, settings.DEFAULT_FROM_EMAIL, [owner.email])
+    msg.attach_alternative(html_body, "text/html")
+    msg.send()
+
+    report.email_sent_at = timezone.now()
+    report.save(update_fields=["email_sent_at", "updated_at"])
+
+    logger.info("Report email sent to %s for inspection %d", owner.email, inspection_id)
+    return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "sent"}

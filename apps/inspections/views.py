@@ -416,11 +416,7 @@ def submit_inspection(request, inspection_id):
                 pk,
                 task_name=f"generate_report_{pk}",
             )
-            queue_task(
-                "apps.reports.tasks.send_report_email",
-                pk,
-                task_name=f"send_report_email_{pk}",
-            )
+            # send_report_email is chained from generate_report on success (not queued directly)
             if overall_rating == Inspection.OverallRating.URGENT:
                 queue_task(
                     "apps.inspections.tasks.send_urgent_notification",

@@ -107,7 +107,9 @@ class ReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Report
 
-    inspection = factory.SubFactory(InspectionFactory, status=Inspection.Status.COMPLETED)
+    inspection = factory.SubFactory(
+        InspectionFactory, status=Inspection.Status.COMPLETED, completed_at=factory.LazyFunction(timezone.now)
+    )
     status = Report.Status.COMPLETED
     html_content = "<h1>Inspektionsbericht</h1><p>Testbericht</p>"
     generated_at = factory.LazyFunction(lambda: timezone.now())
