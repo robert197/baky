@@ -49,7 +49,7 @@ class TestLandingPage:
     def test_pricing_preview(self, client: Client):
         response = client.get(reverse("public:home"))
         content = response.content.decode()
-        assert "59,90" in content
+        assert "€ 89" in content
 
     def test_faq_section(self, client: Client):
         response = client.get(reverse("public:home"))
@@ -134,15 +134,22 @@ class TestPricingPage:
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
         assert "Basis" in content
-        assert "59,90" in content
-        assert "2 Inspektionen" in content or "2" in content
+        assert "€ 89" in content
+        assert "2 Inspektionen" in content
 
-    def test_extra_tier_displayed(self, client: Client):
+    def test_standard_tier_displayed(self, client: Client):
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
-        assert "Extra" in content
-        assert "99,90" in content
-        assert "4 Inspektionen" in content or "4" in content
+        assert "Standard" in content
+        assert "€ 149" in content
+        assert "4 Inspektionen" in content
+
+    def test_premium_tier_displayed(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Premium" in content
+        assert "€ 249" in content
+        assert "8 Inspektionen" in content
 
     def test_both_tiers_have_photo_documentation(self, client: Client):
         response = client.get(reverse("public:pricing"))
@@ -163,8 +170,9 @@ class TestPricingPage:
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
         # CTAs should link to signup with plan pre-selected
-        assert "?plan=basis" in content or "plan=basis" in content
-        assert "?plan=extra" in content or "plan=extra" in content
+        assert "?plan=basis" in content
+        assert "?plan=standard" in content
+        assert "?plan=premium" in content
 
     def test_per_apartment_clarification(self, client: Client):
         response = client.get(reverse("public:pricing"))

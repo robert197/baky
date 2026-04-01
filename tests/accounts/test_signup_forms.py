@@ -187,12 +187,16 @@ class TestPlanSelectionForm:
         form = PlanSelectionForm(data={"plan": "basis"})
         assert form.is_valid()
 
-    def test_valid_extra_plan(self):
-        form = PlanSelectionForm(data={"plan": "extra"})
+    def test_valid_standard_plan(self):
+        form = PlanSelectionForm(data={"plan": "standard"})
+        assert form.is_valid()
+
+    def test_valid_premium_plan(self):
+        form = PlanSelectionForm(data={"plan": "premium"})
         assert form.is_valid()
 
     def test_invalid_plan(self):
-        form = PlanSelectionForm(data={"plan": "premium"})
+        form = PlanSelectionForm(data={"plan": "extra"})
         assert not form.is_valid()
 
     def test_missing_plan(self):
@@ -203,4 +207,12 @@ class TestPlanSelectionForm:
         form = PlanSelectionForm()
         choices = [c[0] for c in form.fields["plan"].choices]
         assert "basis" in choices
-        assert "extra" in choices
+        assert "standard" in choices
+        assert "premium" in choices
+
+    def test_plan_labels_show_prices(self):
+        form = PlanSelectionForm()
+        labels = dict(form.fields["plan"].choices)
+        assert "89" in labels["basis"]
+        assert "149" in labels["standard"]
+        assert "249" in labels["premium"]

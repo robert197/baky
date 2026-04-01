@@ -21,21 +21,14 @@
                     {{ inspection.apartment.street }}, {{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}
                   </p>
                   <p class="mt-1 text-sm text-secondary">
-                    {{ inspection.scheduled_at|date:"H:i" }}{% if inspection.scheduled_end %} – {{ inspection.scheduled_end|date:"H:i" }}{% endif %}
+                    {{ inspection.scheduled_at|date:"H:i" }}
+                    {% if inspection.scheduled_end %}– {{ inspection.scheduled_end|date:"H:i" }}{% endif %}
                   </p>
                   {% if inspection.apartment.access_method %}
-                    <p class="mt-1 text-xs text-secondary">
-                      {{ inspection.apartment.get_access_method_display }}
-                    </p>
+                    <p class="mt-1 text-xs text-secondary">{{ inspection.apartment.get_access_method_display }}</p>
                   {% endif %}
                 </div>
-                <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                  {% if inspection.status == 'scheduled' %}
-                    bg-amber-100 text-amber-700
-                  {% elif inspection.status == 'in_progress' %}
-                    bg-emerald-100 text-emerald-700
-                  {% endif %}
-                ">
+                <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {% if inspection.status == 'scheduled' %}bg-amber-100 text-amber-700{% elif inspection.status == 'in_progress' %}bg-emerald-100 text-emerald-700{% endif %}">
                   {{ inspection.get_status_display }}
                 </span>
               </div>

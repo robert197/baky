@@ -166,7 +166,11 @@ class ApartmentOnboardingForm(forms.ModelForm):
 
 class PlanSelectionForm(forms.Form):
     plan = forms.ChoiceField(
-        choices=[("basis", "Basis — € 59,90 / Monat"), ("extra", "Extra — € 99,90 / Monat")],
+        choices=[
+            ("basis", "Basis — € 89 / Monat"),
+            ("standard", "Standard — € 149 / Monat"),
+            ("premium", "Premium — € 249 / Monat"),
+        ],
         widget=forms.RadioSelect,
         label="Ihr Plan",
     )

@@ -55,7 +55,7 @@ class TestInspectionAdminForm:
 
     def test_form_rejects_double_booking(self):
         owner = OwnerFactory()
-        SubscriptionFactory(owner=owner, plan="extra")
+        SubscriptionFactory(owner=owner, plan="standard")
         apt1 = ApartmentFactory(owner=owner)
         apt2 = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()

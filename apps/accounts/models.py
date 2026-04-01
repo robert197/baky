@@ -39,7 +39,8 @@ class User(AbstractUser):
 class Subscription(TimeStampedModel):
     class Plan(models.TextChoices):
         BASIS = "basis", "Basis"
-        EXTRA = "extra", "Extra"
+        STANDARD = "standard", "Standard"
+        PREMIUM = "premium", "Premium"
 
     class Status(models.TextChoices):
         ACTIVE = "active", "Aktiv"
@@ -60,7 +61,8 @@ class Subscription(TimeStampedModel):
 
     PLAN_INSPECTION_LIMITS = {
         Plan.BASIS: 2,
-        Plan.EXTRA: 4,
+        Plan.STANDARD: 4,
+        Plan.PREMIUM: 8,
     }
 
     class Meta:
