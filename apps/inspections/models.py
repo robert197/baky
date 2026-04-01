@@ -1,8 +1,16 @@
+from datetime import timedelta
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from apps.accounts.models import TimeStampedModel
 from baky.storage import generate_thumbnail_path, generate_upload_path, get_signed_url, validate_photo_file
+
+BUSINESS_HOURS_START = 8
+BUSINESS_HOURS_END = 18
+MIN_INSPECTION_DURATION = timedelta(hours=2)
 
 
 class Inspection(TimeStampedModel):
@@ -29,6 +37,11 @@ class Inspection(TimeStampedModel):
         limit_choices_to={"role": "inspector"},
     )
     scheduled_at = models.DateTimeField()
+    scheduled_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Ende der geplanten Inspektion. Mindestens 2 Stunden nach Beginn.",
+    )
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
@@ -44,6 +57,88 @@ class Inspection(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"Inspection #{self.pk} — {self.apartment.address} ({self.get_status_display()})"
+
+    def clean(self) -> None:
+        super().clean()
+        errors = {}
+
+        if self.scheduled_at:
+            # Auto-set scheduled_end if not provided
+            if not self.scheduled_end:
+                self.scheduled_end = self.scheduled_at + MIN_INSPECTION_DURATION
+
+            # Validate business hours (8:00 - 18:00)
+            local_start = timezone.localtime(self.scheduled_at)
+            local_end = timezone.localtime(self.scheduled_end)
+            if local_start.hour < BUSINESS_HOURS_START or local_start.hour >= BUSINESS_HOURS_END:
+                errors["scheduled_at"] = (
+                    f"Inspektionen müssen innerhalb der Geschäftszeiten "
+                    f"({BUSINESS_HOURS_START}:00–{BUSINESS_HOURS_END}:00) geplant werden."
+                )
+            if local_end.hour > BUSINESS_HOURS_END or (local_end.hour == BUSINESS_HOURS_END and local_end.minute > 0):
+                errors["scheduled_end"] = f"Inspektion muss vor {BUSINESS_HOURS_END}:00 enden."
+
+            # Validate minimum 2-hour window
+            if self.scheduled_end and self.scheduled_end - self.scheduled_at < MIN_INSPECTION_DURATION:
+                errors["scheduled_end"] = "Mindestdauer einer Inspektion ist 2 Stunden."
+
+            # Validate no double-booking for same inspector
+            if self.inspector_id and self.scheduled_end:
+                overlapping = Inspection.objects.filter(
+                    inspector=self.inspector,
+                    status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS],
+                    scheduled_at__lt=self.scheduled_end,
+                    scheduled_end__gt=self.scheduled_at,
+                )
+                if self.pk:
+                    overlapping = overlapping.exclude(pk=self.pk)
+                if overlapping.exists():
+                    errors["scheduled_at"] = "Dieser Inspektor hat bereits eine Inspektion in diesem Zeitraum."
+
+            # Validate subscription limits
+            if self.apartment_id and self.status == self.Status.SCHEDULED:
+                limit_error = self._check_subscription_limit()
+                if limit_error:
+                    errors["apartment"] = limit_error
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _check_subscription_limit(self) -> str | None:
+        """Check if the apartment's owner has reached their monthly inspection limit."""
+        from apps.accounts.models import Subscription
+
+        try:
+            subscription = self.apartment.owner.subscription
+        except Subscription.DoesNotExist:
+            return "Der Eigentümer hat kein aktives Abonnement."
+
+        if subscription.status != Subscription.Status.ACTIVE:
+            return "Das Abonnement des Eigentümers ist nicht aktiv."
+
+        monthly_limit = subscription.get_monthly_inspection_limit()
+        current_month_start = self.scheduled_at.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if self.scheduled_at.month == 12:
+            next_month_start = current_month_start.replace(year=self.scheduled_at.year + 1, month=1)
+        else:
+            next_month_start = current_month_start.replace(month=self.scheduled_at.month + 1)
+
+        scheduled_count = Inspection.objects.filter(
+            apartment__owner=self.apartment.owner,
+            status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS, self.Status.COMPLETED],
+            scheduled_at__gte=current_month_start,
+            scheduled_at__lt=next_month_start,
+        )
+        if self.pk:
+            scheduled_count = scheduled_count.exclude(pk=self.pk)
+        count = scheduled_count.count()
+
+        if count >= monthly_limit:
+            return (
+                f"Monatliches Inspektionslimit erreicht ({count}/{monthly_limit}). "
+                f"Aktueller Plan: {subscription.get_plan_display()}."
+            )
+        return None
 
 
 class InspectionItem(models.Model):

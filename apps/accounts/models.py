@@ -58,11 +58,20 @@ class Subscription(TimeStampedModel):
     started_at = models.DateField()
     billing_cycle = models.CharField(max_length=20, choices=BillingCycle.choices, default=BillingCycle.MONTHLY)
 
+    PLAN_INSPECTION_LIMITS = {
+        Plan.BASIS: 2,
+        Plan.EXTRA: 4,
+    }
+
     class Meta:
         ordering = ["-started_at"]
 
     def __str__(self) -> str:
         return f"{self.owner.username} — {self.get_plan_display()} ({self.get_status_display()})"
+
+    def get_monthly_inspection_limit(self) -> int:
+        """Return the maximum number of inspections per month for this plan."""
+        return self.PLAN_INSPECTION_LIMITS.get(self.plan, 2)
 
 
 class EmailVerificationToken(TimeStampedModel):
