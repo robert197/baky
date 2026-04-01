@@ -36,14 +36,18 @@ def index(request):
             ),
         )
     )
-    return render(request, "dashboard/index.html", {"apartments": apartments})
+    return render(request, "dashboard/index.html", {"apartments": apartments, "active": "apartments"})
 
 
 @owner_required
 def apartment_detail(request, pk):
-    apartment = get_object_or_404(Apartment, pk=pk, owner=request.user)
+    apartment = get_object_or_404(Apartment.objects.select_related("checklist_template"), pk=pk, owner=request.user)
     checklist = getattr(apartment, "checklist_template", None)
-    recent_inspections = apartment.inspections.filter(status=Inspection.Status.COMPLETED).order_by("-completed_at")[:5]
+    recent_inspections = (
+        apartment.inspections.filter(status=Inspection.Status.COMPLETED)
+        .select_related("report")
+        .order_by("-completed_at")[:5]
+    )
     return render(
         request,
         "dashboard/apartment_detail.html",
@@ -51,6 +55,7 @@ def apartment_detail(request, pk):
             "apartment": apartment,
             "checklist": checklist,
             "recent_inspections": recent_inspections,
+            "active": "apartments",
         },
     )
 
@@ -66,4 +71,6 @@ def apartment_edit(request, pk):
             return redirect("dashboard:index")
     else:
         form = ApartmentEditForm(instance=apartment)
-    return render(request, "dashboard/apartment_edit.html", {"apartment": apartment, "form": form})
+    return render(
+        request, "dashboard/apartment_edit.html", {"apartment": apartment, "form": form, "active": "apartments"}
+    )
