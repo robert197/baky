@@ -15,7 +15,7 @@ def rename_standard_to_extra(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("accounts", "0004_emailverificationtoken_onboardingprogress"),
+        ("accounts", "0005_alter_subscription_plan"),
     ]
 
     operations = [

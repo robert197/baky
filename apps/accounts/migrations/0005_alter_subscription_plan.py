@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("accounts", "0006_rename_extra_to_standard"),
+        ("accounts", "0004_emailverificationtoken_onboardingprogress"),
     ]
 
     operations = [
