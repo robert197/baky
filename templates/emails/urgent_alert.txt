@@ -1,0 +1,17 @@
+DRINGEND — {{ apartment.address }}
+
+Bei der Inspektion Ihrer Wohnung wurden kritische Probleme festgestellt.
+
+Inspektion am {{ inspection.completed_at|date:"d.m.Y, H:i" }} Uhr
+
+{% if flagged_items %}Festgestellte Probleme ({{ flagged_items|length }}):
+{% for item in flagged_items %}- {{ item.checklist_label }} ({{ item.category }}){% if item.notes %}
+  {{ item.notes }}{% endif %}
+{% endfor %}
+{% endif %}Bericht ansehen:
+{{ report_url }}
+
+Bei Fragen kontaktieren Sie uns unter support@baky.at
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

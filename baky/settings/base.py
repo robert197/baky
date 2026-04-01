@@ -134,6 +134,7 @@ Q_CLUSTER = {
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "BAKY <noreply@baky.at>"
+SITE_URL = env("SITE_URL", default="http://localhost:8010")
 
 # Google Maps — this key is exposed client-side; restrict it to Places API + your domains in Google Cloud Console
 GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")

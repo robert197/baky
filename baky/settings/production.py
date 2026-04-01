@@ -38,6 +38,14 @@ AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = True
 AWS_QUERYSTRING_EXPIRE = 86400  # 24 hours
 
+# Email via Resend (through django-anymail)
+INSTALLED_APPS += ["anymail"]  # noqa: F405
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+ANYMAIL = {
+    "RESEND_API_KEY": env("RESEND_API_KEY"),  # noqa: F405
+}
+SITE_URL = env("SITE_URL")  # noqa: F405
+
 # Sentry
 import sentry_sdk  # noqa: E402
 

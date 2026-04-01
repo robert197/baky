@@ -47,6 +47,8 @@ services:
       - DATABASE_URL=postgres://baky:baky@db:5432/baky
       - SECRET_KEY=django-insecure-docker-dev-key
       - DEBUG=True
+      - EMAIL_HOST=mailpit
+      - EMAIL_PORT=1025
     depends_on:
       db:
         condition: service_healthy

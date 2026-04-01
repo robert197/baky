@@ -1,0 +1,19 @@
+Inspektionsbericht — {{ apartment.address }}
+{{ inspection.completed_at|date:"d.m.Y" }}
+
+Bewertung: {{ rating_display }}
+Inspektor: {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}
+Datum: {{ inspection.completed_at|date:"d.m.Y, H:i" }} Uhr
+
+{% if flagged_items %}Auffälligkeiten ({{ flagged_items|length }}):
+{% for item in flagged_items %}- {{ item.checklist_label }} ({{ item.category }}){% if item.notes %}
+  {{ item.notes }}{% endif %}
+{% endfor %}
+{% else %}Keine Auffälligkeiten festgestellt. Alle Checklistenpunkte sind in Ordnung.
+
+{% endif %}Vollständigen Bericht ansehen:
+{{ report_url }}
+
+---
+Dieser Bericht wurde automatisch erstellt.
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

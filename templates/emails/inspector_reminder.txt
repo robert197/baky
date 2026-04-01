@@ -1,0 +1,12 @@
+Inspektion morgen — {{ apartment.address }}
+
+Sie haben morgen eine geplante Inspektion.
+
+Adresse: {{ apartment.address }}
+Datum: {{ scheduled_date }}
+Uhrzeit: {{ scheduled_time }} Uhr
+
+Bitte erscheinen Sie pünktlich am Inspektionsort.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

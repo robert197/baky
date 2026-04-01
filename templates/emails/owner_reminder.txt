@@ -1,0 +1,12 @@
+Inspektion morgen — {{ apartment.address }}
+
+Morgen findet eine geplante Inspektion Ihrer Wohnung statt.
+
+Adresse: {{ apartment.address }}
+Datum: {{ scheduled_date }}
+Uhrzeit: {{ scheduled_time }} Uhr
+
+Der Bericht wird Ihnen nach Abschluss der Inspektion automatisch per E-Mail zugesandt.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

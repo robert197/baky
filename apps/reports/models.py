@@ -19,6 +19,7 @@ class Report(TimeStampedModel):
     html_content = models.TextField(blank=True, help_text="Rendered HTML report content")
     generated_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(blank=True)
+    email_sent_at = models.DateTimeField(null=True, blank=True, help_text="When the report email was sent to the owner")
 
     class Meta:
         ordering = ["-created_at"]
