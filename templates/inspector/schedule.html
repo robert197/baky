@@ -1,0 +1,56 @@
+{% extends "inspector/base_inspector.html" %}
+{% load i18n %}
+{% block page_title %}Meine Termine{% endblock %}
+{% block content %}
+  {% if grouped_inspections %}
+    {% for date, inspections in grouped_inspections.items %}
+      <div class="mb-6">
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-secondary">
+          {% if date == today %}
+            Heute — {{ date|date:"l, j. F" }}
+          {% else %}
+            {{ date|date:"l, j. F Y" }}
+          {% endif %}
+        </h2>
+        <div class="space-y-3">
+          {% for inspection in inspections %}
+            <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
+              <div class="flex items-start justify-between">
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium text-primary">
+                    {{ inspection.apartment.street }}, {{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}
+                  </p>
+                  <p class="mt-1 text-sm text-secondary">
+                    {{ inspection.scheduled_at|date:"H:i" }}{% if inspection.scheduled_end %} – {{ inspection.scheduled_end|date:"H:i" }}{% endif %}
+                  </p>
+                  {% if inspection.apartment.access_method %}
+                    <p class="mt-1 text-xs text-secondary">
+                      {{ inspection.apartment.get_access_method_display }}
+                    </p>
+                  {% endif %}
+                </div>
+                <span class="ml-3 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                  {% if inspection.status == 'scheduled' %}
+                    bg-amber-100 text-amber-700
+                  {% elif inspection.status == 'in_progress' %}
+                    bg-emerald-100 text-emerald-700
+                  {% endif %}
+                ">
+                  {{ inspection.get_status_display }}
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="py-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <h3 class="mt-3 text-sm font-medium text-primary">Keine anstehenden Termine</h3>
+      <p class="mt-1 text-sm text-secondary">Aktuell sind keine Inspektionen für dich geplant.</p>
+    </div>
+  {% endif %}
+{% endblock %}

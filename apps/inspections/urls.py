@@ -6,4 +6,5 @@ app_name = "inspections"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("schedule/", views.schedule, name="schedule"),
 ]

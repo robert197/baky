@@ -7,6 +7,7 @@ from unfold.decorators import action
 
 from apps.accounts.models import User
 
+from .forms import InspectionAdminForm
 from .models import Inspection, InspectionItem, Photo
 
 
@@ -23,12 +24,29 @@ class PhotoInline(TabularInline):
 
 @admin.register(Inspection)
 class InspectionAdmin(ModelAdmin):
-    list_display = ["__str__", "apartment", "inspector", "status", "overall_rating", "scheduled_at"]
-    list_filter = ["status", "overall_rating"]
+    form = InspectionAdminForm
+    list_display = ["__str__", "apartment", "inspector", "status", "overall_rating", "scheduled_at", "scheduled_end"]
+    list_filter = ["status", "overall_rating", "inspector"]
     search_fields = ["apartment__address", "inspector__username"]
     raw_id_fields = ["apartment", "inspector"]
     inlines = [InspectionItemInline, PhotoInline]
     actions = ["assign_inspector", "cancel_inspections", "export_csv"]
+    date_hierarchy = "scheduled_at"
+    fieldsets = (
+        (
+            "Terminplanung",
+            {
+                "fields": ("apartment", "inspector", "scheduled_at", "scheduled_end", "status"),
+            },
+        ),
+        (
+            "Ergebnis",
+            {
+                "fields": ("overall_rating", "general_notes", "started_at", "completed_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
 
     @action(description="Inspektor zuweisen")
     def assign_inspector(self, request, queryset):
@@ -52,7 +70,7 @@ class InspectionAdmin(ModelAdmin):
         response.write("\ufeff")  # UTF-8 BOM for Excel
 
         writer = csv.writer(response)
-        writer.writerow(["ID", "Wohnung", "Inspektor", "Geplant", "Status", "Bewertung", "Notizen"])
+        writer.writerow(["ID", "Wohnung", "Inspektor", "Geplant", "Ende", "Status", "Bewertung", "Notizen"])
 
         for inspection in queryset.select_related("apartment", "inspector"):
             writer.writerow(
@@ -61,6 +79,7 @@ class InspectionAdmin(ModelAdmin):
                     inspection.apartment.address,
                     inspection.inspector.get_full_name() or inspection.inspector.username,
                     inspection.scheduled_at.strftime("%d.%m.%Y %H:%M") if inspection.scheduled_at else "",
+                    inspection.scheduled_end.strftime("%d.%m.%Y %H:%M") if inspection.scheduled_end else "",
                     inspection.get_status_display(),
                     inspection.get_overall_rating_display() or "",
                     inspection.general_notes,
