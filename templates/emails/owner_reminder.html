@@ -1,47 +1,48 @@
 {% extends "emails/_base.html" %}
-
 {% block title %}Inspektion morgen — {{ apartment.address }}{% endblock %}
-
 {% block preheader %}
-<span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-  Morgen findet eine Inspektion Ihrer Wohnung {{ apartment.address }} statt.
-</span>
+  <span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Morgen findet eine Inspektion Ihrer Wohnung {{ apartment.address }} statt.
+  </span>
 {% endblock %}
-
 {% block content %}
-<h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #1e293b;">
-  Inspektion morgen
-</h1>
-<p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
-  Morgen findet eine geplante Inspektion Ihrer Wohnung statt.
-</p>
-
-{# Details #}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-  <tr>
-    <td style="padding: 20px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size: 14px;">
-        <tr>
-          <td style="padding: 6px 0; color: #64748b;">
-            <strong style="color: #1e293b;">Adresse:</strong> {{ apartment.address }}
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 6px 0; color: #64748b;">
-            <strong style="color: #1e293b;">Datum:</strong> {{ scheduled_date }}
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 6px 0; color: #64748b;">
-            <strong style="color: #1e293b;">Uhrzeit:</strong> {{ scheduled_time }} Uhr
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-
-<p style="margin: 0; font-size: 14px; color: #64748b;">
-  Der Bericht wird Ihnen nach Abschluss der Inspektion automatisch per E-Mail zugesandt.
-</p>
+  <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #1e293b;">Inspektion morgen</h1>
+  <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
+    Morgen findet eine geplante Inspektion Ihrer Wohnung statt.
+  </p>
+  {# Details #}
+  <table role="presentation"
+         cellpadding="0"
+         cellspacing="0"
+         border="0"
+         width="100%"
+         style="margin-bottom: 24px;
+                background-color: #f8fafc;
+                border-radius: 6px;
+                border: 1px solid #e2e8f0">
+    <tr>
+      <td style="padding: 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">
+              <strong style="color: #1e293b;">Adresse:</strong> {{ apartment.address }}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">
+              <strong style="color: #1e293b;">Datum:</strong> {{ scheduled_date }}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b;">
+              <strong style="color: #1e293b;">Uhrzeit:</strong> {{ scheduled_time }} Uhr
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <p style="margin: 0; font-size: 14px; color: #64748b;">
+    Der Bericht wird Ihnen nach Abschluss der Inspektion automatisch per E-Mail zugesandt.
+  </p>
 {% endblock %}

@@ -1,93 +1,97 @@
 {% extends "emails/_base.html" %}
-
 {% block title %}Inspektionsbericht — {{ apartment.address }}{% endblock %}
-
 {% block preheader %}
-<span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-  Inspektionsbericht für {{ apartment.address }} — Bewertung: {{ rating_display }}
-</span>
+  <span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Inspektionsbericht für {{ apartment.address }} — Bewertung: {{ rating_display }}
+  </span>
 {% endblock %}
-
 {% block content %}
-{# Subject line echo #}
-<h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #1e293b;">
-  Inspektionsbericht
-</h1>
-<p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
-  {{ apartment.address }} &mdash; {{ inspection.completed_at|date:"d.m.Y" }}
-</p>
-
-{# Rating badge #}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-  <tr>
-    <td style="padding: 8px 20px; border-radius: 6px; font-weight: 700; font-size: 15px; color: #ffffff; {% if inspection.overall_rating == 'ok' %}background-color: #10b981;{% elif inspection.overall_rating == 'attention' %}background-color: #f59e0b;{% else %}background-color: #f43f5e;{% endif %}">
-      {{ rating_display }}
-    </td>
-  </tr>
-</table>
-
-{# Summary details #}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px; font-size: 14px;">
-  <tr>
-    <td style="padding: 4px 0; color: #64748b;">
-      <strong style="color: #1e293b;">Inspektor:</strong> {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}
-    </td>
-  </tr>
-  <tr>
-    <td style="padding: 4px 0; color: #64748b;">
-      <strong style="color: #1e293b;">Datum:</strong> {{ inspection.completed_at|date:"d.m.Y, H:i" }} Uhr
-    </td>
-  </tr>
-</table>
-
-{# Flagged items (if any) #}
-{% if flagged_items %}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
-  <tr>
-    <td style="font-size: 16px; font-weight: 700; color: #1e293b; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;">
-      Auffälligkeiten ({{ flagged_items|length }})
-    </td>
-  </tr>
-  {% for item in flagged_items %}
-  <tr>
-    <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+  {# Subject line echo #}
+  <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #1e293b;">Inspektionsbericht</h1>
+  <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
+    {{ apartment.address }} &mdash; {{ inspection.completed_at|date:"d.m.Y" }}
+  </p>
+  {# Rating badge #}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+    <tr>
+      <td style="padding: 8px 20px;
+                 border-radius: 6px;
+                 font-weight: 700;
+                 font-size: 15px;
+                 color: #ffffff;
+                 {% if inspection.overall_rating == 'ok' %}background-color: #10b981;
+                 {% elif inspection.overall_rating == 'attention' %}background-color: #f59e0b;
+                 {% else %}background-color: #f43f5e;
+                 {% endif %}">{{ rating_display }}</td>
+    </tr>
+  </table>
+  {# Summary details #}
+  <table role="presentation"
+         cellpadding="0"
+         cellspacing="0"
+         border="0"
+         width="100%"
+         style="margin-bottom: 24px;
+                font-size: 14px">
+    <tr>
+      <td style="padding: 4px 0; color: #64748b;">
+        <strong style="color: #1e293b;">Inspektor:</strong> {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 4px 0; color: #64748b;">
+        <strong style="color: #1e293b;">Datum:</strong> {{ inspection.completed_at|date:"d.m.Y, H:i" }} Uhr
+      </td>
+    </tr>
+  </table>
+  {# Flagged items (if any) #}
+  {% if flagged_items %}
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px;">
+      <tr>
+        <td style="font-size: 16px; font-weight: 700; color: #1e293b; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;">
+          Auffälligkeiten ({{ flagged_items|length }})
+        </td>
+      </tr>
+      {% for item in flagged_items %}
         <tr>
-          <td style="font-size: 14px; color: #1e293b; font-weight: 600;">
-            {{ item.checklist_label }}
-            <span style="font-size: 12px; color: #64748b; font-weight: 400;">({{ item.category }})</span>
+          <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="font-size: 14px; color: #1e293b; font-weight: 600;">
+                  {{ item.checklist_label }}
+                  <span style="font-size: 12px; color: #64748b; font-weight: 400;">({{ item.category }})</span>
+                </td>
+              </tr>
+              {% if item.notes %}
+                <tr>
+                  <td style="font-size: 13px; color: #64748b; padding-top: 4px; padding-left: 12px; border-left: 3px solid #e2e8f0;">
+                    {{ item.notes }}
+                  </td>
+                </tr>
+              {% endif %}
+            </table>
           </td>
         </tr>
-        {% if item.notes %}
-        <tr>
-          <td style="font-size: 13px; color: #64748b; padding-top: 4px; padding-left: 12px; border-left: 3px solid #e2e8f0;">
-            {{ item.notes }}
-          </td>
-        </tr>
-        {% endif %}
-      </table>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
-<p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
-  Keine Auffälligkeiten festgestellt. Alle Checklistenpunkte sind in Ordnung.
-</p>
-{% endif %}
-
-{# CTA Button #}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
-  <tr>
-    <td style="background-color: #f59e0b; border-radius: 6px;">
-      <a href="{{ report_url }}" style="display: inline-block; padding: 12px 28px; font-size: 15px; font-weight: 600; color: #1e293b; text-decoration: none;">
-        Vollst&auml;ndigen Bericht ansehen
-      </a>
-    </td>
-  </tr>
-</table>
-
-<p style="margin: 0; font-size: 12px; color: #94a3b8;">
-  Dieser Bericht wurde automatisch erstellt.
-</p>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
+      Keine Auffälligkeiten festgestellt. Alle Checklistenpunkte sind in Ordnung.
+    </p>
+  {% endif %}
+  {# CTA Button #}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
+    <tr>
+      <td style="background-color: #f59e0b; border-radius: 6px;">
+        <a href="{{ report_url }}"
+           style="display: inline-block;
+                  padding: 12px 28px;
+                  font-size: 15px;
+                  font-weight: 600;
+                  color: #1e293b;
+                  text-decoration: none">Vollst&auml;ndigen Bericht ansehen</a>
+      </td>
+    </tr>
+  </table>
+  <p style="margin: 0; font-size: 12px; color: #94a3b8;">Dieser Bericht wurde automatisch erstellt.</p>
 {% endblock %}
