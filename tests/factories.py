@@ -6,6 +6,7 @@ from django.utils import timezone
 from apps.accounts.models import Subscription, User
 from apps.apartments.models import Apartment, ChecklistTemplate
 from apps.inspections.models import Inspection, InspectionItem, Photo
+from apps.reports.models import Report
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -100,6 +101,16 @@ class PhotoFactory(factory.django.DjangoModelFactory):
     inspection_item = None
     file = factory.django.ImageField(filename="test_photo.jpg")
     caption = "Testfoto"
+
+
+class ReportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Report
+
+    inspection = factory.SubFactory(InspectionFactory, status=Inspection.Status.COMPLETED)
+    status = Report.Status.COMPLETED
+    html_content = "<h1>Inspektionsbericht</h1><p>Testbericht</p>"
+    generated_at = factory.LazyFunction(lambda: timezone.now())
 
 
 class SubscriptionFactory(factory.django.DjangoModelFactory):
