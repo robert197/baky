@@ -165,7 +165,39 @@ git commit -m "fix(<scope>): address review feedback"
 make test && make lint
 ```
 
-## Step 7: Ship — Create PR and Merge
+## Step 7: Compound Learnings with /ce:compound
+
+**BEFORE shipping**, check if this iteration produced knowledge worth documenting.
+This ensures solution docs are included in the PR commit.
+
+Invoke compound if ANY of these occurred:
+- A non-obvious bug was found and fixed
+- A pattern was discovered that future features should follow
+- A configuration or setup issue took trial and error
+- A workaround was needed for a library limitation
+- A test approach was found that's worth reusing
+
+**Invoke the Skill tool:**
+
+```
+Skill({ skill: "compound-engineering:ce-compound", args: "Issue #<number>: <brief context of what was non-obvious>" })
+```
+
+This will:
+- Analyze the conversation for the problem/solution
+- Create a structured doc in `docs/solutions/<category>/`
+- Include: problem, root cause, solution, prevention
+- Future iterations read these in Step 4
+
+**Skip compounding if the feature was straightforward with no surprises.**
+
+After compounding, commit the solution doc:
+```bash
+git add docs/solutions/
+git commit -m "docs: compound learnings from #<issue_number>"
+```
+
+## Step 8: Ship — Create PR and Merge
 
 ```bash
 git add -A
@@ -204,6 +236,7 @@ Closes #<issue_number>
 - [x] `make test` passes
 - [x] `make manage CMD="check"` passes
 - [x] Code review via /ce:review (Critical/Important resolved)
+- [x] Learnings documented via /ce:compound (if applicable)
 
 ## Review Notes
 <Any notable decisions, trade-offs, or follow-up from review agents>
@@ -217,31 +250,6 @@ gh pr merge --merge
 git checkout main && git pull origin main
 git branch -D "$branch" 2>/dev/null
 ```
-
-## Step 8: Compound Learnings with /ce:compound
-
-**After merging, check if this iteration produced knowledge worth documenting.**
-
-Invoke compound if ANY of these occurred:
-- A non-obvious bug was found and fixed
-- A pattern was discovered that future features should follow
-- A configuration or setup issue took trial and error
-- A workaround was needed for a library limitation
-- A test approach was found that's worth reusing
-
-**Invoke the Skill tool:**
-
-```
-Skill({ skill: "compound-engineering:ce-compound", args: "Shipped issue #<number>: <brief context of what was non-obvious>" })
-```
-
-This will:
-- Analyze the conversation for the problem/solution
-- Create a structured doc in `docs/solutions/<category>/`
-- Include: problem, root cause, solution, prevention
-- Future iterations read these in Step 4
-
-**Skip compounding if the feature was straightforward with no surprises.**
 
 ## Step 9: Exit This Iteration
 
@@ -280,14 +288,14 @@ PICKING_UP_NEXT: #<next_issue_number>
     ↓
   Step 6: /ce:review --serial → code review with 5 agents
     ↓
-  Step 7: Ship → PR → merge
+  Step 7: /ce:compound → document learnings to docs/solutions/ (committed on branch)
     ↓
-  Step 8: /ce:compound → document learnings to docs/solutions/
+  Step 8: Ship → PR (includes plan + solution docs) → merge
     ↓
   Step 9: Exit → fresh iteration
 ```
 
-**Every issue goes through: Plan → Work → Review → Ship → Compound.**
+**Every issue goes through: Plan → Work → Review → Compound → Ship.**
 No shortcuts. No skipping steps. This is the Compound Engineering process.
 
 ## Rules
