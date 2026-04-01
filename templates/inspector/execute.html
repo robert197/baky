@@ -1,4 +1,5 @@
 {% extends "inspector/base_inspector.html" %}
+{% load static %}
 {% block page_title %}Checkliste{% endblock %}
 {% block page_actions %}
   <a href="{% url 'inspections:schedule' %}" class="text-sm font-medium text-secondary">
@@ -37,12 +38,21 @@
       </div>
     </div>
   {% endfor %}
+  {# General photos #}
+  <div class="mb-6">
+    <div class="mb-2 flex items-center justify-between">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-secondary">Allgemeine Fotos</h3>
+      <span class="text-xs text-secondary">{{ general_photos|length }} Foto{{ general_photos|length|pluralize:"s" }}</span>
+    </div>
+    {% include "inspector/_photo_section.html" with inspection=inspection item=None photos=general_photos %}
+  </div>
   {# General notes #}
   <div class="mb-6">{% include "inspector/_general_notes.html" with inspection=inspection %}</div>
   {# Spacer for bottom nav #}
   <div class="h-4"></div>
 {% endblock %}
 {% block extra_js %}
+  <script src="{% static 'js/photo-upload.js' %}"></script>
   <script>
     function progressBar(total) {
       return {

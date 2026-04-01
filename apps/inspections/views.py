@@ -1,13 +1,14 @@
 from collections import OrderedDict
 
-from django.http import Http404, HttpResponseBadRequest
+from django.core.exceptions import ValidationError
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import inspector_required
 
-from .models import Inspection, InspectionItem
+from .models import Inspection, InspectionItem, Photo
 
 
 @inspector_required
@@ -159,9 +160,20 @@ def execute_inspection(request, inspection_id):
 
     items = inspection.items.order_by("order")
 
+    # Prefetch photos for all items
+    photos_by_item = {}
+    all_photos = Photo.objects.filter(inspection=inspection).order_by("-created_at")
+    general_photos = []
+    for photo in all_photos:
+        if photo.inspection_item_id:
+            photos_by_item.setdefault(photo.inspection_item_id, []).append(photo)
+        else:
+            general_photos.append(photo)
+
     # Group items by category, preserving order
     grouped_items = OrderedDict()
     for item in items:
+        item.photos_list = photos_by_item.get(item.pk, [])
         grouped_items.setdefault(item.category, []).append(item)
 
     total = items.count()
@@ -173,6 +185,7 @@ def execute_inspection(request, inspection_id):
             "inspection": inspection,
             "grouped_items": grouped_items,
             "total_items": total,
+            "general_photos": general_photos,
             "active": "schedule",
         },
     )
@@ -233,3 +246,82 @@ def update_general_notes(request, inspection_id):
         "inspector/_general_notes.html",
         {"inspection": inspection, "saved": True},
     )
+
+
+# --- Photo views ---
+
+
+def _get_photo_for_inspector(request, photo_id):
+    """Fetch a photo, ensuring it belongs to an in-progress inspection assigned to the requesting inspector."""
+    photo = get_object_or_404(
+        Photo.objects.select_related("inspection"),
+        pk=photo_id,
+    )
+    if photo.inspection.inspector_id != request.user.id:
+        raise Http404
+    if photo.inspection.status != Inspection.Status.IN_PROGRESS:
+        raise Http404
+    return photo
+
+
+@inspector_required
+@require_POST
+def upload_photo(request, inspection_id):
+    """HTMX endpoint: upload a photo for an inspection (general or item-specific)."""
+    inspection = _get_inspection_for_inspector(
+        request,
+        inspection_id,
+        allowed_statuses=[Inspection.Status.IN_PROGRESS],
+    )
+
+    file = request.FILES.get("file")
+    if not file:
+        return HttpResponseBadRequest("Keine Datei hochgeladen.")
+
+    item_id = request.POST.get("item_id")
+    inspection_item = None
+    if item_id:
+        try:
+            inspection_item = InspectionItem.objects.get(pk=item_id, inspection=inspection)
+        except InspectionItem.DoesNotExist:
+            return HttpResponseBadRequest("Ungültiger Checklistenpunkt.")
+
+    caption = request.POST.get("caption", "")[:255]
+
+    photo = Photo(
+        inspection=inspection,
+        inspection_item=inspection_item,
+        file=file,
+        caption=caption,
+    )
+    try:
+        photo.full_clean()
+    except ValidationError as e:
+        return HttpResponseBadRequest(str(e))
+    photo.save()
+
+    return render(request, "inspector/_photo_thumbnail.html", {"photo": photo, "inspection": inspection})
+
+
+@inspector_required
+@require_POST
+def delete_photo(request, photo_id):
+    """HTMX endpoint: delete a photo and its files from storage."""
+    photo = _get_photo_for_inspector(request, photo_id)
+    # Delete files from storage before deleting the record
+    if photo.file:
+        photo.file.delete(save=False)
+    if photo.thumbnail:
+        photo.thumbnail.delete(save=False)
+    photo.delete()
+    return HttpResponse("")
+
+
+@inspector_required
+@require_POST
+def update_photo_caption(request, photo_id):
+    """HTMX endpoint: update a photo's caption."""
+    photo = _get_photo_for_inspector(request, photo_id)
+    photo.caption = request.POST.get("caption", "")[:255]
+    photo.save(update_fields=["caption"])
+    return render(request, "inspector/_photo_thumbnail.html", {"photo": photo, "inspection": photo.inspection})
