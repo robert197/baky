@@ -1,7 +1,5 @@
 {% extends "dashboard/base_dashboard.html" %}
-
 {% block page_title %}Inspektionsbericht{% endblock %}
-
 {% block page_actions %}
   <a href="{% url 'dashboard:index' %}"
      class="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-secondary hover:bg-surface">
@@ -11,14 +9,10 @@
     Zurück
   </a>
 {% endblock %}
-
 {% block content %}
   {% if report.is_ready %}
     {# Report is complete — render stored HTML #}
-    <div class="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
-      {{ report.html_content|safe }}
-    </div>
-
+    <div class="overflow-hidden rounded-xl border border-border bg-white shadow-sm">{{ report.html_content|safe }}</div>
   {% elif report.status == "generating" or report.status == "pending" %}
     {# Report is being generated #}
     <div class="flex flex-col items-center justify-center rounded-xl border border-border bg-white p-12 text-center"
@@ -28,7 +22,10 @@
          hx-target="#main-content"
          hx-swap="outerHTML">
       <div class="mb-4">
-        <svg class="mx-auto h-12 w-12 animate-spin text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 animate-spin text-amber-500"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none"
+             viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
@@ -38,7 +35,6 @@
         Der Inspektionsbericht wird gerade generiert. Diese Seite aktualisiert sich automatisch.
       </p>
     </div>
-
   {% elif report.status == "failed" %}
     {# Report generation failed #}
     <div class="flex flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50 p-12 text-center">
