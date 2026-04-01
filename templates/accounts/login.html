@@ -27,8 +27,12 @@
             Anmelden
           </button>
         </form>
-        <div class="mt-6 text-center">
-          <a href="{% url 'accounts:password-reset' %}" class="text-sm text-accent hover:underline">Passwort vergessen?</a>
+        <div class="mt-6 space-y-2 text-center">
+          <a href="{% url 'accounts:password-reset' %}" class="block text-sm text-accent hover:underline">Passwort vergessen?</a>
+          <p class="text-sm text-secondary">
+            Noch kein Konto?
+            <a href="{% url 'accounts:signup' %}" class="font-medium text-accent hover:underline">Registrieren</a>
+          </p>
         </div>
       </div>
     </div>

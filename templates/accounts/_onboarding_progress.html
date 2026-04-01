@@ -1,0 +1,37 @@
+{# Progress indicator for onboarding wizard #}
+{% with steps="Wohnung,Checkliste,Plan,Fertig" %}
+  <nav aria-label="Fortschritt" class="mb-2">
+    <ol class="flex items-center justify-between">
+      {% for step_name in steps|make_list %}
+        {% if step_name == "," %}
+        {% else %}
+          {% with step_num=forloop.counter %}
+            {# Adjust counter: make_list splits chars, not commas — we use a simpler approach below #}
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </nav>
+{% endwith %}
+<div class="flex items-center justify-between gap-2">
+  {% with step_labels="Wohnung Checkliste Plan Fertig" %}
+    {% for label in step_labels.split %}
+      <div class="flex flex-1 flex-col items-center">
+        <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold {% if forloop.counter < current_step %}bg-emerald-500 text-white {% elif forloop.counter == current_step %}bg-accent text-white {% else %}bg-slate-200 text-secondary{% endif %}">
+          {% if forloop.counter < current_step %}
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          {% else %}
+            {{ forloop.counter }}
+          {% endif %}
+        </div>
+        <span class="mt-1 text-xs {% if forloop.counter == current_step %}font-semibold text-primary{% else %}text-secondary{% endif %}">{{ label }}</span>
+      </div>
+      {% if not forloop.last %}
+        <div class="mb-5 h-0.5 flex-1 {% if forloop.counter < current_step %}bg-emerald-500{% else %}bg-slate-200{% endif %}">
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endwith %}
+</div>

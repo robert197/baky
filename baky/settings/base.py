@@ -133,6 +133,7 @@ Q_CLUSTER = {
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "BAKY <noreply@baky.at>"
 
 # Encrypted fields — FIELD_ENCRYPTION_KEY must be set in environment or overridden in local/production settings
 

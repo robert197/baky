@@ -88,8 +88,7 @@
               </li>
             </ul>
             <div class="mt-8">
-              {# TODO: Replace with {% url 'accounts:signup' %}?plan=basis when #15 is shipped #}
-              <a href="#kontakt?plan=basis"
+              <a href="{% url 'accounts:signup' %}?plan=basis"
                  class="block w-full rounded-lg border-2 border-primary px-6 py-3 text-center text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
                 Basis wählen
               </a>
@@ -165,8 +164,7 @@
               </li>
             </ul>
             <div class="mt-8">
-              {# TODO: Replace with {% url 'accounts:signup' %}?plan=extra when #15 is shipped #}
-              <a href="#kontakt?plan=extra"
+              <a href="{% url 'accounts:signup' %}?plan=extra"
                  class="block w-full rounded-lg bg-accent px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-accent-light">
                 Extra wählen
               </a>
@@ -296,7 +294,7 @@
         <h2 class="text-2xl font-bold text-white sm:text-3xl">Bereit, Ihre Wohnung zu schützen?</h2>
         <p class="mt-4 text-lg text-slate-300">Starten Sie jetzt mit einer professionellen Inspektion.</p>
         <div class="mt-8">
-          <a href="#kontakt?plan=basis"
+          <a href="{% url 'accounts:signup' %}"
              class="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-accent-light">
             Jetzt starten
           </a>
