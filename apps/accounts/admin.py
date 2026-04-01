@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.db.models import Count
 from unfold.admin import ModelAdmin
 
 from .models import Subscription, User
@@ -12,11 +13,12 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     search_fields = ["username", "email", "first_name", "last_name", "phone"]
     fieldsets = BaseUserAdmin.fieldsets + (("BAKY", {"fields": ("role", "phone", "address", "availability")}),)
 
-    @admin.display(description="Wohnungen")
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(_apartment_count=Count("apartments"))
+
+    @admin.display(description="Wohnungen", ordering="_apartment_count")
     def apartment_count(self, obj) -> int:
-        if obj.role == User.Role.OWNER:
-            return obj.apartments.count()
-        return 0
+        return obj._apartment_count
 
 
 @admin.register(Subscription)

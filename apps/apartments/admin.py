@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Max, Q
 from unfold.admin import ModelAdmin, StackedInline
 
 from .models import Apartment, ChecklistTemplate
@@ -17,11 +18,22 @@ class ApartmentAdmin(ModelAdmin):
     raw_id_fields = ["owner"]
     inlines = [ChecklistTemplateInline]
 
-    @admin.display(description="Letzte Inspektion")
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                _last_inspection_date=Max(
+                    "inspections__completed_at",
+                    filter=Q(inspections__status="completed"),
+                )
+            )
+        )
+
+    @admin.display(description="Letzte Inspektion", ordering="_last_inspection_date")
     def last_inspection_date(self, obj):
-        last = obj.inspections.filter(status="completed").order_by("-completed_at").first()
-        if last and last.completed_at:
-            return last.completed_at.strftime("%d.%m.%Y")
+        if obj._last_inspection_date:
+            return obj._last_inspection_date.strftime("%d.%m.%Y")
         return "—"
 
 

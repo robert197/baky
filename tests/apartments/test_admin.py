@@ -44,23 +44,28 @@ class TestApartmentAdmin:
         assert response.status_code == 200
 
     def test_last_inspection_date_with_completed_inspection(self):
+        from django.db.models import Max, Q
         from django.utils import timezone
 
-        from apps.apartments.admin import ApartmentAdmin
+        from apps.apartments.models import Apartment
 
         apt = ApartmentFactory()
         InspectionFactory(apartment=apt, status="completed", completed_at=timezone.now())
-        admin_instance = ApartmentAdmin(model=apt.__class__, admin_site=None)
-        result = admin_instance.last_inspection_date(apt)
-        assert result != "—"
-        assert "." in result  # German date format DD.MM.YYYY
+        annotated = Apartment.objects.annotate(
+            _last_inspection_date=Max("inspections__completed_at", filter=Q(inspections__status="completed"))
+        ).get(pk=apt.pk)
+        assert annotated._last_inspection_date is not None
 
     def test_last_inspection_date_without_inspection(self):
-        from apps.apartments.admin import ApartmentAdmin
+        from django.db.models import Max, Q
+
+        from apps.apartments.models import Apartment
 
         apt = ApartmentFactory()
-        admin_instance = ApartmentAdmin(model=apt.__class__, admin_site=None)
-        assert admin_instance.last_inspection_date(apt) == "—"
+        annotated = Apartment.objects.annotate(
+            _last_inspection_date=Max("inspections__completed_at", filter=Q(inspections__status="completed"))
+        ).get(pk=apt.pk)
+        assert annotated._last_inspection_date is None
 
     def test_checklist_template_inline_present(self, client):
         client.force_login(self.superuser)

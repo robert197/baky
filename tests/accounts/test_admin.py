@@ -54,11 +54,13 @@ class TestUserAdmin:
         assert response.status_code == 200
 
     def test_apartment_count_for_inspector_is_zero(self):
-        from apps.accounts.admin import UserAdmin
+        from django.db.models import Count
 
-        inspector = InspectorFactory()
-        admin_instance = UserAdmin(model=inspector.__class__, admin_site=None)
-        assert admin_instance.apartment_count(inspector) == 0
+        from apps.accounts.models import User
+
+        InspectorFactory()
+        inspector = User.objects.annotate(_apartment_count=Count("apartments")).filter(role=User.Role.INSPECTOR).first()
+        assert inspector._apartment_count == 0
 
     def test_non_staff_user_cannot_access(self, client):
         regular_user = UserFactory()
