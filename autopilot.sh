@@ -43,17 +43,12 @@ while true; do
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     # Run Claude with the prompt — fresh process, no session continuity
-    claude --print \
-        --dangerously-skip-permissions \
-        --prompt-file "$PROMPT_FILE" \
-        2>&1 | tee "$log_file"
+    # Read prompt from file and pass as argument
+    prompt=$(cat "$PROMPT_FILE")
+    claude -p --dangerously-skip-permissions "$prompt" \
+        2>&1 | tee "$log_file" || true
 
-    exit_code=$?
-
-    if [ $exit_code -ne 0 ]; then
-        echo -e "${YELLOW}  Claude exited with code ${exit_code}. Waiting 30s before retry...${NC}"
-        sleep 30
-    fi
+    # Don't fail on non-zero exit — Claude returns non-zero on some normal exits
 
     # Brief pause between iterations
     echo -e "${GREEN}  Iteration #${iteration} finished. Starting next in 5s...${NC}"
