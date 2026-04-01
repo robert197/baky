@@ -1,0 +1,59 @@
+{% extends "inspector/base_inspector.html" %}
+{% block page_title %}Checkliste{% endblock %}
+{% block page_actions %}
+  <a href="{% url 'inspections:schedule' %}" class="text-sm font-medium text-secondary">
+    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </a>
+{% endblock %}
+{% block content %}
+  {# Inspection header #}
+  <div class="mb-4">
+    <h2 class="text-lg font-semibold text-primary">{{ inspection.apartment.street }}</h2>
+    <p class="text-sm text-secondary">{{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}</p>
+  </div>
+  {# Progress summary — counts flagged items via data-item-result attributes #}
+  <div class="mb-6" x-data="progressBar({{ total_items }})" x-init="update()" @htmx:after-swap.window="update()">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium text-primary">{{ total_items }} Punkte</span>
+      <span x-show="flagged > 0"
+            x-transition
+            class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+            x-text="flagged + ' auffällig'"></span>
+    </div>
+  </div>
+  {# Checklist items grouped by category #}
+  {% for category, items in grouped_items.items %}
+    <div class="mb-6">
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-secondary">{{ category }}</h3>
+        <span class="text-xs text-secondary">{{ items|length }} Punkte</span>
+      </div>
+      <div class="space-y-2">
+        {% for item in items %}
+          {% include "inspector/_checklist_item.html" with item=item %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+  {# General notes #}
+  <div class="mb-6">{% include "inspector/_general_notes.html" with inspection=inspection %}</div>
+  {# Spacer for bottom nav #}
+  <div class="h-4"></div>
+{% endblock %}
+{% block extra_js %}
+  <script>
+    function progressBar(total) {
+      return {
+        total: total,
+        flagged: 0,
+        update() {
+          var count = 0;
+          document.querySelectorAll('[data-item-result="flagged"]').forEach(function() { count++; });
+          this.flagged = count;
+        }
+      }
+    }
+  </script>
+{% endblock %}

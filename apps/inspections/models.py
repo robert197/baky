@@ -172,6 +172,10 @@ class InspectionItem(models.Model):
     def __str__(self) -> str:
         return f"{self.checklist_label} — {self.get_result_display()}"
 
+    def get_severity_choices(self) -> list[tuple[str, str]]:
+        """Return severity choices for template iteration."""
+        return self.Severity.choices
+
 
 class Photo(models.Model):
     inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name="photos")
