@@ -74,15 +74,16 @@ class TestOnboardingApartmentStructuredAddress:
         assert "google.com/maps" in onboarding.apartment.maps_url
 
 
-class TestGoogleMapsContextProcessor:
+class TestGoogleMapsApiKeyInTemplate:
     def test_api_key_in_context(self, client, db, settings):
-        settings.GOOGLE_MAPS_API_KEY = "test-api-key-123"
+        settings.GOOGLE_MAPS_API_KEY = "AIzaSyTestKey123"
         user = UserFactory()
         client.force_login(user)
         OnboardingProgress.objects.create(user=user)
         response = client.get("/accounts/onboarding/apartment/")
         content = response.content.decode()
-        assert "test-api-key-123" in content
+        assert "AIzaSyTestKey123" in content
+        assert "googleapis.com" in content
 
     def test_no_api_key_shows_fallback(self, client, db, settings):
         settings.GOOGLE_MAPS_API_KEY = ""

@@ -76,8 +76,8 @@ class TestMapsUrl:
         )
         url = apt.maps_url
         assert "google.com/maps" in url
-        # URL should be encoded (no raw umlauts)
-        assert "ü" not in url or "Gr%C3%BCnbergstra" in url
+        # URL-encoded umlaut ü = %C3%BC
+        assert "%C3%BC" in url
 
     def test_maps_url_prefers_coordinates(self, db):
         apt = ApartmentFactory(

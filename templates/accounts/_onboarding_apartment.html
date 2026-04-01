@@ -89,7 +89,7 @@
   <script>
     (function() {
       var s = document.createElement('script');
-      s.src = 'https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=_gmapsReady';
+      s.src = 'https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY|escapejs }}&libraries=places&callback=_gmapsReady';
       s.async = true;
       s.defer = true;
       document.head.appendChild(s);

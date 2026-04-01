@@ -143,7 +143,13 @@ def onboarding_apartment(request):
     else:
         form = ApartmentOnboardingForm()
 
-    ctx = {"form": form, "onboarding": onboarding, "current_step": 1, "total_steps": 4}
+    ctx = {
+        "form": form,
+        "onboarding": onboarding,
+        "current_step": 1,
+        "total_steps": 4,
+        "GOOGLE_MAPS_API_KEY": settings.GOOGLE_MAPS_API_KEY,
+    }
     if request.headers.get("HX-Request"):
         return render(request, "accounts/_onboarding_apartment.html", ctx)
     return render(request, "accounts/onboarding.html", {**ctx, "step_template": "accounts/_onboarding_apartment.html"})

@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -81,10 +83,8 @@ class Apartment(TimeStampedModel):
     @property
     def maps_url(self) -> str:
         """Deep link to open address in Google Maps / Apple Maps."""
-        if self.latitude and self.longitude:
+        if self.latitude is not None and self.longitude is not None:
             return f"https://www.google.com/maps/search/?api=1&query={self.latitude},{self.longitude}"
-        from urllib.parse import quote
-
         return f"https://www.google.com/maps/search/?api=1&query={quote(self.address)}"
 
     def __str__(self) -> str:
