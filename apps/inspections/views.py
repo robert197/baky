@@ -1,5 +1,7 @@
+import logging
 from collections import OrderedDict
 
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,8 +9,11 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import inspector_required
+from baky.tasks import queue_task
 
 from .models import Inspection, InspectionItem, Photo
+
+logger = logging.getLogger(__name__)
 
 
 @inspector_required
@@ -325,3 +330,121 @@ def update_photo_caption(request, photo_id):
     photo.caption = request.POST.get("caption", "")[:255]
     photo.save(update_fields=["caption"])
     return render(request, "inspector/_photo_thumbnail.html", {"photo": photo, "inspection": photo.inspection})
+
+
+# --- Submission flow ---
+
+
+@inspector_required
+def review_inspection(request, inspection_id):
+    """Pre-submit review screen showing inspection summary."""
+    inspection = _get_inspection_for_inspector(
+        request,
+        inspection_id,
+        allowed_statuses=[Inspection.Status.IN_PROGRESS],
+    )
+
+    items = inspection.items.order_by("order")
+    ok_count = items.filter(result=InspectionItem.Result.OK).count()
+    flagged_count = items.filter(result=InspectionItem.Result.FLAGGED).count()
+    na_count = items.filter(result=InspectionItem.Result.NA).count()
+    flagged_items = items.filter(result=InspectionItem.Result.FLAGGED).order_by("order")
+    photo_count = inspection.photos.count()
+
+    return render(
+        request,
+        "inspector/review.html",
+        {
+            "inspection": inspection,
+            "ok_count": ok_count,
+            "flagged_count": flagged_count,
+            "na_count": na_count,
+            "total_items": ok_count + flagged_count + na_count,
+            "flagged_items": flagged_items,
+            "photo_count": photo_count,
+            "rating_choices": Inspection.OverallRating.choices,
+            "active": "schedule",
+        },
+    )
+
+
+@inspector_required
+@require_POST
+def submit_inspection(request, inspection_id):
+    """Submit a completed inspection — irreversible."""
+    inspection = _get_inspection_for_inspector(
+        request,
+        inspection_id,
+        allowed_statuses=[Inspection.Status.IN_PROGRESS],
+    )
+
+    # Validate overall rating is provided and valid
+    overall_rating = request.POST.get("overall_rating", "")
+    valid_ratings = [r[0] for r in Inspection.OverallRating.choices]
+    if overall_rating not in valid_ratings:
+        messages.error(request, "Bitte wählen Sie eine Gesamtbewertung aus.")
+        return redirect("inspections:review_inspection", inspection_id=inspection.pk)
+
+    # Validate at least one item exists
+    if not inspection.items.exists():
+        messages.error(request, "Inspektion hat keine Checklistenpunkte.")
+        return redirect("inspections:review_inspection", inspection_id=inspection.pk)
+
+    # Mark as completed
+    inspection.status = Inspection.Status.COMPLETED
+    inspection.completed_at = timezone.now()
+    inspection.overall_rating = overall_rating
+    inspection.save(update_fields=["status", "completed_at", "overall_rating", "updated_at"])
+
+    # Trigger background tasks
+    queue_task(
+        "apps.reports.tasks.generate_report",
+        inspection.pk,
+        task_name=f"generate_report_{inspection.pk}",
+    )
+    queue_task(
+        "apps.reports.tasks.send_report_email",
+        inspection.pk,
+        task_name=f"send_report_email_{inspection.pk}",
+    )
+
+    # Urgent rating triggers immediate notification
+    if overall_rating == Inspection.OverallRating.URGENT:
+        queue_task(
+            "apps.inspections.tasks.send_urgent_notification",
+            inspection.pk,
+            task_name=f"urgent_notification_{inspection.pk}",
+        )
+
+    logger.info("Inspection %d submitted with rating=%s", inspection.pk, overall_rating)
+    return redirect("inspections:inspection_submitted", inspection_id=inspection.pk)
+
+
+@inspector_required
+def inspection_submitted(request, inspection_id):
+    """Post-submit confirmation screen."""
+    inspection = _get_inspection_for_inspector(
+        request,
+        inspection_id,
+        allowed_statuses=[Inspection.Status.COMPLETED],
+    )
+
+    items = inspection.items.order_by("order")
+    ok_count = items.filter(result=InspectionItem.Result.OK).count()
+    flagged_count = items.filter(result=InspectionItem.Result.FLAGGED).count()
+    na_count = items.filter(result=InspectionItem.Result.NA).count()
+    photo_count = inspection.photos.count()
+
+    return render(
+        request,
+        "inspector/submitted.html",
+        {
+            "inspection": inspection,
+            "ok_count": ok_count,
+            "flagged_count": flagged_count,
+            "na_count": na_count,
+            "total_items": ok_count + flagged_count + na_count,
+            "photo_count": photo_count,
+            "active": "schedule",
+        },
+    )
