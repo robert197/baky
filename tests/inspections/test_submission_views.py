@@ -218,10 +218,14 @@ class TestReviewInspectionView:
 # --- Submit Inspection View ---
 
 
+_immediate_on_commit = patch("django.db.transaction.on_commit", side_effect=lambda fn, **kw: fn())
+
+
 @pytest.mark.django_db
 class TestSubmitInspectionView:
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_sets_completed_status(self, mock_queue):
+    def test_submit_sets_completed_status(self, mock_queue, _on_commit):
         """Submitting should set status to COMPLETED and record completed_at."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -291,8 +295,9 @@ class TestSubmitInspectionView:
         inspection.refresh_from_db()
         assert inspection.status == Inspection.Status.IN_PROGRESS
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_triggers_report_generation(self, mock_queue):
+    def test_submit_triggers_report_generation(self, mock_queue, _on_commit):
         """Should trigger background task for report generation."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -306,8 +311,9 @@ class TestSubmitInspectionView:
         calls = [c for c in mock_queue.call_args_list if "generate_report" in str(c)]
         assert len(calls) == 1
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_triggers_email_delivery(self, mock_queue):
+    def test_submit_triggers_email_delivery(self, mock_queue, _on_commit):
         """Should trigger background task for email delivery to owner."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -321,8 +327,9 @@ class TestSubmitInspectionView:
         calls = [c for c in mock_queue.call_args_list if "send_report_email" in str(c)]
         assert len(calls) == 1
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_urgent_rating_triggers_immediate_notification(self, mock_queue):
+    def test_urgent_rating_triggers_immediate_notification(self, mock_queue, _on_commit):
         """Urgent overall rating should trigger an immediate notification task."""
         inspector = InspectorFactory()
         inspection, items = _create_in_progress_inspection(inspector)
@@ -336,8 +343,9 @@ class TestSubmitInspectionView:
         calls = [c for c in mock_queue.call_args_list if "send_urgent_notification" in str(c)]
         assert len(calls) == 1
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_redirects_to_confirmation(self, mock_queue):
+    def test_submit_redirects_to_confirmation(self, mock_queue, _on_commit):
         """After successful submit, should redirect to confirmation page."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -409,8 +417,9 @@ class TestSubmitInspectionView:
         response = client.post(url, {"overall_rating": "ok"})
         assert response.status_code == 404
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_with_attention_rating(self, mock_queue):
+    def test_submit_with_attention_rating(self, mock_queue, _on_commit):
         """Attention rating should work without triggering urgent notification."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -428,8 +437,9 @@ class TestSubmitInspectionView:
         urgent_calls = [c for c in mock_queue.call_args_list if "send_urgent_notification" in str(c)]
         assert len(urgent_calls) == 0
 
+    @_immediate_on_commit
     @patch("apps.inspections.views.queue_task")
-    def test_submit_is_irreversible(self, mock_queue):
+    def test_submit_is_irreversible(self, mock_queue, _on_commit):
         """Once submitted, cannot submit again."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)

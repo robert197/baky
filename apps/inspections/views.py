@@ -407,25 +407,28 @@ def submit_inspection(request, inspection_id):
         inspection.overall_rating = overall_rating
         inspection.save(update_fields=["status", "completed_at", "overall_rating", "updated_at"])
 
-    # Queue background tasks after transaction commits
-    queue_task(
-        "apps.reports.tasks.generate_report",
-        inspection.pk,
-        task_name=f"generate_report_{inspection.pk}",
-    )
-    queue_task(
-        "apps.reports.tasks.send_report_email",
-        inspection.pk,
-        task_name=f"send_report_email_{inspection.pk}",
-    )
+        # Queue background tasks only after transaction commits
+        pk = inspection.pk
 
-    # Urgent rating triggers immediate notification
-    if overall_rating == Inspection.OverallRating.URGENT:
-        queue_task(
-            "apps.inspections.tasks.send_urgent_notification",
-            inspection.pk,
-            task_name=f"urgent_notification_{inspection.pk}",
-        )
+        def _queue_post_submit_tasks():
+            queue_task(
+                "apps.reports.tasks.generate_report",
+                pk,
+                task_name=f"generate_report_{pk}",
+            )
+            queue_task(
+                "apps.reports.tasks.send_report_email",
+                pk,
+                task_name=f"send_report_email_{pk}",
+            )
+            if overall_rating == Inspection.OverallRating.URGENT:
+                queue_task(
+                    "apps.inspections.tasks.send_urgent_notification",
+                    pk,
+                    task_name=f"urgent_notification_{pk}",
+                )
+
+        transaction.on_commit(_queue_post_submit_tasks)
 
     logger.info("Inspection %d submitted with rating=%s", inspection.pk, overall_rating)
     return redirect("inspections:inspection_submitted", inspection_id=inspection.pk)
