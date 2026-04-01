@@ -169,6 +169,10 @@ function photoUploader(uploadUrl, itemIdField, itemIdValue) {
           || document.querySelector('body')?.getAttribute('hx-headers')?.match(/"X-CSRFToken":\s*"([^"]+)"/)?.[1]
           || "";
 
+        if (!csrfToken) {
+          throw new Error("CSRF-Token nicht gefunden. Bitte Seite neu laden.");
+        }
+
         // Upload with retry
         const html = await uploadWithRetry(
           uploadUrl,
@@ -216,18 +220,10 @@ function photoUploader(uploadUrl, itemIdField, itemIdValue) {
       }
     },
 
-    removeUpload(id) {
+    dismissUpload(id) {
       const upload = this.uploads.find((u) => u.id === id);
       if (upload?.preview) URL.revokeObjectURL(upload.preview);
       this.uploads = this.uploads.filter((u) => u.id !== id);
-    },
-
-    async retryUpload(id) {
-      const upload = this.uploads.find((u) => u.id === id);
-      if (!upload) return;
-      // Re-fetch the file from the preview URL and retry
-      // For simplicity, remove the failed upload and let user re-capture
-      this.removeUpload(id);
     },
   };
 }

@@ -44,12 +44,13 @@
         </div>
         {# Failed — tap to dismiss #}
         <div x-show="upload.status === 'failed'"
-             @click="removeUpload(upload.id)"
+             @click="dismissUpload(upload.id)"
              class="absolute inset-0 flex flex-col items-center justify-center bg-rose-500/30 cursor-pointer">
           <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
           <span class="mt-1 text-xs text-white">Fehlgeschlagen</span>
+          <span class="text-xs text-white/70">Tippen zum Entfernen</span>
         </div>
       </div>
     </template>

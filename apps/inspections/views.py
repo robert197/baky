@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -285,7 +286,7 @@ def upload_photo(request, inspection_id):
         except InspectionItem.DoesNotExist:
             return HttpResponseBadRequest("Ungültiger Checklistenpunkt.")
 
-    caption = request.POST.get("caption", "")
+    caption = request.POST.get("caption", "")[:255]
 
     photo = Photo(
         inspection=inspection,
@@ -293,6 +294,10 @@ def upload_photo(request, inspection_id):
         file=file,
         caption=caption,
     )
+    try:
+        photo.full_clean()
+    except ValidationError as e:
+        return HttpResponseBadRequest(str(e))
     photo.save()
 
     return render(request, "inspector/_photo_thumbnail.html", {"photo": photo, "inspection": inspection})
@@ -301,8 +306,13 @@ def upload_photo(request, inspection_id):
 @inspector_required
 @require_POST
 def delete_photo(request, photo_id):
-    """HTMX endpoint: delete a photo."""
+    """HTMX endpoint: delete a photo and its files from storage."""
     photo = _get_photo_for_inspector(request, photo_id)
+    # Delete files from storage before deleting the record
+    if photo.file:
+        photo.file.delete(save=False)
+    if photo.thumbnail:
+        photo.thumbnail.delete(save=False)
     photo.delete()
     return HttpResponse("")
 
@@ -312,6 +322,6 @@ def delete_photo(request, photo_id):
 def update_photo_caption(request, photo_id):
     """HTMX endpoint: update a photo's caption."""
     photo = _get_photo_for_inspector(request, photo_id)
-    photo.caption = request.POST.get("caption", "")
+    photo.caption = request.POST.get("caption", "")[:255]
     photo.save(update_fields=["caption"])
     return render(request, "inspector/_photo_thumbnail.html", {"photo": photo, "inspection": photo.inspection})

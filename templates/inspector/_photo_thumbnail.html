@@ -16,6 +16,7 @@
     {% endif %}
     {# Delete button overlay #}
     <button type="button"
+            aria-label="Foto löschen"
             class="absolute right-1 top-1 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 active:opacity-100"
             hx-post="{% url 'inspections:delete_photo' photo.pk %}"
             hx-target="#photo-{{ photo.pk }}"

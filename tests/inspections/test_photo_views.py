@@ -209,6 +209,30 @@ class TestUploadPhotoView:
         assert response.status_code == 200
         assert Photo.objects.filter(inspection=inspection).count() == 1
 
+    def test_upload_invalid_file_type_rejected(self):
+        """Server-side validation should reject unsupported file types."""
+        inspector, inspection, _ = _create_in_progress_inspection()
+        client = Client()
+        client.force_login(inspector)
+        url = reverse("inspections:upload_photo", args=[inspection.pk])
+        file = SimpleUploadedFile("malicious.gif", b"GIF89a", content_type="image/gif")
+        response = client.post(url, {"file": file}, HTTP_HX_REQUEST="true")
+        assert response.status_code == 400
+        assert Photo.objects.filter(inspection=inspection).count() == 0
+
+    def test_upload_caption_truncated_to_255(self):
+        """Captions longer than 255 chars should be truncated, not cause a 500."""
+        inspector, inspection, _ = _create_in_progress_inspection()
+        client = Client()
+        client.force_login(inspector)
+        url = reverse("inspections:upload_photo", args=[inspection.pk])
+        file = _make_image(name="long_caption.jpg")
+        long_caption = "Ä" * 300
+        response = client.post(url, {"file": file, "caption": long_caption}, HTTP_HX_REQUEST="true")
+        assert response.status_code == 200
+        photo = Photo.objects.get(inspection=inspection)
+        assert len(photo.caption) <= 255
+
 
 # --- Delete Photo ---
 
