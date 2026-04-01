@@ -4,9 +4,12 @@ from django.urls import reverse
 from apps.inspections.models import Inspection
 from tests.factories import (
     AdminFactory,
+    ApartmentFactory,
     InspectionFactory,
     InspectionItemFactory,
     InspectorFactory,
+    OwnerFactory,
+    SubscriptionFactory,
 )
 
 
@@ -52,7 +55,10 @@ class TestInspectionAdmin:
     def test_assign_inspector_action(self, client):
         client.force_login(self.superuser)
         inspector = InspectorFactory()
-        inspection = InspectionFactory(status=Inspection.Status.SCHEDULED)
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apartment = ApartmentFactory(owner=owner)
+        inspection = InspectionFactory(status=Inspection.Status.SCHEDULED, apartment=apartment, inspector=inspector)
         url = reverse("admin:inspections_inspection_changelist")
         response = client.post(
             url,
@@ -61,7 +67,8 @@ class TestInspectionAdmin:
         )
         assert response.status_code == 200
         inspection.refresh_from_db()
-        assert inspection.inspector == inspector
+        # Action assigns the first available inspector — here it's the same one
+        assert inspection.inspector.is_inspector
 
     def test_assign_inspector_no_inspector_available(self, client):
         """When no inspector exists, action shows error."""

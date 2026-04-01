@@ -1,6 +1,7 @@
 import csv
 
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
@@ -50,13 +51,27 @@ class InspectionAdmin(ModelAdmin):
 
     @action(description="Inspektor zuweisen")
     def assign_inspector(self, request, queryset):
-        """Bulk assign the first available inspector to selected inspections."""
+        """Bulk assign the first available inspector to selected inspections with validation."""
         inspector = User.objects.filter(role=User.Role.INSPECTOR).first()
-        if inspector:
-            updated = queryset.filter(status=Inspection.Status.SCHEDULED).update(inspector=inspector)
-            self.message_user(request, f"{updated} Inspektion(en) an {inspector} zugewiesen.")
-        else:
+        if not inspector:
             self.message_user(request, "Kein Inspektor verfügbar.", level="error")
+            return
+
+        updated = 0
+        skipped = 0
+        for inspection in queryset.filter(status=Inspection.Status.SCHEDULED).select_related("apartment"):
+            inspection.inspector = inspector
+            try:
+                inspection.full_clean()
+                inspection.save()
+                updated += 1
+            except ValidationError:
+                skipped += 1
+
+        msg = f"{updated} Inspektion(en) an {inspector} zugewiesen."
+        if skipped:
+            msg += f" {skipped} übersprungen (Terminkonflikt)."
+        self.message_user(request, msg)
 
     @action(description="Inspektionen stornieren")
     def cancel_inspections(self, request, queryset):
