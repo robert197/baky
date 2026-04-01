@@ -8,3 +8,15 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def pricing(request: HttpRequest) -> HttpResponse:
     return render(request, "public/pricing.html")
+
+
+def impressum(request: HttpRequest) -> HttpResponse:
+    return render(request, "public/impressum.html")
+
+
+def datenschutz(request: HttpRequest) -> HttpResponse:
+    return render(request, "public/datenschutz.html")
+
+
+def agb(request: HttpRequest) -> HttpResponse:
+    return render(request, "public/agb.html")
