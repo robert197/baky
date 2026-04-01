@@ -592,3 +592,41 @@ class TestOnboardingConfirmationView:
         response = client.get("/accounts/onboarding/confirmation/")
         assert response.status_code == 302
         assert "/dashboard/" in response.url
+
+
+class TestOnboardingStepEnforcement:
+    """Ensure users cannot skip onboarding steps."""
+
+    def test_cannot_access_checklist_before_apartment(self, client, db):
+        user = UserFactory()
+        client.force_login(user)
+        OnboardingProgress.objects.create(user=user, current_step=1)
+        response = client.get("/accounts/onboarding/checklist/")
+        assert response.status_code == 302
+        assert "/accounts/onboarding/apartment/" in response.url
+
+    def test_cannot_access_plan_before_checklist(self, client, db):
+        user = UserFactory()
+        client.force_login(user)
+        apartment = ApartmentFactory(owner=user)
+        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=2)
+        response = client.get("/accounts/onboarding/plan/")
+        assert response.status_code == 302
+        assert "/accounts/onboarding/checklist/" in response.url
+
+    def test_cannot_access_confirmation_before_plan(self, client, db):
+        user = UserFactory()
+        client.force_login(user)
+        apartment = ApartmentFactory(owner=user)
+        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3)
+        response = client.get("/accounts/onboarding/confirmation/")
+        assert response.status_code == 302
+        assert "/accounts/onboarding/plan/" in response.url
+
+    def test_can_go_back_to_earlier_steps(self, client, db):
+        user = UserFactory()
+        client.force_login(user)
+        apartment = ApartmentFactory(owner=user)
+        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3)
+        response = client.get("/accounts/onboarding/apartment/")
+        assert response.status_code == 200

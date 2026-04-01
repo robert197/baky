@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
+from django.contrib.auth.password_validation import validate_password
 
 from apps.apartments.models import Apartment
 
@@ -83,6 +84,11 @@ class SignupForm(forms.ModelForm):
         pw2 = cleaned_data.get("password2")
         if pw1 and pw2 and pw1 != pw2:
             self.add_error("password2", "Die Passwörter stimmen nicht überein.")
+        if pw1:
+            try:
+                validate_password(pw1, self.instance)
+            except forms.ValidationError as e:
+                self.add_error("password1", e)
         return cleaned_data
 
     def save(self, commit=True):

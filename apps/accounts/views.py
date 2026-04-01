@@ -6,6 +6,7 @@ from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -83,17 +84,16 @@ def signup(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            with transaction.atomic():
+                user = form.save()
+                token = EmailVerificationToken.objects.create(user=user)
+                OnboardingProgress.objects.create(
+                    user=user,
+                    selected_plan=request.POST.get("selected_plan", plan),
+                )
 
-            token = EmailVerificationToken.objects.create(user=user)
             _send_verification_email(request, user, token)
-
             login(request, user)
-
-            OnboardingProgress.objects.create(
-                user=user,
-                selected_plan=request.POST.get("selected_plan", plan),
-            )
 
             return redirect("accounts:onboarding-apartment")
     else:
@@ -119,7 +119,6 @@ def verify_email(request, token):
     return redirect("accounts:login")
 
 
-@login_required
 @owner_required
 def onboarding_apartment(request):
     """Onboarding Step 2: Register first apartment."""
@@ -150,7 +149,6 @@ def onboarding_apartment(request):
     return render(request, "accounts/onboarding.html", {**ctx, "step_template": "accounts/_onboarding_apartment.html"})
 
 
-@login_required
 @owner_required
 def onboarding_checklist(request):
     """Onboarding Step 3: Customize checklist."""
@@ -158,6 +156,8 @@ def onboarding_checklist(request):
     if onboarding.is_complete:
         return redirect("dashboard:index")
     if not onboarding.apartment:
+        return redirect("accounts:onboarding-apartment")
+    if onboarding.current_step < OnboardingProgress.Step.CHECKLIST:
         return redirect("accounts:onboarding-apartment")
 
     checklist = onboarding.apartment.checklist_template
@@ -200,7 +200,6 @@ def onboarding_checklist(request):
     return render(request, "accounts/onboarding.html", {**ctx, "step_template": "accounts/_onboarding_checklist.html"})
 
 
-@login_required
 @owner_required
 def onboarding_plan(request):
     """Onboarding Step 4: Select subscription plan."""
@@ -209,6 +208,8 @@ def onboarding_plan(request):
         return redirect("dashboard:index")
     if not onboarding.apartment:
         return redirect("accounts:onboarding-apartment")
+    if onboarding.current_step < OnboardingProgress.Step.PLAN:
+        return redirect("accounts:onboarding-checklist")
 
     initial_plan = onboarding.selected_plan or "basis"
 
@@ -242,7 +243,6 @@ def onboarding_plan(request):
     return render(request, "accounts/onboarding.html", {**ctx, "step_template": "accounts/_onboarding_plan.html"})
 
 
-@login_required
 @owner_required
 def onboarding_confirmation(request):
     """Onboarding Step 5: Confirmation and finish."""
@@ -251,6 +251,8 @@ def onboarding_confirmation(request):
         return redirect("dashboard:index")
     if not onboarding.apartment:
         return redirect("accounts:onboarding-apartment")
+    if onboarding.current_step < OnboardingProgress.Step.CONFIRMATION:
+        return redirect("accounts:onboarding-plan")
 
     if request.method == "POST":
         onboarding.is_complete = True

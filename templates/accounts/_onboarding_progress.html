@@ -1,18 +1,4 @@
 {# Progress indicator for onboarding wizard #}
-{% with steps="Wohnung,Checkliste,Plan,Fertig" %}
-  <nav aria-label="Fortschritt" class="mb-2">
-    <ol class="flex items-center justify-between">
-      {% for step_name in steps|make_list %}
-        {% if step_name == "," %}
-        {% else %}
-          {% with step_num=forloop.counter %}
-            {# Adjust counter: make_list splits chars, not commas — we use a simpler approach below #}
-          {% endwith %}
-        {% endif %}
-      {% endfor %}
-    </ol>
-  </nav>
-{% endwith %}
 <div class="flex items-center justify-between gap-2">
   {% with step_labels="Wohnung Checkliste Plan Fertig" %}
     {% for label in step_labels.split %}
