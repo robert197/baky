@@ -95,8 +95,8 @@ class Inspection(TimeStampedModel):
                 if overlapping.exists():
                     errors["scheduled_at"] = "Dieser Inspektor hat bereits eine Inspektion in diesem Zeitraum."
 
-            # Validate subscription limits
-            if self.apartment_id and self.status == self.Status.SCHEDULED:
+            # Validate subscription limits (skip only for cancelled inspections)
+            if self.apartment_id and self.status != self.Status.CANCELLED:
                 limit_error = self._check_subscription_limit()
                 if limit_error:
                     errors["apartment"] = limit_error
@@ -117,11 +117,12 @@ class Inspection(TimeStampedModel):
             return "Das Abonnement des Eigentümers ist nicht aktiv."
 
         monthly_limit = subscription.get_monthly_inspection_limit()
-        current_month_start = self.scheduled_at.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        if self.scheduled_at.month == 12:
-            next_month_start = current_month_start.replace(year=self.scheduled_at.year + 1, month=1)
+        local_scheduled = timezone.localtime(self.scheduled_at)
+        current_month_start = local_scheduled.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if local_scheduled.month == 12:
+            next_month_start = current_month_start.replace(year=local_scheduled.year + 1, month=1)
         else:
-            next_month_start = current_month_start.replace(month=self.scheduled_at.month + 1)
+            next_month_start = current_month_start.replace(month=local_scheduled.month + 1)
 
         scheduled_count = Inspection.objects.filter(
             apartment__owner=self.apartment.owner,
