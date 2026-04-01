@@ -7,9 +7,9 @@
         <span class="ml-2 text-sm text-secondary">Betreuung. Absicherung. Kontrolle. Your Home.</span>
       </div>
       <div class="flex gap-6 text-sm text-secondary">
-        <a href="#" class="hover:text-primary">Impressum</a>
-        <a href="#" class="hover:text-primary">Datenschutz</a>
-        <a href="#" class="hover:text-primary">AGB</a>
+        <a href="{% url 'public:impressum' %}" class="hover:text-primary">Impressum</a>
+        <a href="{% url 'public:datenschutz' %}" class="hover:text-primary">Datenschutz</a>
+        <a href="{% url 'public:agb' %}" class="hover:text-primary">AGB</a>
       </div>
     </div>
     <div class="mt-6 text-center text-xs text-secondary">

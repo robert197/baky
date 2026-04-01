@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Datenschutzerklärung — BAKY{% endblock %}
+{% block meta_description %}
+  Datenschutzerklärung der BAKY GmbH. Informationen zur Verarbeitung personenbezogener Daten.
+{% endblock %}
+{% block body %}
+  {% include "components/_navbar.html" %}
+  <main id="main-content" role="main">
+    <section class="bg-primary py-12 sm:py-16">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-white sm:text-4xl">Datenschutzerklärung</h1>
+      </div>
+    </section>
+    <section class="bg-surface py-12 sm:py-16">
+      <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-slate max-w-none">
+          <p class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+            <strong>Hinweis:</strong> Die nachfolgende Datenschutzerklärung ist ein Platzhalter und muss
+            vor Veröffentlichung durch rechtlich geprüfte Inhalte ersetzt werden.
+            [PLATZHALTER - Rechtliche Prüfung erforderlich]
+          </p>
+          <h2 class="mt-8 text-xl font-bold text-primary">1. Verantwortlicher</h2>
+          <p>
+            Verantwortlich für die Datenverarbeitung auf dieser Website ist:
+            <br>
+            [BAKY GmbH]
+            <br>
+            [Musterstraße 1, 1010 Wien]
+            <br>
+            E-Mail: [office@baky.at]
+          </p>
+          <h2 class="mt-8 text-xl font-bold text-primary">2. Datenerhebung und -verarbeitung</h2>
+          <p>
+            Wir erheben und verarbeiten personenbezogene Daten nur, soweit dies zur Bereitstellung
+            unserer Dienstleistungen erforderlich ist. Die Verarbeitung erfolgt auf Grundlage der
+            DSGVO und des österreichischen Datenschutzgesetzes (DSG).
+          </p>
+          <h3 class="mt-6 text-lg font-semibold text-primary">2.1 Bei Nutzung der Website</h3>
+          <p>
+            Bei jedem Zugriff auf unsere Website werden automatisch Informationen erfasst
+            (Server-Logfiles): IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browsertyp.
+            Diese Daten dienen der technischen Bereitstellung und der Sicherheit.
+          </p>
+          <h3 class="mt-6 text-lg font-semibold text-primary">2.2 Bei Registrierung und Nutzung des Service</h3>
+          <p>
+            Bei der Registrierung als Eigentümer erheben wir: Name, E-Mail-Adresse, Telefonnummer,
+            Adressdaten der zu betreuenden Wohnungen. Diese Daten sind zur Vertragserfüllung
+            erforderlich (Art. 6 Abs. 1 lit. b DSGVO).
+          </p>
+          <h2 class="mt-8 text-xl font-bold text-primary">3. Fotodokumentation</h2>
+          <p>
+            Im Rahmen unserer Inspektionsdienstleistung erstellen unsere Inspektoren
+            Fotodokumentationen der betreuten Wohnungen. Diese Fotos werden ausschließlich
+            zur Dokumentation des Wohnungszustands verwendet und nur dem jeweiligen Eigentümer
+            zur Verfügung gestellt.
+          </p>
+          <p>
+            Die Fotos werden verschlüsselt auf sicheren Servern (AWS/Cloudflare) in der EU
+            gespeichert und sind nur über signierte URLs mit begrenzter Gültigkeit abrufbar.
+          </p>
+          <h2 class="mt-8 text-xl font-bold text-primary">4. Speicherdauer und Löschung</h2>
+          <p>
+            Personenbezogene Daten werden nur so lange gespeichert, wie dies für die Erbringung
+            unserer Dienstleistungen erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen.
+          </p>
+          <ul class="list-disc pl-6">
+            <li>Kontodaten: Bis zur Löschung des Kontos, danach [X] Monate</li>
+            <li>Inspektionsberichte: [X] Monate nach Erstellung</li>
+            <li>Fotodokumentation: [X] Monate nach Erstellung</li>
+            <li>Rechnungsdaten: 7 Jahre (gesetzliche Aufbewahrungspflicht)</li>
+          </ul>
+          <h2 class="mt-8 text-xl font-bold text-primary">5. Ihre Rechte</h2>
+          <p>Nach der DSGVO stehen Ihnen folgende Rechte zu:</p>
+          <ul class="list-disc pl-6">
+            <li>
+              <strong>Auskunftsrecht</strong> (Art. 15 DSGVO): Sie haben das Recht, Auskunft über Ihre gespeicherten Daten zu erhalten.
+            </li>
+            <li>
+              <strong>Berichtigungsrecht</strong> (Art. 16 DSGVO): Sie können die Berichtigung unrichtiger Daten verlangen.
+            </li>
+            <li>
+              <strong>Löschungsrecht</strong> (Art. 17 DSGVO): Sie können die Löschung Ihrer Daten verlangen.
+            </li>
+            <li>
+              <strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO)
+            </li>
+            <li>
+              <strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO)
+            </li>
+            <li>
+              <strong>Widerspruchsrecht</strong> (Art. 21 DSGVO)
+            </li>
+          </ul>
+          <p>Zur Ausübung Ihrer Rechte kontaktieren Sie uns unter [office@baky.at].</p>
+          <h2 class="mt-8 text-xl font-bold text-primary">6. Beschwerderecht</h2>
+          <p>
+            Sie haben das Recht, eine Beschwerde bei der österreichischen Datenschutzbehörde
+            einzureichen: Österreichische Datenschutzbehörde, Barichgasse 40-42, 1030 Wien,
+            dsb@dsb.gv.at.
+          </p>
+          <h2 class="mt-8 text-xl font-bold text-primary">7. Cookies</h2>
+          <p>
+            Unsere Website verwendet technisch notwendige Cookies für die Sitzungsverwaltung
+            und den CSRF-Schutz. Diese Cookies sind für den Betrieb der Website erforderlich
+            und können nicht deaktiviert werden.
+          </p>
+          <p class="mt-8 text-sm text-secondary">Stand: [Datum einfügen]</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  {% include "components/_footer.html" %}
+{% endblock %}
