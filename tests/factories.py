@@ -42,6 +42,11 @@ class ApartmentFactory(factory.django.DjangoModelFactory):
 
     owner = factory.SubFactory(OwnerFactory)
     address = factory.Sequence(lambda n: f"Musterstraße {n}, 1010 Wien")
+    street = factory.Sequence(lambda n: f"Musterstraße {n}")
+    zip_code = "1010"
+    city = "Wien"
+    latitude = None
+    longitude = None
     access_method = Apartment.AccessMethod.KEY_HANDOVER
     access_code = ""
     access_notes = "Schlüssel beim Portier"

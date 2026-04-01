@@ -61,6 +61,11 @@ class Apartment(TimeStampedModel):
         limit_choices_to={"role": "owner"},
     )
     address = models.CharField(max_length=255)
+    street = models.CharField(max_length=255, blank=True)
+    zip_code = models.CharField(max_length=10, blank=True)
+    city = models.CharField(max_length=100, blank=True, default="Wien")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     access_method = models.CharField(max_length=20, choices=AccessMethod.choices, default=AccessMethod.KEY_HANDOVER)
     access_code = EncryptedCharField(max_length=50, blank=True, help_text="Lockbox PIN or smart lock code")
     access_notes = EncryptedTextField(blank=True)
@@ -72,6 +77,15 @@ class Apartment(TimeStampedModel):
         indexes = [
             models.Index(fields=["owner", "status"]),
         ]
+
+    @property
+    def maps_url(self) -> str:
+        """Deep link to open address in Google Maps / Apple Maps."""
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps/search/?api=1&query={self.latitude},{self.longitude}"
+        from urllib.parse import quote
+
+        return f"https://www.google.com/maps/search/?api=1&query={quote(self.address)}"
 
     def __str__(self) -> str:
         return f"{self.address} ({self.get_status_display()})"

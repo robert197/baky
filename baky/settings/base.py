@@ -77,6 +77,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "baky.context_processors.google_maps",
             ],
         },
     },
@@ -134,6 +135,9 @@ Q_CLUSTER = {
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "BAKY <noreply@baky.at>"
+
+# Google Maps
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
 
 # Encrypted fields — FIELD_ENCRYPTION_KEY must be set in environment or overridden in local/production settings
 
