@@ -219,8 +219,8 @@ class TestScheduleView:
 
     # --- Access details hidden by default ---
 
-    def test_access_details_not_visible_by_default(self):
-        """Access code/notes should NOT be in the initial HTML payload (revealed on tap via Alpine)."""
+    def test_access_details_not_in_initial_payload(self):
+        """Access code/notes should NOT be in the initial HTML — loaded via HTMX on tap."""
         inspector = InspectorFactory()
         apt = ApartmentFactory(access_code="1234", access_notes="Schlüssel unter der Matte")
         tomorrow = _tomorrow_at()
@@ -234,29 +234,14 @@ class TestScheduleView:
         client.force_login(inspector)
         response = client.get(reverse("inspections:schedule"))
         content = response.content.decode()
-        # Access details section exists but is hidden via Alpine.js x-show
-        assert "x-show" in content or "x-data" in content
-        # The access method display label should be present
+        # Access method label is present
         assert apt.get_access_method_display() in content
-
-    def test_access_details_section_contains_access_info(self):
-        """The hidden section should contain access code and notes for the inspector to reveal."""
-        inspector = InspectorFactory()
-        apt = ApartmentFactory(access_code="9876", access_notes="Ring bell twice")
-        tomorrow = _tomorrow_at()
-        InspectionFactory(
-            inspector=inspector,
-            apartment=apt,
-            scheduled_at=tomorrow,
-            scheduled_end=tomorrow + datetime.timedelta(hours=2),
-        )
-        client = Client()
-        client.force_login(inspector)
-        response = client.get(reverse("inspections:schedule"))
-        content = response.content.decode()
-        # The access info is in the HTML (just hidden), so inspector can see it on tap
-        assert "9876" in content
-        assert "Ring bell twice" in content
+        # But the sensitive access code is NOT in the initial payload
+        assert "1234" not in content
+        assert "Schlüssel unter der Matte" not in content
+        # HTMX attributes are present for lazy-loading
+        assert "hx-get" in content
+        assert "hx-trigger" in content
 
     # --- Previous inspection context ---
 
@@ -272,6 +257,7 @@ class TestScheduleView:
             scheduled_at=past,
             scheduled_end=past + datetime.timedelta(hours=2),
             status=Inspection.Status.COMPLETED,
+            completed_at=past + datetime.timedelta(hours=2),
             overall_rating=Inspection.OverallRating.ATTENTION,
         )
         InspectionItemFactory(

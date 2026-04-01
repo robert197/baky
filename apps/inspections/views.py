@@ -17,7 +17,7 @@ def index(request):
 def schedule(request):
     """Show upcoming inspections for the logged-in inspector."""
     today = timezone.localtime(timezone.now()).date()
-    inspections = (
+    inspections = list(
         Inspection.objects.filter(
             inspector=request.user,
             status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS],
@@ -30,20 +30,21 @@ def schedule(request):
     # Collect apartment IDs to batch-fetch previous inspections
     apartment_ids = [i.apartment_id for i in inspections]
 
-    # Get the most recent completed inspection per apartment (for previous context)
+    # Get the most recent completed inspection per apartment using DISTINCT ON (PostgreSQL)
     previous_inspections = {}
     if apartment_ids:
         prev_qs = (
             Inspection.objects.filter(
                 apartment_id__in=apartment_ids,
                 status=Inspection.Status.COMPLETED,
+                completed_at__isnull=False,
             )
-            .select_related("apartment")
             .order_by("apartment_id", "-completed_at")
+            .distinct("apartment_id")
         )
         for prev in prev_qs:
-            if prev.apartment_id not in previous_inspections:
-                previous_inspections[prev.apartment_id] = prev
+            prev.flagged_labels = []
+            previous_inspections[prev.apartment_id] = prev
 
         # Fetch flagged items for previous inspections
         prev_ids = [p.pk for p in previous_inspections.values()]
@@ -61,8 +62,7 @@ def schedule(request):
 
     # Annotate each inspection with its previous inspection context
     for inspection in inspections:
-        prev = previous_inspections.get(inspection.apartment_id)
-        inspection.previous_inspection = prev
+        inspection.previous_inspection = previous_inspections.get(inspection.apartment_id)
 
     # Group by date for display
     grouped = {}
