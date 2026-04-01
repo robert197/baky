@@ -1,0 +1,34 @@
+{% extends "admin/index.html" %}
+{% load i18n unfold %}
+
+{% block content %}
+    {% component "unfold/components/container.html" %}
+        {% component "unfold/components/flex.html" with class="gap-4 mb-8" %}
+            {% component "unfold/components/card.html" with class="w-full lg:w-1/4" label="Aktive Wohnungen" %}
+                {% component "unfold/components/title.html" %}
+                    {{ active_apartments }}
+                {% endcomponent %}
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" with class="w-full lg:w-1/4" label="Inspektionen diese Woche" %}
+                {% component "unfold/components/title.html" %}
+                    {{ inspections_this_week }}
+                {% endcomponent %}
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" with class="w-full lg:w-1/4" label="Offene Inspektionen" %}
+                {% component "unfold/components/title.html" %}
+                    {{ pending_inspections }}
+                {% endcomponent %}
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" with class="w-full lg:w-1/4" label="Dringende Befunde (7 Tage)" %}
+                {% component "unfold/components/title.html" %}
+                    {{ urgent_findings }}
+                {% endcomponent %}
+            {% endcomponent %}
+        {% endcomponent %}
+    {% endcomponent %}
+
+    {{ block.super }}
+{% endblock %}

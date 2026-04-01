@@ -26,5 +26,8 @@ pillow-heif>=0.16
 # Security
 django-encrypted-model-fields>=0.6
 
+# Admin
+django-unfold>=0.61
+
 # Utilities
 django-extensions>=3.2

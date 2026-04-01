@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import environ
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -20,6 +22,9 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 # Apps
 DJANGO_APPS = [
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -130,3 +135,78 @@ Q_CLUSTER = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Encrypted fields — FIELD_ENCRYPTION_KEY must be set in environment or overridden in local/production settings
+
+# Django Unfold Admin
+UNFOLD = {
+    "SITE_TITLE": "BAKY Admin",
+    "SITE_HEADER": "BAKY Admin",
+    "SITE_SYMBOL": "apartment",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "DASHBOARD_CALLBACK": "baky.admin_dashboard.dashboard_callback",
+    "SIDEBAR": {
+        "show_search": True,
+        "navigation": [
+            {
+                "title": _("Dashboard"),
+                "items": [
+                    {
+                        "title": _("Dashboard"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": _("Benutzer"),
+                "items": [
+                    {
+                        "title": _("Benutzer"),
+                        "icon": "people",
+                        "link": reverse_lazy("admin:accounts_user_changelist"),
+                    },
+                    {
+                        "title": _("Abonnements"),
+                        "icon": "credit_card",
+                        "link": reverse_lazy("admin:accounts_subscription_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Wohnungen"),
+                "items": [
+                    {
+                        "title": _("Wohnungen"),
+                        "icon": "home",
+                        "link": reverse_lazy("admin:apartments_apartment_changelist"),
+                    },
+                    {
+                        "title": _("Checklisten"),
+                        "icon": "checklist",
+                        "link": reverse_lazy("admin:apartments_checklisttemplate_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Inspektionen"),
+                "items": [
+                    {
+                        "title": _("Inspektionen"),
+                        "icon": "assignment",
+                        "link": reverse_lazy("admin:inspections_inspection_changelist"),
+                    },
+                    {
+                        "title": _("Prüfpunkte"),
+                        "icon": "fact_check",
+                        "link": reverse_lazy("admin:inspections_inspectionitem_changelist"),
+                    },
+                    {
+                        "title": _("Fotos"),
+                        "icon": "photo_camera",
+                        "link": reverse_lazy("admin:inspections_photo_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+}
