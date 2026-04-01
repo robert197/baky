@@ -1,0 +1,14 @@
+<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+  <p class="text-xs font-semibold uppercase tracking-wide text-amber-800">
+    {{ inspection.apartment.get_access_method_display }}
+  </p>
+  {% if inspection.apartment.access_code %}
+    <p class="mt-1 text-sm font-medium text-amber-800">Code: {{ inspection.apartment.access_code }}</p>
+  {% endif %}
+  {% if inspection.apartment.access_notes %}
+    <p class="mt-1 text-sm text-amber-700">{{ inspection.apartment.access_notes }}</p>
+  {% endif %}
+  {% if not inspection.apartment.access_code and not inspection.apartment.access_notes %}
+    <p class="mt-1 text-sm text-amber-700">Keine weiteren Zugangsinformationen.</p>
+  {% endif %}
+</div>
