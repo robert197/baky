@@ -44,9 +44,10 @@
         </div>
       </div>
       <!-- Content -->
-      <main id="main-content" role="main" class="flex-1 bg-surface p-4 sm:p-6 lg:p-8">
+      <main id="main-content" role="main" class="flex-1 bg-surface p-4 pb-20 sm:p-6 sm:pb-20 lg:p-8 lg:pb-8">
         {% block content %}{% endblock %}
       </main>
     </div>
+    {% include "components/_owner_bottom_nav.html" %}
   </div>
 {% endblock %}

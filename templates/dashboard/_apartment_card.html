@@ -1,0 +1,53 @@
+{# Component: _apartment_card.html - Apartment summary card for owner dashboard #}
+{# Context: apartment (annotated with last_inspection_date, last_inspection_rating, next_inspection_date) #}
+<div class="rounded-xl border border-border bg-white p-6 shadow-sm transition hover:shadow-md">
+  {# Header: Address + Status #}
+  <div class="mb-4 flex items-start justify-between gap-3">
+    <h3 class="truncate text-base font-semibold text-primary">
+      <a href="{% url 'dashboard:apartment_detail' apartment.pk %}" class="hover:underline">{{ apartment.address }}</a>
+    </h3>
+    {% if apartment.status == "active" %}
+      <span class="inline-flex shrink-0 items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Aktiv</span>
+    {% elif apartment.status == "paused" %}
+      <span class="inline-flex shrink-0 items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">Pausiert</span>
+    {% endif %}
+  </div>
+  {# Inspection info #}
+  <div class="mb-4 space-y-2 text-sm">
+    {# Last inspection #}
+    <div class="flex items-center justify-between">
+      <span class="text-secondary">Letzte Inspektion</span>
+      {% if apartment.last_inspection_date %}
+        <div class="flex items-center gap-2">
+          <span class="text-primary">{{ apartment.last_inspection_date|date:"d.m.Y" }}</span>
+          {% if apartment.last_inspection_rating == "ok" %}
+            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">OK</span>
+          {% elif apartment.last_inspection_rating == "attention" %}
+            <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Achtung</span>
+          {% elif apartment.last_inspection_rating == "urgent" %}
+            <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Dringend</span>
+          {% endif %}
+        </div>
+      {% else %}
+        <span class="text-muted">Noch keine</span>
+      {% endif %}
+    </div>
+    {# Next inspection #}
+    <div class="flex items-center justify-between">
+      <span class="text-secondary">Nächste Inspektion</span>
+      {% if apartment.next_inspection_date %}
+        <span class="text-primary">{{ apartment.next_inspection_date|date:"d.m.Y" }}</span>
+      {% else %}
+        <span class="text-muted">Keine geplant</span>
+      {% endif %}
+    </div>
+  </div>
+  {# Actions #}
+  <div class="flex items-center gap-3 border-t border-border pt-4">
+    <a href="{% url 'dashboard:apartment_edit' apartment.pk %}" class="text-sm font-medium text-accent hover:text-amber-600">
+      Bearbeiten
+    </a>
+    <a href="{% url 'dashboard:apartment_detail' apartment.pk %}"
+       class="text-sm font-medium text-secondary hover:text-primary">Details</a>
+  </div>
+</div>
