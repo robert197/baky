@@ -52,5 +52,32 @@ def send_inspection_reminder(inspection_id: int) -> dict:
         inspection_id,
         inspection.apartment.address,
     )
-    # Actual notification logic will be implemented with email dispatch (#24).
+    # Actual email dispatch will be implemented in #24.
     return {"inspection_id": inspection_id, "inspector_email": inspection.inspector.email, "status": "sent"}
+
+
+def send_owner_reminder(inspection_id: int) -> dict:
+    """Send a day-before reminder to the apartment owner.
+
+    Message: "Inspektion morgen geplant" with inspection details.
+    """
+    from apps.inspections.models import Inspection
+
+    inspection = Inspection.objects.select_related("apartment", "apartment__owner").get(pk=inspection_id)
+
+    if inspection.status != Inspection.Status.SCHEDULED:
+        logger.info(
+            "Inspection %d is no longer scheduled (%s), skipping owner reminder", inspection_id, inspection.status
+        )
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": inspection.status}
+
+    owner = inspection.apartment.owner
+    logger.info(
+        "Owner reminder sent to %s for inspection %d at %s on %s",
+        owner.email,
+        inspection_id,
+        inspection.apartment.address,
+        inspection.scheduled_at.strftime("%d.%m.%Y %H:%M"),
+    )
+    # Actual email dispatch will be implemented in #24.
+    return {"inspection_id": inspection_id, "owner_email": owner.email, "status": "sent"}
