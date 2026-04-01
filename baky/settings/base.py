@@ -118,9 +118,15 @@ Q_CLUSTER = {
     "name": "baky",
     "workers": 2,
     "recycle": 500,
-    "timeout": 300,
-    "retry": 600,
+    "timeout": 120,
+    "retry": 180,
+    "queue_limit": 50,
+    "bulk": 10,
     "orm": "default",
+    "max_attempts": 3,
+    "error_reporter": {
+        "log": True,
+    },
 }
 
 # Email
