@@ -1,0 +1,24 @@
+{# Partial: general notes textarea — swapped via HTMX on save #}
+{# Context: inspection (Inspection instance), saved (bool, optional) #}
+<div id="general-notes">
+  <label class="mb-1 block text-sm font-medium text-primary">Allgemeine Anmerkungen</label>
+  <textarea class="w-full rounded-lg border border-border px-3 py-2 text-sm text-primary placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            rows="3"
+            name="general_notes"
+            placeholder="Allgemeine Notizen zur Inspektion..."
+            hx-post="{% url 'inspections:update_general_notes' inspection.pk %}"
+            hx-target="#general-notes"
+            hx-swap="outerHTML"
+            hx-trigger="change, blur changed"
+            hx-indicator="#notes-saving">{{ inspection.general_notes }}</textarea>
+  <div class="mt-1 flex items-center justify-between">
+    <span id="notes-saving" class="htmx-indicator text-xs text-secondary">Speichern...</span>
+    {% if saved %}
+      <span class="text-xs text-emerald-600"
+            x-data="{ show: true }"
+            x-show="show"
+            x-init="setTimeout(() => show = false, 2000)"
+            x-transition>Gespeichert</span>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,86 @@
+{# Partial: single checklist item card — swapped via HTMX on update #}
+{# Context: item (InspectionItem instance) #}
+<div id="item-{{ item.pk }}" class="rounded-lg border bg-white p-3 transition-colors {% if item.result == 'flagged' %}border-amber-300 bg-amber-50{% elif item.result == 'na' %}border-slate-200 bg-slate-50{% else %}border-border{% endif %}" x-data="{ showDetails:
+  {% if item.result == 'flagged' %}
+    true
+  {% else %}
+    false
+  {% endif %}
+  }">
+  {# Item label #}
+  <p class="mb-2 text-sm font-medium text-primary">{{ item.checklist_label }}</p>
+  {# Result buttons: OK / Flag / N/A #}
+  <div class="flex gap-2">
+    {# OK button #}
+    <button type="button"
+            class="flex-1 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-colors {% if item.result == 'ok' %}border-emerald-500 bg-emerald-50 text-emerald-700{% else %}border-border text-secondary hover:bg-slate-50{% endif %}"
+            hx-post="{% url 'inspections:update_item' item.pk %}"
+            hx-vals='{"result": "ok"}'
+            hx-target="#item-{{ item.pk }}"
+            hx-swap="outerHTML">
+      <svg class="mx-auto mb-0.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      OK
+    </button>
+    {# Flag button #}
+    <button type="button"
+            class="flex-1 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-colors {% if item.result == 'flagged' %}border-amber-500 bg-amber-50 text-amber-700{% else %}border-border text-secondary hover:bg-slate-50{% endif %}"
+            @click="showDetails = true"
+            hx-post="{% url 'inspections:update_item' item.pk %}"
+            hx-vals='{"result": "flagged", "severity": "{{ item.severity|default:"low" }}"}'
+            hx-target="#item-{{ item.pk }}"
+            hx-swap="outerHTML">
+      <svg class="mx-auto mb-0.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      Auffällig
+    </button>
+    {# N/A button #}
+    <button type="button"
+            class="flex-1 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-colors {% if item.result == 'na' %}border-slate-500 bg-slate-100 text-slate-700{% else %}border-border text-secondary hover:bg-slate-50{% endif %}"
+            hx-post="{% url 'inspections:update_item' item.pk %}"
+            hx-vals='{"result": "na"}'
+            hx-target="#item-{{ item.pk }}"
+            hx-swap="outerHTML">
+      <svg class="mx-auto mb-0.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+      </svg>
+      N/A
+    </button>
+  </div>
+  {# Flagged details: severity + notes (shown when flagged) #}
+  {% if item.result == 'flagged' %}
+    <div class="mt-3 space-y-2 border-t border-amber-200 pt-3" x-show="showDetails" x-transition>
+      {# Severity selector #}
+      <div>
+        <label class="mb-1 block text-xs font-medium text-secondary">Schweregrad</label>
+        <div class="flex gap-1.5">
+          {% for value, label in item.get_severity_choices %}
+            {% if value != 'none' %}
+              <button type="button"
+                      class="flex-1 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors {% if item.severity == value %}border-amber-500 bg-amber-100 text-amber-800{% else %}border-border text-secondary hover:bg-slate-50{% endif %}"
+                      hx-post="{% url 'inspections:update_item' item.pk %}"
+                      hx-vals='{"result": "flagged", "severity": "{{ value }}", "notes": "{{ item.notes|escapejs }}"}'
+                      hx-target="#item-{{ item.pk }}"
+                      hx-swap="outerHTML">{{ label }}</button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {# Notes field #}
+      <div>
+        <label class="mb-1 block text-xs font-medium text-secondary">Anmerkungen</label>
+        <textarea class="w-full rounded-lg border border-border px-3 py-2 text-sm text-primary placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  rows="2"
+                  placeholder="Beschreibung des Problems..."
+                  name="notes"
+                  hx-post="{% url 'inspections:update_item' item.pk %}"
+                  hx-vals='{"result": "flagged", "severity": "{{ item.severity }}"}'
+                  hx-target="#item-{{ item.pk }}"
+                  hx-swap="outerHTML"
+                  hx-trigger="change, blur changed">{{ item.notes }}</textarea>
+      </div>
+    </div>
+  {% endif %}
+</div>
