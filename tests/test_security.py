@@ -163,12 +163,13 @@ class TestProductionSecuritySettings:
         content = prod_file.read_text()
         assert "SECURE_CONTENT_TYPE_NOSNIFF = True" in content
 
-    def test_production_has_xss_filter(self):
+    def test_production_no_deprecated_xss_filter(self):
+        """SECURE_BROWSER_XSS_FILTER was removed in Django 5.x — verify it's not set."""
         from pathlib import Path
 
         prod_file = Path(__file__).resolve().parent.parent / "baky" / "settings" / "production.py"
         content = prod_file.read_text()
-        assert "SECURE_BROWSER_XSS_FILTER = True" in content
+        assert "SECURE_BROWSER_XSS_FILTER" not in content
 
     def test_production_has_proxy_ssl_header(self):
         from pathlib import Path
