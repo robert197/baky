@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -335,6 +336,21 @@ def update_photo_caption(request, photo_id):
 # --- Submission flow ---
 
 
+def _get_inspection_summary(inspection):
+    """Compute item counts and photo count for an inspection."""
+    items = inspection.items.order_by("order")
+    ok_count = items.filter(result=InspectionItem.Result.OK).count()
+    flagged_count = items.filter(result=InspectionItem.Result.FLAGGED).count()
+    na_count = items.filter(result=InspectionItem.Result.NA).count()
+    return {
+        "ok_count": ok_count,
+        "flagged_count": flagged_count,
+        "na_count": na_count,
+        "total_items": ok_count + flagged_count + na_count,
+        "photo_count": inspection.photos.count(),
+    }
+
+
 @inspector_required
 def review_inspection(request, inspection_id):
     """Pre-submit review screen showing inspection summary."""
@@ -344,25 +360,16 @@ def review_inspection(request, inspection_id):
         allowed_statuses=[Inspection.Status.IN_PROGRESS],
     )
 
-    items = inspection.items.order_by("order")
-    ok_count = items.filter(result=InspectionItem.Result.OK).count()
-    flagged_count = items.filter(result=InspectionItem.Result.FLAGGED).count()
-    na_count = items.filter(result=InspectionItem.Result.NA).count()
-    flagged_items = items.filter(result=InspectionItem.Result.FLAGGED).order_by("order")
-    photo_count = inspection.photos.count()
+    summary = _get_inspection_summary(inspection)
+    flagged_items = inspection.items.filter(result=InspectionItem.Result.FLAGGED).order_by("order")
 
     return render(
         request,
         "inspector/review.html",
         {
             "inspection": inspection,
-            "ok_count": ok_count,
-            "flagged_count": flagged_count,
-            "na_count": na_count,
-            "total_items": ok_count + flagged_count + na_count,
+            **summary,
             "flagged_items": flagged_items,
-            "photo_count": photo_count,
-            "rating_choices": Inspection.OverallRating.choices,
             "active": "schedule",
         },
     )
@@ -372,31 +379,35 @@ def review_inspection(request, inspection_id):
 @require_POST
 def submit_inspection(request, inspection_id):
     """Submit a completed inspection — irreversible."""
-    inspection = _get_inspection_for_inspector(
-        request,
-        inspection_id,
-        allowed_statuses=[Inspection.Status.IN_PROGRESS],
-    )
-
-    # Validate overall rating is provided and valid
+    # Validate inputs before acquiring the lock
     overall_rating = request.POST.get("overall_rating", "")
     valid_ratings = [r[0] for r in Inspection.OverallRating.choices]
-    if overall_rating not in valid_ratings:
-        messages.error(request, "Bitte wählen Sie eine Gesamtbewertung aus.")
-        return redirect("inspections:review_inspection", inspection_id=inspection.pk)
 
-    # Validate at least one item exists
-    if not inspection.items.exists():
-        messages.error(request, "Inspektion hat keine Checklistenpunkte.")
-        return redirect("inspections:review_inspection", inspection_id=inspection.pk)
+    with transaction.atomic():
+        inspection = get_object_or_404(
+            Inspection.objects.select_for_update().select_related("apartment", "apartment__owner"),
+            pk=inspection_id,
+        )
+        if inspection.inspector_id != request.user.id:
+            raise Http404
+        if inspection.status != Inspection.Status.IN_PROGRESS:
+            raise Http404
 
-    # Mark as completed
-    inspection.status = Inspection.Status.COMPLETED
-    inspection.completed_at = timezone.now()
-    inspection.overall_rating = overall_rating
-    inspection.save(update_fields=["status", "completed_at", "overall_rating", "updated_at"])
+        if overall_rating not in valid_ratings:
+            messages.error(request, "Bitte wählen Sie eine Gesamtbewertung aus.")
+            return redirect("inspections:review_inspection", inspection_id=inspection.pk)
 
-    # Trigger background tasks
+        if not inspection.items.exists():
+            messages.error(request, "Inspektion hat keine Checklistenpunkte.")
+            return redirect("inspections:review_inspection", inspection_id=inspection.pk)
+
+        # Mark as completed
+        inspection.status = Inspection.Status.COMPLETED
+        inspection.completed_at = timezone.now()
+        inspection.overall_rating = overall_rating
+        inspection.save(update_fields=["status", "completed_at", "overall_rating", "updated_at"])
+
+    # Queue background tasks after transaction commits
     queue_task(
         "apps.reports.tasks.generate_report",
         inspection.pk,
@@ -429,22 +440,14 @@ def inspection_submitted(request, inspection_id):
         allowed_statuses=[Inspection.Status.COMPLETED],
     )
 
-    items = inspection.items.order_by("order")
-    ok_count = items.filter(result=InspectionItem.Result.OK).count()
-    flagged_count = items.filter(result=InspectionItem.Result.FLAGGED).count()
-    na_count = items.filter(result=InspectionItem.Result.NA).count()
-    photo_count = inspection.photos.count()
+    summary = _get_inspection_summary(inspection)
 
     return render(
         request,
         "inspector/submitted.html",
         {
             "inspection": inspection,
-            "ok_count": ok_count,
-            "flagged_count": flagged_count,
-            "na_count": na_count,
-            "total_items": ok_count + flagged_count + na_count,
-            "photo_count": photo_count,
+            **summary,
             "active": "schedule",
         },
     )

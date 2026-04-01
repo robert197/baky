@@ -71,7 +71,7 @@ def send_urgent_notification(inspection_id: int) -> dict:
         )
         return {"inspection_id": inspection_id, "status": "skipped", "reason": inspection.status}
 
-    if inspection.overall_rating != "urgent":
+    if inspection.overall_rating != Inspection.OverallRating.URGENT:
         logger.info(
             "Skipping urgent notification for inspection %d — rating is %s", inspection_id, inspection.overall_rating
         )

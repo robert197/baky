@@ -220,7 +220,8 @@ class TestReviewInspectionView:
 
 @pytest.mark.django_db
 class TestSubmitInspectionView:
-    def test_submit_sets_completed_status(self):
+    @patch("apps.inspections.views.queue_task")
+    def test_submit_sets_completed_status(self, mock_queue):
         """Submitting should set status to COMPLETED and record completed_at."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -335,7 +336,8 @@ class TestSubmitInspectionView:
         calls = [c for c in mock_queue.call_args_list if "send_urgent_notification" in str(c)]
         assert len(calls) == 1
 
-    def test_submit_redirects_to_confirmation(self):
+    @patch("apps.inspections.views.queue_task")
+    def test_submit_redirects_to_confirmation(self, mock_queue):
         """After successful submit, should redirect to confirmation page."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -407,7 +409,8 @@ class TestSubmitInspectionView:
         response = client.post(url, {"overall_rating": "ok"})
         assert response.status_code == 404
 
-    def test_submit_with_attention_rating(self):
+    @patch("apps.inspections.views.queue_task")
+    def test_submit_with_attention_rating(self, mock_queue):
         """Attention rating should work without triggering urgent notification."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
@@ -421,7 +424,12 @@ class TestSubmitInspectionView:
         assert inspection.overall_rating == Inspection.OverallRating.ATTENTION
         assert inspection.status == Inspection.Status.COMPLETED
 
-    def test_submit_is_irreversible(self):
+        # Verify no urgent notification was queued
+        urgent_calls = [c for c in mock_queue.call_args_list if "send_urgent_notification" in str(c)]
+        assert len(urgent_calls) == 0
+
+    @patch("apps.inspections.views.queue_task")
+    def test_submit_is_irreversible(self, mock_queue):
         """Once submitted, cannot submit again."""
         inspector = InspectorFactory()
         inspection, _ = _create_in_progress_inspection(inspector)
