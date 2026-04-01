@@ -107,3 +107,98 @@ class TestLandingPage:
         content = response.content.decode()
         # Testimonial section should exist (placeholders)
         assert "Vertrauen" in content or "Kunden" in content or "Eigentümer" in content
+
+
+@pytest.mark.django_db
+class TestPricingPage:
+    """Tests for the pricing page at /preise/."""
+
+    def test_get_success(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        assert response.status_code == 200
+
+    def test_uses_correct_template(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        assert "public/pricing.html" in [t.name for t in response.templates]
+
+    def test_url_is_german(self, client: Client):
+        response = client.get("/preise/")
+        assert response.status_code == 200
+
+    def test_no_auth_required(self, client: Client):
+        """Pricing page should be accessible without login."""
+        response = client.get(reverse("public:pricing"))
+        assert response.status_code == 200
+
+    def test_basis_tier_displayed(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Basis" in content
+        assert "59,90" in content
+        assert "2 Inspektionen" in content or "2" in content
+
+    def test_extra_tier_displayed(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Extra" in content
+        assert "99,90" in content
+        assert "4 Inspektionen" in content or "4" in content
+
+    def test_both_tiers_have_photo_documentation(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Fotodokumentation" in content
+
+    def test_both_tiers_have_digital_reports(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Digitale Berichte" in content or "Berichte" in content
+
+    def test_both_tiers_have_urgent_alerts(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Dringende Meldungen" in content or "Sofort-Meldungen" in content
+
+    def test_cta_buttons_present(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        # CTAs should link to signup with plan pre-selected
+        assert "?plan=basis" in content or "plan=basis" in content
+        assert "?plan=extra" in content or "plan=extra" in content
+
+    def test_per_apartment_clarification(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "pro Wohnung" in content or "Pro Wohnung" in content
+
+    def test_faq_section_present(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Häufige Fragen" in content or "FAQ" in content
+
+    def test_recommended_tier_highlighted(self, client: Client):
+        """One tier should be marked as recommended."""
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Empfohlen" in content or "empfohlen" in content
+
+    def test_page_title_contains_pricing(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "Preise" in content
+
+    def test_navbar_pricing_link_active(self, client: Client):
+        """Navbar should have a working link to pricing page."""
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert "/preise/" in content
+
+    def test_mobile_responsive_meta(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert 'name="viewport"' in content
+
+    def test_german_language(self, client: Client):
+        response = client.get(reverse("public:pricing"))
+        content = response.content.decode()
+        assert 'lang="de"' in content
