@@ -113,7 +113,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Django-Q2
+# Django-Q2 — retries are handled by retry > timeout (re-queues timed-out tasks).
+# Retry limiting is enforced in baky.tasks.on_task_error via attempt_count.
 Q_CLUSTER = {
     "name": "baky",
     "workers": 2,
@@ -123,10 +124,6 @@ Q_CLUSTER = {
     "queue_limit": 50,
     "bulk": 10,
     "orm": "default",
-    "max_attempts": 3,
-    "error_reporter": {
-        "log": True,
-    },
 }
 
 # Email

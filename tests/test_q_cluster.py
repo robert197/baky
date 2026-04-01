@@ -21,9 +21,6 @@ class TestQClusterConfig:
     def test_retry_exceeds_timeout(self):
         assert settings.Q_CLUSTER["retry"] > settings.Q_CLUSTER["timeout"]
 
-    def test_max_attempts_configured(self):
-        assert settings.Q_CLUSTER["max_attempts"] == 3
-
     def test_queue_limit(self):
         assert settings.Q_CLUSTER["queue_limit"] == 50
 

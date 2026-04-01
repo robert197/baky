@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 def generate_thumbnail(photo_id: int) -> dict:
     """Generate a thumbnail for an uploaded inspection photo.
 
-    This offloads thumbnail creation to a background worker for large batches
-    of photos uploaded during an inspection.
+    Photo.save() auto-generates thumbnails on first save. This task exists for
+    re-generating thumbnails (e.g., after a resize config change) or for photos
+    created via bulk import that bypass the save hook.
     """
     from apps.inspections.models import Photo
     from baky.storage import create_thumbnail

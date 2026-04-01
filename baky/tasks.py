@@ -12,14 +12,17 @@ from django_q.tasks import async_task
 logger = logging.getLogger(__name__)
 
 
-def queue_task(func_path: str, *args, task_name: str | None = None, **kwargs) -> str:
+def queue_task(
+    func_path: str, *args, task_name: str | None = None, hook: str = "baky.tasks.on_task_error", **kwargs
+) -> str:
     """Queue a background task with standard retry and error handling.
 
     Args:
         func_path: Dotted path to the task function (e.g., "apps.reports.tasks.generate_report").
         *args: Positional arguments passed to the task function.
         task_name: Optional human-readable name for admin visibility.
-        **kwargs: Additional keyword arguments passed to async_task (e.g., hook, group).
+        hook: Dotted path to a post-execution hook. Defaults to on_task_error for logging failures.
+        **kwargs: Additional keyword arguments passed to async_task (e.g., group).
 
     Returns:
         The task ID string.
@@ -28,6 +31,7 @@ def queue_task(func_path: str, *args, task_name: str | None = None, **kwargs) ->
         func_path,
         *args,
         task_name=task_name or func_path.rsplit(".", 1)[-1],
+        hook=hook,
         **kwargs,
     )
     logger.info("Queued task %s (id=%s) with args=%s", func_path, task_id, args)

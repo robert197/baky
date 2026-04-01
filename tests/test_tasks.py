@@ -20,6 +20,7 @@ class TestQueueTask:
             "apps.reports.tasks.generate_report",
             42,
             task_name="generate_report",
+            hook="baky.tasks.on_task_error",
         )
 
     @patch("baky.tasks.async_task")
@@ -30,6 +31,7 @@ class TestQueueTask:
             "apps.reports.tasks.generate_report",
             42,
             task_name="custom_name",
+            hook="baky.tasks.on_task_error",
         )
 
     @patch("baky.tasks.async_task")
@@ -49,7 +51,15 @@ class TestQueueTask:
         mock_async.return_value = "id-4"
         result = queue_task("some.module.task_func")
         assert result == "id-4"
-        mock_async.assert_called_once_with("some.module.task_func", task_name="task_func")
+        mock_async.assert_called_once_with(
+            "some.module.task_func", task_name="task_func", hook="baky.tasks.on_task_error"
+        )
+
+    @patch("baky.tasks.async_task")
+    def test_queue_task_custom_hook_overrides_default(self, mock_async):
+        mock_async.return_value = "id-5"
+        queue_task("some.module.func", hook="custom.hook")
+        mock_async.assert_called_once_with("some.module.func", task_name="func", hook="custom.hook")
 
 
 class TestOnTaskError:
