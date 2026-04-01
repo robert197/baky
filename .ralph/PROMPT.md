@@ -1,31 +1,25 @@
-# BAKY Autopilot — Ralph Development Loop
+# BAKY Autopilot — Compound Engineering Development Loop
 
 You are building BAKY, an apartment inspection platform for short-term rentals in Vienna.
-This prompt runs in a loop. Each iteration, you wake up, assess where you are, and continue building.
+This prompt runs in a loop. Each iteration, you wake up, assess where you are, and build
+ONE issue using the Compound Engineering workflow strictly.
 
 ## CRITICAL: Read This Every Iteration
 
-You are running inside Ralph CLI. Each iteration is a FRESH Claude Code process with a clean
-context window. You have NO memory of previous iterations. All state is in files:
+You are a FRESH Claude Code process. You have NO memory of previous iterations. All state is in files:
 - Git history and branch state → what's been built
-- Roadmap issue #44 → what's done (checked) and what's next (unchecked)
-- GitHub roadmap issue #44 → what's shipped (checked) and what's next (unchecked)
-- `docs/solutions/` → learnings from previous iterations (read before starting)
+- Roadmap issue #44 → what's shipped (checked) and what's next (unchecked)
+- `docs/plans/` → implementation plans from /ce:plan
+- `docs/solutions/` → learnings from /ce:compound
 
-1. Read CLAUDE.md for project conventions and design context
-2. Check git status to understand current state
-3. Read the roadmap to find your next task
-4. Check `docs/solutions/` for relevant past learnings
+Read CLAUDE.md first for project conventions and design context.
 
 ## Step 1: Assess and Recover
 
 ```bash
-# Where am I?
 git branch --show-current
 git status
 git log --oneline -5
-
-# Is Docker running? If not, start it.
 docker compose ps 2>/dev/null || make up
 ```
 
@@ -35,61 +29,32 @@ docker compose ps 2>/dev/null || make up
 branch=$(git branch --show-current)
 status=$(git status --porcelain)
 
-# Case A: On main with uncommitted changes → discard (leftover from crash)
+# On main with uncommitted changes → discard (leftover from crash)
 if [ "$branch" = "main" ] && [ -n "$status" ]; then
   git checkout -- .
   git clean -fd
 fi
 
-# Case B: On a feature branch with a merged PR → the PR was merged but
-# the iteration crashed before returning to main. Clean up.
+# On feature branch with already-merged PR → return to main
 if [ "$branch" != "main" ]; then
   issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
-  # Check if a PR for this branch was already merged
   pr_state=$(gh pr list -R robert197/baky --head "$branch" --state merged --json number -q 'length' 2>/dev/null)
   if [ "$pr_state" = "1" ]; then
-    # PR already merged — just return to main
-    git checkout main
-    git pull origin main
-    git branch -D "$branch" 2>/dev/null
-    # Skip to Step 3 (pick next issue)
+    git checkout main && git pull origin main && git branch -D "$branch" 2>/dev/null
   fi
-fi
-```
-
-Check for past learnings:
-```bash
-ls docs/solutions/*/ 2>/dev/null | head -20
-```
-
-## Step 2: Check if Current Feature Branch Has Work
-
-If you're on a feature branch (not `main`) and the PR was NOT already merged:
-1. Check if the feature is complete (all acceptance criteria met)
-2. Run `make test` and `make lint`
-3. If tests pass: go to Step 7 (Review) to finish shipping
-4. If tests fail: fix them, then proceed to Step 7
-
-```bash
-branch=$(git branch --show-current)
-if [ "$branch" != "main" ]; then
-  issue_num=$(echo "$branch" | grep -oE '[0-9]+' | head -1)
-
-  # Check if issue is already closed (previous iteration completed it)
   issue_state=$(gh issue view "$issue_num" -R robert197/baky --json state -q .state 2>/dev/null)
   if [ "$issue_state" = "CLOSED" ]; then
-    git checkout main
-    git pull origin main
-    git branch -D "$branch" 2>/dev/null
-    # Skip to Step 3
-  else
-    make lint
-    make test
-    # If passing → skip to Step 7 (Review)
-    # If failing → fix issues, then proceed to Step 7
+    git checkout main && git pull origin main && git branch -D "$branch" 2>/dev/null
   fi
 fi
 ```
+
+## Step 2: Resume In-Progress Feature Branch
+
+If you're on a feature branch (not `main`) with an open issue:
+- Run `make lint` and `make test`
+- If passing → skip to **Step 6 (Review)**
+- If failing → fix issues, then proceed to **Step 6 (Review)**
 
 ## Step 3: Pick the Next Issue from Roadmap
 
@@ -97,225 +62,112 @@ fi
 gh issue view 44 -R robert197/baky
 ```
 
-Parse the roadmap body. Find the first `- [ ]` item where ALL dependencies (issues after `←`) are closed.
-
-To check if a dependency is closed:
+Find the first `- [ ]` item where ALL dependencies (after `←`) are closed:
 ```bash
 gh issue view <number> -R robert197/baky --json state -q .state
 ```
 
-The first unchecked item with all dependencies CLOSED is your next task.
+## Step 4: Plan with /ce:plan
 
-## Step 4: Read the Issue, Check Learnings, and Plan
-
+Read the issue:
 ```bash
 gh issue view <number> -R robert197/baky
 ```
 
-Read the full issue. Understand:
-- What needs to be built
-- Acceptance criteria (the checkboxes)
-- Dependencies on other code already in the codebase
-
-**Check for relevant learnings** from previous iterations:
+Check for relevant past learnings:
 ```bash
-ls docs/solutions/ 2>/dev/null
-# Read any solution docs that relate to the current issue's domain
-# (e.g., if building models, check for database-issues/ or build-errors/)
+ls docs/solutions/*/ 2>/dev/null | head -20
 ```
-
-Apply any relevant lessons — don't repeat mistakes that were already documented.
-
-**For complex issues** (multi-model, multi-view, integrations): Use `/ce:plan` to create
-a detailed implementation plan in `docs/plans/` before coding.
-
-**For simple issues** (config, fixtures, single-file): Start coding directly.
 
 Create a feature branch:
 ```bash
-git checkout main
-git pull origin main
+git checkout main && git pull origin main
 git checkout -b feat/<number>-<short-description>
 ```
 
-## Step 5: Implement with TDD
+**NOW invoke the Skill tool to create an implementation plan:**
 
-For each piece of functionality:
-1. **Write a failing test** first
-2. **Run it** to confirm it fails: `make test ARGS="-k test_name"`
-3. **Write minimal code** to make it pass
-4. **Run tests** to confirm green: `make test`
-5. **Commit** with conventional message: `feat(<scope>): description`
-
-### Testing Requirements — NON-NEGOTIABLE
-
-Every feature MUST have comprehensive tests. Weak or missing tests are a blocker — do not
-ship without them. The test suite is our safety net for the entire autopilot pipeline.
-
-**For every model:**
-```python
-# tests/<app>/test_models.py
-class TestModelName:
-    def test_create(self): ...                    # Basic creation works
-    def test_str(self): ...                       # __str__ returns expected value
-    def test_field_constraints(self): ...         # Required fields, max_length, choices
-    def test_relationships(self): ...             # ForeignKey, related_name, cascade
-    def test_ordering(self): ...                  # Default ordering from Meta
-    def test_business_logic(self): ...            # Any model methods
-    def test_invalid_data_rejected(self): ...     # ValidationError on bad input
+```
+Skill({ skill: "compound-engineering:ce-plan", args: "<paste the full issue body here>" })
 ```
 
-**For every view:**
-```python
-# tests/<app>/test_views.py
-class TestViewName:
-    def test_get_success(self): ...               # 200 on valid request
-    def test_requires_auth(self): ...             # 302 redirect when not logged in
-    def test_wrong_role_gets_404(self): ...       # Owner can't access inspector views
-    def test_scoped_to_user(self): ...            # Owner only sees own data
-    def test_post_creates_object(self): ...       # Form submission works
-    def test_post_invalid_data(self): ...         # Form validation errors shown
-    def test_htmx_partial_response(self): ...     # HX-Request header returns partial
-    def test_context_contains_expected_data(self): ... # Template gets correct context
+This will:
+- Research the codebase for existing patterns
+- Ask clarifying questions (answer them yourself based on the issue and CLAUDE.md)
+- Create a detailed plan in `docs/plans/` with bite-sized TDD tasks
+- Each task has: exact files, test code, implementation code, verification commands
+
+Wait for the plan to be written to `docs/plans/` before proceeding.
+
+## Step 5: Execute with /ce:work
+
+**Invoke the Skill tool to execute the plan:**
+
+```
+Skill({ skill: "compound-engineering:ce-work", args: "docs/plans/<the-plan-file-just-created>.md" })
 ```
 
-**For every form/serializer:**
-```python
-# tests/<app>/test_forms.py
-class TestFormName:
-    def test_valid_data(self): ...                # Clean data accepted
-    def test_required_fields(self): ...           # Missing required → error
-    def test_field_validation(self): ...          # Email format, phone format, etc.
-    def test_custom_clean_methods(self): ...      # Business logic in clean()
-```
+This will:
+- Read the plan
+- Create a todo list from the plan's tasks
+- Execute each task following TDD (failing test → implementation → green test)
+- Run tests continuously after each change
+- Make incremental commits with conventional messages
+- Follow the System-Wide Test Check for callbacks, middleware, state persistence
+- Track progress via TodoWrite
 
-**For every background task:**
-```python
-# tests/<app>/test_tasks.py
-class TestTaskName:
-    def test_task_completes(self): ...            # Happy path
-    def test_task_with_invalid_input(self): ...   # Handles bad data gracefully
-    def test_task_idempotent(self): ...           # Safe to run twice
-```
+### Testing Requirements (enforced by /ce:work)
 
-**For every API endpoint / integration point:**
-```python
-class TestIntegration:
-    def test_full_flow(self): ...                 # Complete user journey
-    def test_error_handling(self): ...            # External service failure
-```
-
-### Test Quality Rules
-
-1. **Use factories, not fixtures.** `OwnerFactory()`, `ApartmentFactory()`, `InspectionFactory()` — never hardcode test data inline.
-2. **Test behavior, not implementation.** Assert on what the user sees, not internal state.
-3. **One assertion per concept.** Multiple related asserts in one test is fine, but each test should have a single reason to fail.
-4. **Name tests descriptively.** `test_owner_cannot_see_other_owners_apartment` not `test_apartment_2`.
-5. **Test edge cases.** Empty lists, maximum lengths, boundary values, unicode (German umlauts: ä, ö, ü, ß).
-6. **Test permissions seriously.** Every authenticated view needs tests for: unauthenticated, wrong role, correct role but wrong data (owner A accessing owner B's data).
-7. **No mocking the database.** Tests hit the real PostgreSQL via pytest-django. Mock only external services (S3, email API).
-8. **Run tests after EVERY change.** Not at the end. `make test` after each commit.
-
-### Minimum Test Coverage Per Issue
-
-Before shipping any issue, verify:
-```bash
-make test ARGS="--tb=short -q"
-# Count: does this feature have at least the tests listed above?
-```
+The plan from /ce:plan will include tests for each task. /ce:work executes them via TDD.
+But additionally verify these minimums before proceeding:
 
 | Feature Type | Minimum Tests |
 |-------------|---------------|
-| New model | 5+ tests (create, str, constraints, relationships, business logic) |
-| New view | 5+ tests (success, auth, role, scope, form handling) |
-| New form | 3+ tests (valid, required fields, validation) |
-| New task | 3+ tests (happy path, bad input, idempotent) |
-| Full feature (model + view + form) | 15+ tests combined |
+| New model | 5+ (create, str, constraints, relationships, business logic) |
+| New view | 5+ (success, auth, role, scope, form handling) |
+| New form | 3+ (valid, required, validation) |
+| New task | 3+ (happy path, bad input, idempotent) |
+| Full feature | 15+ combined |
 
-**If a feature has fewer tests than the minimum, write more before proceeding.**
+Rules:
+- Use factories (OwnerFactory, ApartmentFactory, etc.), never hardcode test data
+- Test permissions for every authenticated view (unauthenticated, wrong role, wrong user)
+- Test edge cases (empty data, German umlauts ä/ö/ü/ß, boundary values)
+- No mocking the database — tests hit real PostgreSQL
+- `make test` after EVERY change
 
-### Conventions
-- All commands via `make` (Docker)
-- Django patterns: fat models, thin views
-- Tailwind CSS for styling (use color tokens from CLAUDE.md Design Context)
-- HTMX for dynamic content
-- Mobile-first design
-- German for user-facing text, English for code
+## Step 6: Review with /ce:review
 
-When implementing seed data for a new feature, add it as an idempotent management command
-following the seed strategy in `.claude/skills/seed-strategy/SKILL.md`.
+**After /ce:work ships all tasks and validation passes, invoke the Skill tool for code review:**
 
-## Step 6: Validate
-
-Before moving to review, run the full validation suite:
-
-```bash
-# 1. Linting
-make lint
-
-# 2. Full test suite with verbose output
-make test ARGS="-v --tb=short"
-
-# 3. Django system checks
-make manage CMD="check"
-
-# 4. E2E validation (if UI features exist)
-make e2e 2>/dev/null || echo "E2E tests not yet set up"
-
-# 5. Test coverage check — count tests added in this branch
-git diff main --stat -- 'tests/' | tail -1
-# Verify new test files were added/modified for this feature
+```
+Skill({ skill: "compound-engineering:ce-review", args: "--serial" })
 ```
 
-ALL must pass. If any fail, fix and re-run. Do NOT proceed to review with failing tests.
+This will:
+- Read `compound-engineering.local.md` for configured review agents
+- Launch review agents (architecture, patterns, performance, security, data-integrity)
+- Run in serial mode (context-safe for autopilot iterations)
+- Report findings with severity: Critical / Important / Minor
 
-**Test completeness check:** Before moving on, verify:
-- Did you write tests for every model added/modified?
-- Did you write tests for every view added/modified?
-- Did you test authentication and authorization for every endpoint?
-- Did you test edge cases (empty data, invalid input, German characters)?
-- Does the test count meet the minimums from Step 5?
-
-If the answer to ANY of these is no, go back and write the missing tests.
-
-## Step 7: Review (Compound Engineering)
-
-**After validation passes**, run a code review using the `superpowers:requesting-code-review` pattern.
-
-Dispatch the `code-reviewer` agent to review the changes:
-
-```bash
-# Get the diff range
-BASE_SHA=$(git merge-base main HEAD)
-HEAD_SHA=$(git rev-parse HEAD)
-```
-
-Launch the code-reviewer agent with:
-- **What was implemented**: Summary of the feature (from the issue)
-- **Requirements**: The acceptance criteria from the issue
-- **BASE_SHA / HEAD_SHA**: The commit range to review
-- **Mode**: `--serial` (context-safe for Ralph iterations)
-
-**Act on review feedback:**
+**Act on feedback:**
 
 | Severity | Action |
 |----------|--------|
-| **Critical** | Fix immediately. Re-run validation. |
-| **Important** | Fix before proceeding to PR. |
-| **Minor** | Note for later — do not delay shipping. |
+| **Critical** | Fix immediately. Re-run `make test` and `make lint`. |
+| **Important** | Fix before creating PR. |
+| **Minor** | Note in PR description — do not delay shipping. |
 
-After fixing Critical/Important issues:
+After fixing Critical/Important issues, commit:
 ```bash
 git add -A
 git commit -m "fix(<scope>): address review feedback"
-make test
-make lint
+make test && make lint
 ```
 
-## Step 8: Ship — Create PR and Merge
+## Step 7: Ship — Create PR and Merge
 
 ```bash
-# Stage any remaining changes (skip if nothing to commit)
 git add -A
 if [ -n "$(git status --porcelain)" ]; then
   git commit -m "$(cat <<'EOF'
@@ -328,15 +180,13 @@ EOF
 )"
 fi
 
-# Push feature branch
 branch=$(git branch --show-current)
 git push -u origin "$branch"
 
-# Check if PR already exists for this branch (from a crashed previous attempt)
+# Check if PR already exists (crash recovery)
 existing_pr=$(gh pr list -R robert197/baky --head "$branch" --state open --json number -q '.[0].number' 2>/dev/null)
 
 if [ -z "$existing_pr" ]; then
-  # Create new PR
   gh pr create \
     --title "feat(<scope>): <short description>" \
     --body "$(cat <<'PRBODY'
@@ -353,133 +203,116 @@ Closes #<issue_number>
 - [x] `make lint` passes
 - [x] `make test` passes
 - [x] `make manage CMD="check"` passes
-- [x] Code review completed (Critical/Important issues resolved)
+- [x] Code review via /ce:review (Critical/Important resolved)
 
 ## Review Notes
-<Any notable decisions, trade-offs, or follow-up items from review>
+<Any notable decisions, trade-offs, or follow-up from review agents>
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 PRBODY
 )"
 fi
 
-# Merge the PR (auto-deletes branch via repo setting)
 gh pr merge --merge
-
-# Return to main
-git checkout main
-git pull origin main
-
-# Clean up local branch if it still exists
+git checkout main && git pull origin main
 git branch -D "$branch" 2>/dev/null
 ```
 
-## Step 9: Compound — Document Learnings
+## Step 8: Compound Learnings with /ce:compound
 
-**After merging**, check if this iteration produced knowledge worth compounding.
+**After merging, check if this iteration produced knowledge worth documenting.**
 
-**Document a learning if ANY of these occurred:**
+Invoke compound if ANY of these occurred:
 - A non-obvious bug was found and fixed
 - A pattern was discovered that future features should follow
-- A configuration or setup issue was resolved after trial and error
-- A workaround was needed for a library or framework limitation
+- A configuration or setup issue took trial and error
+- A workaround was needed for a library limitation
 - A test approach was found that's worth reusing
 
-**Run `/ce:compound` to document the learning.** This will use parallel subagents to create
-a thorough solution doc in `docs/solutions/`.
+**Invoke the Skill tool:**
 
-**Skip compounding if** the feature was straightforward with no surprises.
+```
+Skill({ skill: "compound-engineering:ce-compound", args: "Shipped issue #<number>: <brief context of what was non-obvious>" })
+```
 
-Future iterations will read `docs/solutions/` in Step 4 to avoid repeating mistakes.
+This will:
+- Analyze the conversation for the problem/solution
+- Create a structured doc in `docs/solutions/<category>/`
+- Include: problem, root cause, solution, prevention
+- Future iterations read these in Step 4
 
-## Step 10: Update Fix Plan
+**Skip compounding if the feature was straightforward with no surprises.**
 
-Do NOT edit `.ralph/fix_plan.md` — it exists only because Ralph CLI requires it.
-Progress is tracked via GitHub issues (open/closed state on roadmap #44).
+## Step 9: Exit This Iteration
 
-## Step 11: Exit This Iteration
-
-After shipping ONE issue, this iteration is over. Ralph CLI will start a fresh process
-for the next issue.
-
-First, check how many MVP issues remain:
+Check how many MVP issues remain:
 ```bash
 remaining=$(gh issue list -R robert197/baky --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length')
 echo "Remaining MVP issues: $remaining"
 ```
 
-**If 0 remaining** — ALL MVP issues are shipped. Output the completion promise:
+**If 0 remaining** — ALL MVP issues are shipped:
 <promise>MVP_COMPLETE</promise>
 
-**If issues remain** — output EXACTLY this block (Ralph uses it to detect progress):
+**If issues remain** — output EXACTLY this and exit:
 ```
 RALPH_STATUS:
 EXIT_SIGNAL: false
 SHIPPED: #<issue_number>
-REMAINING: <number of open MVP issues>
+REMAINING: <count>
 PICKING_UP_NEXT: #<next_issue_number>
 ```
 
-**CRITICAL**: The words "complete", "done", "finished", "ready" in your final output
-will trick Ralph into thinking the entire project is finished. AVOID these words.
-Say "shipped" instead of "completed". Say "remaining" instead of "done".
+**Do NOT start the next issue.** Exit now. The loop starts a fresh process.
 
-**Do NOT start the next issue.** Exit now. Ralph handles the loop.
-
-## The Full Iteration Flow
+## The Strict Compound Engineering Flow
 
 ```
-  Assess → Pick Issue → Check Learnings → Plan (if complex)
+  Step 1: Assess/Recover
     ↓
-  Implement (TDD) → Validate (lint + test + e2e)
+  Step 2: Resume in-progress branch (if any)
     ↓
-  Review (code-reviewer agent) → Fix Critical/Important
+  Step 3: Pick next issue from roadmap #44
     ↓
-  Ship (PR → merge) → Compound (document learnings)
+  Step 4: /ce:plan → creates docs/plans/<plan>.md
     ↓
-  Exit → Ralph starts fresh iteration
+  Step 5: /ce:work → executes plan with TDD, tests, incremental commits
+    ↓
+  Step 6: /ce:review --serial → code review with 5 agents
+    ↓
+  Step 7: Ship → PR → merge
+    ↓
+  Step 8: /ce:compound → document learnings to docs/solutions/
+    ↓
+  Step 9: Exit → fresh iteration
 ```
+
+**Every issue goes through: Plan → Work → Review → Ship → Compound.**
+No shortcuts. No skipping steps. This is the Compound Engineering process.
 
 ## Rules
 
-1. **Never skip tests.** Every feature must have passing tests before merge.
-2. **Never skip review.** Code-reviewer runs on every feature before PR.
-3. **Never merge failing code.** If tests or review finds Critical issues, fix them.
-4. **One issue per iteration.** Ship one issue, then exit for a fresh iteration.
-5. **Follow the roadmap order.** Don't jump ahead — dependencies matter.
-6. **Docker for everything.** All commands via `make`, never install locally.
-7. **Commit often.** Small, focused commits within each feature branch.
-8. **German for UI, English for code.** Public-facing text in German.
-9. **Add seeds incrementally.** Each feature adds the seed data it needs.
-10. **Compound your learnings.** Document non-obvious solutions so future iterations benefit.
-11. **Read before building.** Check `docs/solutions/` for relevant past learnings.
-12. **Mobile-first.** Design for 375px first, scale up.
-13. **Use the design system.** Colors, typography, spacing from CLAUDE.md.
+1. **Use /ce:plan for every issue.** No implementing without a plan.
+2. **Use /ce:work to execute.** Follow the plan's TDD tasks exactly.
+3. **Use /ce:review before every PR.** Run in --serial mode.
+4. **Use /ce:compound after non-trivial issues.** Document what was learned.
+5. **Never skip tests.** Minimum test counts enforced per feature type.
+6. **Never merge failing code.** All validation must pass.
+7. **One issue per iteration.** Ship one, then exit.
+8. **Follow the roadmap order.** Dependencies matter.
+9. **Docker for everything.** All commands via `make`.
+10. **German for UI, English for code.**
+11. **Mobile-first.** Design for 375px, scale up.
+12. **Use the design system.** Colors, typography from CLAUDE.md.
 
 ## CRITICAL: Exit Signal Words
 
-Ralph's response analyzer scans your final output for completion keywords.
-These words will STOP the loop prematurely if used in your status output:
-
 **NEVER use in final output** (unless ALL MVP issues are truly shipped):
-- "complete", "completed", "completion"
-- "done", "all done"
-- "finished", "all finished"
-- "ready for review", "ready for deployment"
-- "task complete", "project finished"
-- "all requirements met"
-- "nothing left", "nothing to do"
+"complete", "done", "finished", "ready", "all requirements met", "nothing left"
 
-**Safe words to use:**
-- "shipped" (for the issue you just merged)
-- "remaining" (for issues still open)
-- "picking up next" (to signal continuation)
-- "in progress" (for overall status)
+**Safe words:** "shipped", "remaining", "picking up next", "in progress"
 
 ## Completion Promise
 
 When ALL MVP issues are closed and all tests pass — and ONLY then:
 <promise>MVP_COMPLETE</promise>
-
-This is the ONLY way to legitimately stop the loop. Do not output this phrase
-unless `gh issue list --milestone "MVP (Weeks 1-4)" --state open` returns zero issues.
