@@ -151,20 +151,20 @@ class TestPricingPage:
         assert "€ 249" in content
         assert "8 Inspektionen" in content
 
-    def test_both_tiers_have_photo_documentation(self, client: Client):
+    def test_tiers_have_photo_documentation(self, client: Client):
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
         assert "Fotodokumentation" in content
 
-    def test_both_tiers_have_digital_reports(self, client: Client):
+    def test_tiers_have_digital_reports(self, client: Client):
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
         assert "Digitale Berichte" in content or "Berichte" in content
 
-    def test_both_tiers_have_urgent_alerts(self, client: Client):
+    def test_tiers_have_urgent_alerts(self, client: Client):
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
-        assert "Dringende Meldungen" in content or "Sofort-Meldungen" in content
+        assert "Sofort-Meldungen" in content
 
     def test_cta_buttons_present(self, client: Client):
         response = client.get(reverse("public:pricing"))
