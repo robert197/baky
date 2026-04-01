@@ -95,9 +95,62 @@ while true; do
     iter_start=$(date +%s)
 
     if [ "$VERBOSE" = true ]; then
-        # Stream to terminal AND log file
-        claude -p --dangerously-skip-permissions "$prompt" \
-            2>&1 | tee "$log_file" || true
+        # Stream JSON output, extract text in realtime, log everything
+        claude -p --dangerously-skip-permissions \
+            --output-format stream-json \
+            "$prompt" \
+            2>"$log_file.stderr" | tee "$log_file.raw" | \
+            python3 -c "
+import sys, json
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+        # Tool use events
+        if obj.get('type') == 'tool_use':
+            name = obj.get('tool', {}).get('name', obj.get('name', ''))
+            inp = obj.get('tool', {}).get('input', obj.get('input', ''))
+            if name == 'Bash':
+                cmd = inp.get('command', '') if isinstance(inp, dict) else ''
+                print(f'\033[2m  ⚡ {name}: {cmd[:120]}\033[0m', flush=True)
+            elif name in ('Read', 'Write', 'Edit', 'Glob', 'Grep'):
+                path = inp.get('file_path', inp.get('pattern', '')) if isinstance(inp, dict) else ''
+                print(f'\033[2m  ⚡ {name}: {path[:120]}\033[0m', flush=True)
+            else:
+                print(f'\033[2m  ⚡ {name}\033[0m', flush=True)
+        # Assistant text output
+        elif obj.get('type') == 'assistant' and 'message' in obj:
+            text = ''
+            for block in obj['message'].get('content', []):
+                if isinstance(block, dict) and block.get('type') == 'text':
+                    text += block.get('text', '')
+                elif isinstance(block, str):
+                    text += block
+            if text.strip():
+                print(text.strip(), flush=True)
+        # Result message
+        elif obj.get('type') == 'result':
+            text = obj.get('result', '')
+            if text:
+                print(text[:500], flush=True)
+    except (json.JSONDecodeError, KeyError, TypeError):
+        pass
+" || true
+        # Also save readable log
+        python3 -c "
+import json, sys
+for line in open('$log_file.raw'):
+    try:
+        obj = json.loads(line.strip())
+        if obj.get('type') == 'assistant':
+            for b in obj.get('message',{}).get('content',[]):
+                if isinstance(b,dict) and b.get('type')=='text': print(b['text'])
+        elif obj.get('type') == 'result':
+            print(obj.get('result',''))
+    except: pass
+" > "$log_file" 2>/dev/null || cp "$log_file.raw" "$log_file"
     else
         # Log only, show progress dots
         claude -p --dangerously-skip-permissions "$prompt" \
