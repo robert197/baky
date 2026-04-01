@@ -1,6 +1,396 @@
-{% extends "public/base_public.html" %}
+{% extends "base.html" %}
+{% load static %}
 {% block title %}BAKY - Betreuung. Absicherung. Kontrolle. Your Home.{% endblock %}
-{% block content %}
-  <h1 class="text-3xl font-bold text-primary">BAKY</h1>
-  <p class="mt-2 text-lg text-secondary">Betreuung. Absicherung. Kontrolle. Your Home.</p>
+{% block meta_description %}
+  BAKY bietet professionelle Inspektion und Überwachung Ihrer Kurzzeitvermietung in Wien. Checklisten-basierte Begehungen, Fotodokumentation und sofortige Berichte.
+{% endblock %}
+{% block extra_head %}
+  <meta property="og:title" content="BAKY - Betreuung. Absicherung. Kontrolle. Your Home.">
+  <meta property="og:description" content="Professionelle Inspektion und Überwachung Ihrer Kurzzeitvermietung in Wien.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="de_AT">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "BAKY",
+      "description": "Professionelle Inspektion und Überwachung von Kurzzeitvermietungen in Wien.",
+      "areaServed": {
+        "@type": "City",
+        "name": "Wien"
+      },
+      "priceRange": "€€"
+    }
+  </script>
+{% endblock %}
+{% block body %}
+  {% include "components/_navbar.html" %}
+  <main id="main-content" role="main">
+    {# Hero Section #}
+    <section class="bg-primary">
+      <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+        <div class="max-w-3xl">
+          <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Betreuung. Absicherung.
+            <br>
+            Kontrolle. <span class="text-accent">Your Home.</span>
+          </h1>
+          <p class="mt-6 text-lg leading-relaxed text-slate-300 sm:text-xl">
+            Professionelle Inspektionen für Ihre Kurzzeitvermietung in Wien.
+            Wir prüfen, dokumentieren und berichten — damit Sie beruhigt sein können.
+          </p>
+          <div class="mt-10 flex flex-col gap-4 sm:flex-row">
+            <a href="#kontakt"
+               class="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-accent-light">
+              Jetzt starten
+            </a>
+            <a href="#so-funktionierts"
+               class="inline-flex items-center justify-center rounded-lg border-2 border-slate-400 px-8 py-4 text-lg font-semibold text-white transition hover:border-white hover:bg-white/10">
+              Mehr erfahren
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# Problem Section #}
+    <section class="bg-surface py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-3xl font-bold text-primary sm:text-4xl">Ihre Wohnung verdient Aufsicht</h2>
+          <p class="mt-4 text-lg text-secondary">
+            Kurzzeitvermietung bedeutet ständig wechselnde Gäste.
+            Ohne regelmäßige Kontrolle gehen Probleme unter.
+          </p>
+        </div>
+        <div class="mt-12 grid gap-8 sm:grid-cols-3">
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-danger/10 text-danger">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-primary">Keine Kontrolle</h3>
+            <p class="mt-2 text-secondary">
+              Ohne regelmäßige Begehungen wissen Sie nicht, in welchem Zustand Ihre Wohnung wirklich ist.
+            </p>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10 text-warning">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-primary">Schäden bleiben unbemerkt</h3>
+            <p class="mt-2 text-secondary">
+              Kleine Mängel werden schnell zu teuren Reparaturen, wenn sie nicht rechtzeitig entdeckt werden.
+            </p>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-primary">Auf Vertrauen angewiesen</h3>
+            <p class="mt-2 text-secondary">
+              Reinigungskräfte und Gäste melden selten Probleme. Sie brauchen einen unabhängigen Blick.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# How it Works #}
+    <section id="so-funktionierts" class="bg-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-3xl font-bold text-primary sm:text-4xl">So funktioniert BAKY</h2>
+          <p class="mt-4 text-lg text-secondary">In drei einfachen Schritten zu professioneller Wohnungsüberwachung.</p>
+        </div>
+        <div class="mt-12 grid gap-8 sm:grid-cols-3">
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-2xl font-bold text-accent">
+              1
+            </div>
+            <h3 class="mt-4 text-xl font-semibold text-primary">Anmelden</h3>
+            <p class="mt-2 text-secondary">Registrieren Sie Ihre Wohnung und passen Sie die Checkliste an Ihre Bedürfnisse an.</p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-2xl font-bold text-accent">
+              2
+            </div>
+            <h3 class="mt-4 text-xl font-semibold text-primary">Wir prüfen</h3>
+            <p class="mt-2 text-secondary">
+              Unsere Inspektoren besuchen Ihre Wohnung regelmäßig und dokumentieren alles mit Fotos.
+            </p>
+          </div>
+          <div class="text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 text-2xl font-bold text-accent">
+              3
+            </div>
+            <h3 class="mt-4 text-xl font-semibold text-primary">Sie erhalten Berichte</h3>
+            <p class="mt-2 text-secondary">Nach jeder Inspektion erhalten Sie einen detaillierten Bericht per E-Mail — sofort.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# Features Section #}
+    <section class="bg-surface py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-3xl font-bold text-primary sm:text-4xl">Alles, was Sie brauchen</h2>
+          <p class="mt-4 text-lg text-secondary">Professionelle Werkzeuge für die Überwachung Ihrer Kurzzeitvermietung.</p>
+        </div>
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 class="font-semibold text-primary">Fotodokumentation</h3>
+            <p class="mt-2 text-sm text-secondary">
+              Jeder Raum wird fotografisch festgehalten. So sehen Sie den Zustand Ihrer Wohnung.
+            </p>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <h3 class="font-semibold text-primary">Checklisten-Inspektion</h3>
+            <p class="mt-2 text-sm text-secondary">Standardisierte Prüfpunkte garantieren, dass nichts übersehen wird.</p>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 class="font-semibold text-primary">Sofortige Berichte</h3>
+            <p class="mt-2 text-sm text-secondary">
+              Nach jeder Inspektion wird automatisch ein Bericht erstellt und Ihnen zugeschickt.
+            </p>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 class="font-semibold text-primary">Dringlichkeitsstufen</h3>
+            <p class="mt-2 text-sm text-secondary">OK, Achtung oder Dringend — Sie sehen sofort, wo Handlungsbedarf besteht.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# Pricing Preview #}
+    <section class="bg-white py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+          <h2 class="text-3xl font-bold text-primary sm:text-4xl">Transparent und fair</h2>
+          <p class="mt-4 text-lg text-secondary">Professionelle Wohnungsinspektion ab</p>
+          <div class="mt-6">
+            <span class="text-5xl font-bold text-primary">€ 59,90</span>
+            <span class="text-lg text-secondary">/ Monat</span>
+          </div>
+          <p class="mt-4 text-secondary">pro Wohnung, inklusive regelmäßiger Inspektionen und Berichte</p>
+          <div class="mt-8">
+            <a href="#kontakt"
+               class="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-accent-light">
+              Jetzt anfragen
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# Social Proof / Testimonials #}
+    <section class="bg-surface py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-3xl font-bold text-primary sm:text-4xl">Das sagen Eigentümer</h2>
+          <p class="mt-4 text-lg text-secondary">Vertrauen durch Transparenz und Zuverlässigkeit.</p>
+        </div>
+        <div class="mt-12 grid gap-8 sm:grid-cols-3">
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <p class="text-secondary italic">
+              „Endlich weiß ich, wie es in meiner Wohnung wirklich aussieht.
+              Die Berichte sind detailliert und kommen sofort."
+            </p>
+            <div class="mt-4 flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                MK
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-primary">Maria K.</p>
+                <p class="text-xs text-secondary">Eigentümerin, 2. Bezirk</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <p class="text-secondary italic">
+              „BAKY hat einen Wasserschaden entdeckt, bevor er zum großen Problem wurde.
+              Das hat mir tausende Euro gespart."
+            </p>
+            <div class="mt-4 flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                TW
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-primary">Thomas W.</p>
+                <p class="text-xs text-secondary">Eigentümer, 7. Bezirk</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl bg-white p-6 shadow-sm">
+            <p class="text-secondary italic">
+              „Professionell, zuverlässig und unkompliziert.
+              Genau das, was ich als Vermieterin gebraucht habe."
+            </p>
+            <div class="mt-4 flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                SB
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-primary">Sandra B.</p>
+                <p class="text-xs text-secondary">Eigentümerin, 3. Bezirk</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# FAQ Section #}
+    <section class="bg-white py-16 sm:py-20">
+      <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-center text-3xl font-bold text-primary sm:text-4xl">Häufige Fragen</h2>
+        <div class="mt-12 divide-y divide-border" x-data="{ open: null }">
+          <div class="py-4">
+            <button @click="open = open === 1 ? null : 1"
+                    :aria-expanded="open === 1"
+                    aria-controls="faq-1"
+                    class="flex w-full items-center justify-between text-left">
+              <span class="text-lg font-medium text-primary">Wie oft wird meine Wohnung inspiziert?</span>
+              <svg class="h-5 w-5 text-secondary transition-transform"
+                   :class="{ 'rotate-180': open === 1 }"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="faq-1" x-show="open === 1" x-transition class="mt-2 text-secondary">
+              Die Häufigkeit richtet sich nach Ihrem Paket. Im Standardpaket prüfen wir nach jedem Gastwechsel.
+              Zusätzliche Inspektionen können jederzeit gebucht werden.
+            </div>
+          </div>
+          <div class="py-4">
+            <button @click="open = open === 2 ? null : 2"
+                    :aria-expanded="open === 2"
+                    aria-controls="faq-2"
+                    class="flex w-full items-center justify-between text-left">
+              <span class="text-lg font-medium text-primary">Was wird bei einer Inspektion geprüft?</span>
+              <svg class="h-5 w-5 text-secondary transition-transform"
+                   :class="{ 'rotate-180': open === 2 }"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="faq-2" x-show="open === 2" x-transition class="mt-2 text-secondary">
+              Unsere Inspektoren arbeiten mit einer Checkliste, die Sie individuell anpassen können.
+              Standardmäßig umfasst sie: allgemeiner Zustand, Sauberkeit, Inventar, Schäden und Sicherheit.
+            </div>
+          </div>
+          <div class="py-4">
+            <button @click="open = open === 3 ? null : 3"
+                    :aria-expanded="open === 3"
+                    aria-controls="faq-3"
+                    class="flex w-full items-center justify-between text-left">
+              <span class="text-lg font-medium text-primary">Wie schnell erhalte ich den Bericht?</span>
+              <svg class="h-5 w-5 text-secondary transition-transform"
+                   :class="{ 'rotate-180': open === 3 }"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="faq-3" x-show="open === 3" x-transition class="mt-2 text-secondary">
+              Sofort nach Abschluss der Inspektion wird der Bericht automatisch generiert
+              und per E-Mail an Sie verschickt. In der Regel innerhalb von Minuten.
+            </div>
+          </div>
+          <div class="py-4">
+            <button @click="open = open === 4 ? null : 4"
+                    :aria-expanded="open === 4"
+                    aria-controls="faq-4"
+                    class="flex w-full items-center justify-between text-left">
+              <span class="text-lg font-medium text-primary">Ist BAKY nur in Wien verfügbar?</span>
+              <svg class="h-5 w-5 text-secondary transition-transform"
+                   :class="{ 'rotate-180': open === 4 }"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="faq-4" x-show="open === 4" x-transition class="mt-2 text-secondary">
+              Ja, aktuell bieten wir unsere Inspektionsdienste ausschließlich in Wien an.
+              Eine Expansion in weitere Städte ist geplant.
+            </div>
+          </div>
+          <div class="py-4">
+            <button @click="open = open === 5 ? null : 5"
+                    :aria-expanded="open === 5"
+                    aria-controls="faq-5"
+                    class="flex w-full items-center justify-between text-left">
+              <span class="text-lg font-medium text-primary">Kann ich die Checkliste anpassen?</span>
+              <svg class="h-5 w-5 text-secondary transition-transform"
+                   :class="{ 'rotate-180': open === 5 }"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="faq-5" x-show="open === 5" x-transition class="mt-2 text-secondary">
+              Ja, jede Wohnung hat ihre eigene Checkliste, die Sie individuell anpassen können.
+              Sie können Prüfpunkte hinzufügen, entfernen oder nach Priorität ordnen.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    {# Contact / CTA Section #}
+    <section id="kontakt" class="bg-primary py-16 sm:py-20">
+      <div class="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-bold text-white sm:text-4xl">Bereit für professionelle Wohnungsinspektion?</h2>
+        <p class="mt-4 text-lg text-slate-300">
+          Kontaktieren Sie uns für ein unverbindliches Erstgespräch.
+          Wir beraten Sie gerne.
+        </p>
+        <div class="mt-8">
+          <a href="mailto:kontakt@baky.at"
+             class="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-accent-light">
+            Kontakt aufnehmen
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+  {% include "components/_footer.html" %}
 {% endblock %}
