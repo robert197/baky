@@ -26,7 +26,7 @@ class ReportAdmin(ModelAdmin):
     list_filter = ["status"]
     search_fields = ["inspection__apartment__address"]
     raw_id_fields = ["inspection"]
-    readonly_fields = ["generated_at", "created_at", "updated_at"]
+    readonly_fields = ["html_content", "generated_at", "created_at", "updated_at"]
     actions = [regenerate_reports]
     fieldsets = (
         (

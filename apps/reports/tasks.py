@@ -51,7 +51,7 @@ def generate_report(inspection_id: int) -> dict:
     except Exception as e:
         logger.exception("Report generation failed for inspection %d", inspection_id)
         report.status = Report.Status.FAILED
-        report.error_message = str(e)
+        report.error_message = str(e)[:500]
         report.save(update_fields=["status", "error_message", "updated_at"])
         return {"report_id": report.pk, "inspection_id": inspection_id, "status": "failed"}
 
