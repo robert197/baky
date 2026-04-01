@@ -131,7 +131,6 @@ class TestPhotoSignedUrls:
     def test_local_storage_returns_regular_url(self, photo):
         """In dev (local filesystem), returns regular URL without signature."""
         url = photo.get_file_url()
-        # Local storage URLs don't have query params
         assert url is not None
 
 
@@ -140,8 +139,6 @@ class TestProductionSecuritySettings:
 
     def test_production_has_hsts(self):
         """Production settings include HSTS headers."""
-        # We can't import production settings directly (requires env vars),
-        # so we verify the file content instead
         from pathlib import Path
 
         prod_file = Path(__file__).resolve().parent.parent / "baky" / "settings" / "production.py"
@@ -166,12 +163,13 @@ class TestProductionSecuritySettings:
         content = prod_file.read_text()
         assert "SECURE_CONTENT_TYPE_NOSNIFF = True" in content
 
-    def test_production_has_xss_filter(self):
+    def test_production_no_deprecated_xss_filter(self):
+        """SECURE_BROWSER_XSS_FILTER was removed in Django 5.x — verify it's not set."""
         from pathlib import Path
 
         prod_file = Path(__file__).resolve().parent.parent / "baky" / "settings" / "production.py"
         content = prod_file.read_text()
-        assert "SECURE_BROWSER_XSS_FILTER = True" in content
+        assert "SECURE_BROWSER_XSS_FILTER" not in content
 
     def test_production_has_proxy_ssl_header(self):
         from pathlib import Path
@@ -215,7 +213,6 @@ class TestProductionSecuritySettings:
         local_file = Path(__file__).resolve().parent.parent / "baky" / "settings" / "local.py"
         content = local_file.read_text()
         assert "FIELD_ENCRYPTION_KEY" in content
-        # Local has a default key for convenience
         assert "default=" in content
 
 
@@ -227,5 +224,4 @@ class TestDeployCheck:
         """Django system checks pass in dev mode."""
         from django.core.management import call_command
 
-        # This should not raise
         call_command("check")
