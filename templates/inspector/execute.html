@@ -13,16 +13,14 @@
     <h2 class="text-lg font-semibold text-primary">{{ inspection.apartment.street }}</h2>
     <p class="text-sm text-secondary">{{ inspection.apartment.zip_code }} {{ inspection.apartment.city }}</p>
   </div>
-  {# Progress bar #}
-  <div class="mb-6"
-       x-data="{ total: {{ total_items }}, checked: document.querySelectorAll('[data-result]').length }"
-       @htmx:after-swap.window="checked = document.querySelectorAll('[data-checked]').length">
-    <div class="flex items-center justify-between text-xs text-secondary">
-      <span>Fortschritt</span>
-      <span>{{ total_items }} Punkte</span>
-    </div>
-    <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-      <div class="h-2 w-0 rounded-full bg-emerald-500 transition-all"></div>
+  {# Progress summary — counts flagged items via data-item-result attributes #}
+  <div class="mb-6" x-data="progressBar({{ total_items }})" x-init="update()" @htmx:after-swap.window="update()">
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium text-primary">{{ total_items }} Punkte</span>
+      <span x-show="flagged > 0"
+            x-transition
+            class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+            x-text="flagged + ' auffällig'"></span>
     </div>
   </div>
   {# Checklist items grouped by category #}
@@ -43,4 +41,19 @@
   <div class="mb-6">{% include "inspector/_general_notes.html" with inspection=inspection %}</div>
   {# Spacer for bottom nav #}
   <div class="h-4"></div>
+{% endblock %}
+{% block extra_js %}
+  <script>
+    function progressBar(total) {
+      return {
+        total: total,
+        flagged: 0,
+        update() {
+          var count = 0;
+          document.querySelectorAll('[data-item-result="flagged"]').forEach(function() { count++; });
+          this.flagged = count;
+        }
+      }
+    }
+  </script>
 {% endblock %}

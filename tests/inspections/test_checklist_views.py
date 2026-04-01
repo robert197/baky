@@ -423,6 +423,17 @@ class TestUpdateItemView:
         response = client.get(url, HTTP_HX_REQUEST="true")
         assert response.status_code == 405
 
+    def test_update_completed_inspection_returns_404(self):
+        """Cannot update items on a completed inspection."""
+        inspector, inspection, item = self._setup_item()
+        inspection.status = Inspection.Status.COMPLETED
+        inspection.save(update_fields=["status"])
+        client = Client()
+        client.force_login(inspector)
+        url = reverse("inspections:update_item", args=[item.pk])
+        response = client.post(url, {"result": "flagged"}, HTTP_HX_REQUEST="true")
+        assert response.status_code == 404
+
 
 # --- Update General Notes (HTMX) ---
 

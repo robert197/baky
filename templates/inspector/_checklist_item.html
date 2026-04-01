@@ -1,6 +1,6 @@
 {# Partial: single checklist item card — swapped via HTMX on update #}
 {# Context: item (InspectionItem instance) #}
-<div id="item-{{ item.pk }}" class="rounded-lg border bg-white p-3 transition-colors {% if item.result == 'flagged' %}border-amber-300 bg-amber-50{% elif item.result == 'na' %}border-slate-200 bg-slate-50{% else %}border-border{% endif %}" x-data="{ showDetails:
+<div id="item-{{ item.pk }}" data-item-result="{{ item.result }}" class="rounded-lg border bg-white p-3 transition-colors {% if item.result == 'flagged' %}border-amber-300 bg-amber-50{% elif item.result == 'na' %}border-slate-200 bg-slate-50{% else %}border-border{% endif %}" x-data="{ showDetails:
   {% if item.result == 'flagged' %}
     true
   {% else %}

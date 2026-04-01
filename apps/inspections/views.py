@@ -188,6 +188,8 @@ def update_item(request, item_id):
     )
     if item.inspection.inspector_id != request.user.id:
         raise Http404
+    if item.inspection.status != Inspection.Status.IN_PROGRESS:
+        raise Http404
 
     result = request.POST.get("result", "")
     valid_results = [r[0] for r in InspectionItem.Result.choices]
@@ -197,17 +199,19 @@ def update_item(request, item_id):
     item.result = result
 
     if result == InspectionItem.Result.FLAGGED:
-        severity = request.POST.get("severity", InspectionItem.Severity.NONE)
+        severity = request.POST.get("severity", InspectionItem.Severity.LOW)
         valid_severities = [s[0] for s in InspectionItem.Severity.choices]
         if severity in valid_severities:
             item.severity = severity
+        else:
+            item.severity = InspectionItem.Severity.LOW
         item.notes = request.POST.get("notes", "")
     else:
         # Clear severity and notes when not flagged
         item.severity = InspectionItem.Severity.NONE
         item.notes = ""
 
-    item.save()
+    item.save(update_fields=["result", "severity", "notes"])
 
     return render(request, "inspector/_checklist_item.html", {"item": item})
 
