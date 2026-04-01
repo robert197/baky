@@ -9,7 +9,7 @@ You are running inside Ralph CLI. Each iteration is a FRESH Claude Code process 
 context window. You have NO memory of previous iterations. All state is in files:
 - Git history and branch state → what's been built
 - Roadmap issue #44 → what's done (checked) and what's next (unchecked)
-- `.ralph/fix_plan.md` → local progress tracker
+- GitHub roadmap issue #44 → what's shipped (checked) and what's next (unchecked)
 - `docs/solutions/` → learnings from previous iterations (read before starting)
 
 1. Read CLAUDE.md for project conventions and design context
@@ -394,8 +394,8 @@ Future iterations will read `docs/solutions/` in Step 4 to avoid repeating mista
 
 ## Step 10: Update Fix Plan
 
-After merging, mark the completed item in `.ralph/fix_plan.md`:
-- Change `- [ ] #<number>` to `- [x] #<number>` using the Edit tool.
+Do NOT edit `.ralph/fix_plan.md` — it exists only because Ralph CLI requires it.
+Progress is tracked via GitHub issues (open/closed state on roadmap #44).
 
 ## Step 11: Exit This Iteration
 
@@ -437,7 +437,7 @@ Say "shipped" instead of "completed". Say "remaining" instead of "done".
     ↓
   Ship (PR → merge) → Compound (document learnings)
     ↓
-  Update fix_plan → Exit → Ralph starts fresh iteration
+  Exit → Ralph starts fresh iteration
 ```
 
 ## Rules
