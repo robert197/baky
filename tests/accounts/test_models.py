@@ -90,7 +90,8 @@ class TestSubscriptionModel:
 
     def test_plan_choices(self):
         assert Subscription.Plan.BASIS == "basis"
-        assert Subscription.Plan.EXTRA == "extra"
+        assert Subscription.Plan.STANDARD == "standard"
+        assert Subscription.Plan.PREMIUM == "premium"
 
     def test_status_choices(self):
         assert Subscription.Status.ACTIVE == "active"
@@ -118,3 +119,21 @@ class TestSubscriptionModel:
     def test_related_name(self, db, user):
         sub = SubscriptionFactory(owner=user)
         assert user.subscription == sub
+
+    def test_basis_plan_limit(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.BASIS)
+        assert sub.get_monthly_inspection_limit() == 2
+
+    def test_standard_plan_limit(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.STANDARD)
+        assert sub.get_monthly_inspection_limit() == 4
+
+    def test_premium_plan_limit(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.PREMIUM)
+        assert sub.get_monthly_inspection_limit() == 8
+
+    def test_unknown_plan_defaults_to_2(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.BASIS)
+        # Simulate unknown plan value
+        sub.plan = "unknown"
+        assert sub.get_monthly_inspection_limit() == 2

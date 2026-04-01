@@ -82,12 +82,12 @@ class TestSignupView:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
-            "selected_plan": "extra",
+            "selected_plan": "standard",
         }
         client.post("/accounts/signup/", data)
         user = User.objects.get(email="max@example.com")
         onboarding = OnboardingProgress.objects.get(user=user)
-        assert onboarding.selected_plan == "extra"
+        assert onboarding.selected_plan == "standard"
         assert onboarding.current_step == OnboardingProgress.Step.APARTMENT
 
     def test_signup_logs_user_in(self, client, db):
@@ -103,10 +103,10 @@ class TestSignupView:
         assert response.status_code == 200
 
     def test_signup_with_plan_from_query_param(self, client, db):
-        response = client.get("/accounts/signup/?plan=extra")
+        response = client.get("/accounts/signup/?plan=standard")
         assert response.status_code == 200
         content = response.content.decode()
-        assert 'value="extra"' in content
+        assert 'value="standard"' in content
 
     def test_signup_with_duplicate_email(self, client, db):
         UserFactory(email="existing@example.com")
@@ -461,8 +461,9 @@ class TestOnboardingPlanView:
         assert response.status_code == 200
         content = response.content.decode()
         assert "Plan auswählen" in content
-        assert "59,90" in content
-        assert "99,90" in content
+        assert "€ 89" in content
+        assert "€ 149" in content
+        assert "€ 249" in content
 
     def test_submit_basis_plan(self, client, db):
         user = UserFactory()
@@ -477,16 +478,27 @@ class TestOnboardingPlanView:
         assert sub.plan == "basis"
         assert sub.status == Subscription.Status.ACTIVE
 
-    def test_submit_extra_plan(self, client, db):
+    def test_submit_standard_plan(self, client, db):
         user = UserFactory()
         client.force_login(user)
         apartment = ApartmentFactory(owner=user)
         OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3)
-        response = client.post("/accounts/onboarding/plan/", {"plan": "extra"})
+        response = client.post("/accounts/onboarding/plan/", {"plan": "standard"})
         assert response.status_code == 302
 
         sub = Subscription.objects.get(owner=user)
-        assert sub.plan == "extra"
+        assert sub.plan == "standard"
+
+    def test_submit_premium_plan(self, client, db):
+        user = UserFactory()
+        client.force_login(user)
+        apartment = ApartmentFactory(owner=user)
+        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3)
+        response = client.post("/accounts/onboarding/plan/", {"plan": "premium"})
+        assert response.status_code == 302
+
+        sub = Subscription.objects.get(owner=user)
+        assert sub.plan == "premium"
 
     def test_submit_plan_htmx(self, client, db):
         user = UserFactory()
@@ -510,10 +522,10 @@ class TestOnboardingPlanView:
         user = UserFactory()
         client.force_login(user)
         apartment = ApartmentFactory(owner=user)
-        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3, selected_plan="extra")
+        OnboardingProgress.objects.create(user=user, apartment=apartment, current_step=3, selected_plan="standard")
         response = client.get("/accounts/onboarding/plan/")
         content = response.content.decode()
-        assert "extra" in content
+        assert "standard" in content
 
 
 class TestOnboardingConfirmationView:

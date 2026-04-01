@@ -27,7 +27,7 @@ def _make_scheduled_at(hour=10, days_ahead=1):
     return datetime.datetime(target_date.year, target_date.month, target_date.day, hour, 0, 0, tzinfo=VIENNA_TZ)
 
 
-def _make_owner_with_subscription(plan="extra"):
+def _make_owner_with_subscription(plan="standard"):
     """Create an owner with an active subscription."""
     owner = OwnerFactory()
     SubscriptionFactory(owner=owner, plan=plan)
@@ -327,9 +327,9 @@ class TestSubscriptionLimitValidation:
         assert "apartment" in exc_info.value.message_dict
         assert "Inspektionslimit" in str(exc_info.value.message_dict["apartment"])
 
-    def test_extra_plan_allows_4_per_month(self):
+    def test_standard_plan_allows_4_per_month(self):
         owner = OwnerFactory()
-        SubscriptionFactory(owner=owner, plan="extra")
+        SubscriptionFactory(owner=owner, plan="standard")
         apt = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()
 
@@ -351,6 +351,32 @@ class TestSubscriptionLimitValidation:
         )
         with pytest.raises(ValidationError) as exc_info:
             i5.clean()
+        assert "apartment" in exc_info.value.message_dict
+
+    def test_premium_plan_allows_8_per_month(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner, plan="premium")
+        apt = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+
+        # Create 8 inspections on different days
+        for day_offset in range(1, 9):
+            InspectionFactory(
+                apartment=apt,
+                inspector=inspector,
+                scheduled_at=_make_scheduled_at(hour=10, days_ahead=day_offset),
+                scheduled_end=_make_scheduled_at(hour=12, days_ahead=day_offset),
+            )
+
+        # Ninth should be rejected
+        i9 = InspectionFactory.build(
+            apartment=apt,
+            inspector=inspector,
+            scheduled_at=_make_scheduled_at(hour=14, days_ahead=9),
+            scheduled_end=_make_scheduled_at(hour=16, days_ahead=9),
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            i9.clean()
         assert "apartment" in exc_info.value.message_dict
 
     def test_no_subscription_rejected(self):
