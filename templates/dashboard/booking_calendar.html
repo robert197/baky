@@ -40,7 +40,8 @@
     {# Calendar #}
     {% if selected_apartment %}
       <div id="calendar-container"
-           hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset }}"
+           hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}"
+           hx-include="#week-input"
            hx-trigger="calendarChanged from:body"
            hx-target="#calendar-container"
            hx-swap="innerHTML">{% include "dashboard/_calendar_week.html" %}</div>
@@ -54,7 +55,8 @@
     {% endif %}
     {# Upcoming inspections with cancel buttons #}
     <div id="upcoming-inspections"
-         hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset }}&partial=upcoming"
+         hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&partial=upcoming"
+         hx-include="#week-input"
          hx-trigger="calendarChanged from:body"
          hx-target="#upcoming-inspections"
          hx-swap="innerHTML"

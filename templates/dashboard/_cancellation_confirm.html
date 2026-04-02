@@ -2,7 +2,11 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-primary/50 p-4"
      x-data="{ show: true }"
      x-show="show"
-     x-transition>
+     x-transition
+     @keydown.escape.window="show = false; document.getElementById('booking-result').innerHTML = ''"
+     @click.self="show = false; document.getElementById('booking-result').innerHTML = ''"
+     role="dialog"
+     aria-modal="true">
   <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
     <div class="text-center">
       {% if is_late %}
