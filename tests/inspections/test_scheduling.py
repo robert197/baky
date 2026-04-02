@@ -477,3 +477,170 @@ class TestSubscriptionLimitValidation:
         msg = str(exc_info.value.message_dict["apartment"])
         assert "Basis" in msg
         assert "2/2" in msg
+
+
+def _future_date(days_ahead=5):
+    """Return a date N days in the future."""
+    return (timezone.now() + datetime.timedelta(days=days_ahead)).date()
+
+
+@pytest.mark.django_db
+class TestGlobalSlotExclusivity:
+    """Global slot exclusivity: one booking per (date, time_slot) across all apartments."""
+
+    def test_same_slot_different_apartment_rejected(self):
+        """Two apartments on the same date+slot should be rejected."""
+        owner = _make_owner_with_subscription("standard")
+        apt1 = ApartmentFactory(owner=owner)
+        apt2 = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        inspection2 = Inspection(
+            apartment=apt2,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+            status=Inspection.Status.SCHEDULED,
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            inspection2.full_clean()
+        assert "bereits vergeben" in str(exc_info.value)
+
+    def test_different_slot_same_day_accepted(self):
+        """Different slots on the same day should be fine."""
+        owner1 = _make_owner_with_subscription("standard")
+        owner2 = _make_owner_with_subscription("standard")
+        apt1 = ApartmentFactory(owner=owner1)
+        apt2 = ApartmentFactory(owner=owner2)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        inspection2 = Inspection(
+            apartment=apt2,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 13, 30, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 16, 0, tzinfo=VIENNA_TZ
+            ),
+            time_slot="afternoon",
+            status=Inspection.Status.SCHEDULED,
+        )
+        inspection2.full_clean()  # Should not raise
+
+    def test_cancelled_slot_can_be_rebooked(self):
+        """Cancelled inspection should free the slot."""
+        owner = _make_owner_with_subscription("standard")
+        apt1 = ApartmentFactory(owner=owner)
+        apt2 = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+            status=Inspection.Status.CANCELLED,
+        )
+
+        inspection2 = Inspection(
+            apartment=apt2,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+            status=Inspection.Status.SCHEDULED,
+        )
+        inspection2.full_clean()  # Should not raise
+
+    def test_empty_timeslot_skips_global_check(self):
+        """Admin-created inspections without time_slot bypass global check."""
+        owner = _make_owner_with_subscription("standard")
+        apt1 = ApartmentFactory(owner=owner)
+        apt2 = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        inspection2 = Inspection(
+            apartment=apt2,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="",
+            status=Inspection.Status.SCHEDULED,
+        )
+        inspection2.full_clean()  # Should not raise
+
+    def test_updating_existing_inspection_passes(self):
+        """Editing an existing inspection should not conflict with itself."""
+        owner = _make_owner_with_subscription("standard")
+        apt = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        inspection = InspectionFactory(
+            apartment=apt,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+        inspection.general_notes = "Updated"
+        inspection.full_clean()  # Should not raise (exclude self.pk)
