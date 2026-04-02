@@ -1129,3 +1129,286 @@ class TestCancellationIntegration:
         assert inspection.late_cancellation is False
         # Quota restored
         assert sub.get_inspections_used_this_month() == 1
+
+
+@pytest.mark.django_db
+class TestCalendarUXRedesign:
+    """Tests for #84 — calendar booking UX redesign."""
+
+    def _setup(self):
+        owner = OwnerFactory()
+        sub = SubscriptionFactory(owner=owner, plan="basis")
+        apt = ApartmentFactory(owner=owner, address="Teststraße 10, 1010 Wien")
+        client = Client()
+        client.force_login(owner)
+        url = reverse("dashboard:booking_calendar")
+        return owner, sub, apt, client, url
+
+    def test_legend_displayed_on_calendar(self):
+        """Calendar page shows a visual legend explaining slot states."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        content = resp.content.decode()
+        assert "Verfügbar" in content
+        assert "Ihr Termin" in content
+        assert "Vergeben" in content
+        assert "Vergangen" in content
+
+    def test_subscription_progress_bar_displayed(self):
+        """Calendar shows a progress bar for subscription usage."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        content = resp.content.decode()
+        assert 'role="progressbar"' in content
+        assert "0/2" in content
+
+    def test_subscription_progress_bar_color_at_limit(self):
+        """Progress bar turns red when at subscription limit."""
+        owner, sub, apt, client, url = self._setup()
+        for days_ahead, slot in [(3, "morning"), (4, "midday")]:
+            target_date = _future_date(days_ahead=days_ahead)
+            client.post(
+                reverse("dashboard:book_slot"),
+                {"apartment": apt.pk, "date": target_date.isoformat(), "slot": slot},
+            )
+        resp = client.get(url, {"apartment": apt.pk})
+        assert "bg-rose-500" in resp.content.decode()
+
+    def test_booking_hint_displayed(self):
+        """Calendar page shows a booking hint for users."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        assert "Wählen Sie einen" in resp.content.decode()
+
+    def test_heute_button_displayed_on_future_week(self):
+        """Calendar shows a 'Heute' button when not on current week."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk, "week": "3"})
+        assert "Heute" in resp.content.decode()
+
+    def test_heute_button_hidden_on_current_week(self):
+        """'Heute' button not shown when already on week 0."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk, "week": "0"})
+        content = resp.content.decode()
+        # On week 0, the Heute button should not be present in the HTMX nav
+        assert 'week=0"' not in content or "Heute" not in content.split("week=0")[0]
+
+    def test_next_button_disabled_at_week_52(self):
+        """Next week button is disabled at the maximum week offset."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk, "week": "52"}, HTTP_HX_REQUEST="true")
+        content = resp.content.decode()
+        # Next button should be a disabled span like the prev button at week 0
+        assert "Nächste</span>" in content or 'text-slate-300">Nächste' in content
+
+    def test_week_state_preserved_in_htmx_response(self):
+        """HTMX week navigation response includes OOB swap for week input."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(
+            url,
+            {"apartment": apt.pk, "week": "3"},
+            HTTP_HX_REQUEST="true",
+        )
+        content = resp.content.decode()
+        assert 'id="week-input"' in content
+        assert "hx-swap-oob" in content
+        assert 'value="3"' in content
+
+    def test_booked_slot_shows_apartment_name(self):
+        """Owner's booked slot displays the apartment name."""
+        owner, sub, apt, client, url = self._setup()
+        target_date = _future_date(days_ahead=5)
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot=Inspection.TimeSlot.MORNING,
+            status=Inspection.Status.SCHEDULED,
+        )
+        # Navigate to the week containing the booking
+        today = datetime.date.today()
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+        week_offset = (target_date - start_of_week).days // 7
+        resp = client.get(url, {"apartment": apt.pk, "week": str(week_offset)})
+        content = resp.content.decode()
+        # Apartment name should appear (truncated)
+        assert "Teststraße" in content
+        assert "bg-amber-50" in content
+
+    def test_other_owner_booked_slot_shows_taken(self):
+        """Slot booked by another owner shows as taken without apartment details."""
+        owner, sub, apt, client, url = self._setup()
+        other_owner = OwnerFactory()
+        other_apt = ApartmentFactory(owner=other_owner, address="Andere Gasse 5, 1020 Wien")
+        target_date = _future_date(days_ahead=5)
+        InspectionFactory(
+            apartment=other_apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot=Inspection.TimeSlot.MORNING,
+            status=Inspection.Status.SCHEDULED,
+        )
+        today = datetime.date.today()
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+        week_offset = (target_date - start_of_week).days // 7
+        resp = client.get(url, {"apartment": apt.pk, "week": str(week_offset)})
+        assert "Andere Gasse" not in resp.content.decode()
+
+    def test_booked_by_me_slot_has_distinct_style(self):
+        """Slots booked by the current owner have amber/accent styling."""
+        owner, sub, apt, client, url = self._setup()
+        target_date = _future_date(days_ahead=5)
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            time_slot=Inspection.TimeSlot.MORNING,
+            status=Inspection.Status.SCHEDULED,
+        )
+        today = datetime.date.today()
+        start_of_week = today - datetime.timedelta(days=today.weekday())
+        week_offset = (target_date - start_of_week).days // 7
+        resp = client.get(url, {"apartment": apt.pk, "week": str(week_offset)})
+        assert "bg-amber-50" in resp.content.decode()
+
+    def test_slot_has_aria_label(self):
+        """Slots include aria-label with context."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        assert "aria-label=" in resp.content.decode()
+
+    def test_booking_success_triggers_calendar_refresh(self):
+        """Successful booking response includes HX-Trigger header."""
+        owner, sub, apt, client, url = self._setup()
+        target_date = _future_date(days_ahead=5)
+        resp = client.post(
+            reverse("dashboard:book_slot"),
+            {"apartment": apt.pk, "date": target_date.isoformat(), "slot": "morning"},
+        )
+        assert resp.headers.get("HX-Trigger") == "calendarChanged"
+
+    def test_cancel_success_triggers_calendar_refresh(self):
+        """Successful cancellation response includes HX-Trigger header."""
+        owner, sub, apt, client, url = self._setup()
+        target_date = _future_date(days_ahead=5)
+        inspection = InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            time_slot=Inspection.TimeSlot.MORNING,
+            status=Inspection.Status.SCHEDULED,
+        )
+        resp = client.post(reverse("dashboard:cancel_booking", args=[inspection.pk]))
+        assert resp.headers.get("HX-Trigger") == "calendarChanged"
+
+    def test_cancellation_policy_visible(self):
+        """Cancellation policy text is visible on the calendar page."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        assert "24 Stunden" in resp.content.decode()
+
+    def test_calendar_page_has_mobile_and_desktop_layout(self):
+        """Calendar page renders with both mobile and desktop layouts."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        content = resp.content.decode()
+        assert "md:hidden" in content
+        assert "md:grid" in content
+
+
+@pytest.mark.django_db
+class TestCancellationConfirmView:
+    """Test the two-step cancellation confirmation flow."""
+
+    def _create_inspection(self, owner, days_ahead=5):
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=days_ahead)
+        return InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.SCHEDULED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+
+    def test_confirm_view_shows_timely_cancellation_info(self):
+        """Confirmation partial shows 'free cancellation' for >24h bookings."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner, days_ahead=5)
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:confirm_cancellation", args=[inspection.pk]))
+        assert resp.status_code == 200
+        assert "Kostenlose Stornierung" in resp.content.decode()
+
+    def test_confirm_view_shows_late_cancellation_warning(self):
+        """Confirmation partial warns about quota charge for <24h bookings."""
+        from unittest.mock import patch
+
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner, days_ahead=1)
+
+        fake_now = inspection.scheduled_at - datetime.timedelta(hours=12)
+        client = Client()
+        client.force_login(owner)
+
+        with patch("apps.dashboard.views.timezone.now", return_value=fake_now):
+            resp = client.get(reverse("dashboard:confirm_cancellation", args=[inspection.pk]))
+        assert resp.status_code == 200
+        assert "Kontingent wird belastet" in resp.content.decode()
+
+    def test_confirm_view_requires_owner(self):
+        """Other users cannot see cancellation confirmation."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+
+        other_owner = OwnerFactory()
+        SubscriptionFactory(owner=other_owner)
+        ApartmentFactory(owner=other_owner)
+        client = Client()
+        client.force_login(other_owner)
+
+        resp = client.get(reverse("dashboard:confirm_cancellation", args=[inspection.pk]))
+        assert resp.status_code == 404
+
+    def test_confirm_view_requires_login(self):
+        """Unauthenticated users redirected to login."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        client = Client()
+        resp = client.get(reverse("dashboard:confirm_cancellation", args=[inspection.pk]))
+        assert resp.status_code == 302
+        assert "/accounts/login/" in resp.url
+
+    def test_confirm_view_shows_apartment_and_date(self):
+        """Confirmation shows apartment address and date/time."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner, days_ahead=5)
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:confirm_cancellation", args=[inspection.pk]))
+        content = resp.content.decode()
+        assert inspection.apartment.address in content
+        assert "08:00" in content
