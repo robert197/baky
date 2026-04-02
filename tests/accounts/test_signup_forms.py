@@ -12,6 +12,7 @@ class TestSignupForm:
             "phone": "+43 123 456789",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         form = SignupForm(data=data)
         assert form.is_valid()
@@ -23,6 +24,7 @@ class TestSignupForm:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         form = SignupForm(data=data)
         assert form.is_valid()
@@ -77,6 +79,7 @@ class TestSignupForm:
             "email": "MAX@EXAMPLE.COM",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         form = SignupForm(data=data)
         assert form.is_valid()
@@ -101,6 +104,7 @@ class TestSignupForm:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         form = SignupForm(data=data)
         assert form.is_valid()
@@ -121,6 +125,7 @@ class TestSignupForm:
             "email": "anna@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         form = SignupForm(data=data)
         assert form.is_valid()

@@ -218,6 +218,8 @@ class Photo(models.Model):
     caption = models.CharField(max_length=255, blank=True)
     taken_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_flagged = models.BooleanField(default=False, help_text="Owner-flagged for retention beyond 90 days")
+    flagged_at = models.DateTimeField(null=True, blank=True, help_text="When the photo was flagged/unflagged")
 
     class Meta:
         ordering = ["-created_at"]

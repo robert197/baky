@@ -1,5 +1,7 @@
 from django.urls import path
 
+from apps.dashboard import views as dashboard_views
+
 from . import views
 
 app_name = "accounts"
@@ -22,4 +24,5 @@ urlpatterns = [
         name="password-reset-confirm",
     ),
     path("password-reset/complete/", views.PasswordResetCompleteView.as_view(), name="password-reset-complete"),
+    path("delete-cancel/", dashboard_views.account_delete_cancel, name="account-delete-cancel"),
 ]

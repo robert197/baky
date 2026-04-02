@@ -1,0 +1,47 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Konto löschen{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+      <div class="mb-6">
+        <h2 class="mb-2 text-lg font-semibold text-rose-600">Konto dauerhaft löschen</h2>
+        <p class="text-sm text-secondary">
+          Nach der Löschung werden alle Ihre Daten (Wohnungen, Inspektionen, Fotos, Berichte)
+          unwiderruflich entfernt. Sie haben eine 30-tägige Frist, um die Löschung rückgängig zu machen.
+        </p>
+      </div>
+      <div class="mb-6 rounded-lg bg-rose-50 p-4 text-sm text-rose-800">
+        <p class="font-medium">Was passiert bei der Kontolöschung:</p>
+        <ul class="mt-2 list-inside list-disc space-y-1">
+          <li>Ihr Konto wird sofort deaktiviert</li>
+          <li>Geplante Inspektionen werden storniert</li>
+          <li>Nach 30 Tagen werden alle Daten endgültig gelöscht</li>
+          <li>Sie können die Löschung innerhalb von 30 Tagen rückgängig machen</li>
+        </ul>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="space-y-4">
+          <div>
+            <label for="password" class="mb-1.5 block text-sm font-medium text-primary">Passwort zur Bestätigung</label>
+            <input type="password"
+                   name="password"
+                   id="password"
+                   required
+                   class="w-full rounded-lg border border-border px-4 py-3"
+                   placeholder="Ihr aktuelles Passwort">
+          </div>
+        </div>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <a href="{% url 'dashboard:index' %}"
+             class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-secondary hover:bg-surface">
+            Abbrechen
+          </a>
+          <button type="submit" class="rounded-lg bg-rose-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-rose-600">
+            Konto löschen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

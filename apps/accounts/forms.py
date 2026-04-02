@@ -49,6 +49,11 @@ class SignupForm(forms.ModelForm):
         label="Passwort bestätigen",
         widget=forms.PasswordInput(attrs={"class": INPUT_CSS}),
     )
+    privacy_consent = forms.BooleanField(
+        required=True,
+        label="Ich stimme der Datenschutzerklärung und den AGB zu",
+        error_messages={"required": "Sie müssen der Datenschutzerklärung und den AGB zustimmen."},
+    )
 
     class Meta:
         model = User
@@ -92,10 +97,14 @@ class SignupForm(forms.ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
+        from django.utils import timezone
+
         user = super().save(commit=False)
         user.username = self.cleaned_data["email"]
         user.role = User.Role.OWNER
         user.set_password(self.cleaned_data["password1"])
+        if self.cleaned_data.get("privacy_consent"):
+            user.privacy_consent_at = timezone.now()
         if commit:
             user.save()
         return user

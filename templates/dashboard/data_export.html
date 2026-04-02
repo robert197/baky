@@ -1,0 +1,47 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Datenexport{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+      <div class="mb-6">
+        <h2 class="mb-2 text-lg font-semibold text-primary">Datenexport (DSGVO Art. 15)</h2>
+        <p class="text-sm text-secondary">
+          Sie haben das Recht, eine Kopie aller Ihrer bei BAKY gespeicherten Daten anzufordern.
+          Der Export enthält Ihre Kontodaten, Wohnungen, Inspektionen und Berichte als ZIP-Datei.
+        </p>
+      </div>
+      {% if pending %}
+        <div class="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+          <p class="font-medium">Export wird erstellt...</p>
+          <p class="mt-1">
+            Status: {{ pending.get_status_display }}
+            (angefordert am {{ pending.requested_at|date:"d.m.Y H:i" }})
+          </p>
+          <p class="mt-1">Sie erhalten eine E-Mail, sobald Ihr Export bereit ist.</p>
+        </div>
+      {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="rounded-lg bg-slate-800 px-6 py-2.5 text-sm font-medium text-white hover:bg-slate-700">
+            Datenexport anfordern
+          </button>
+        </form>
+      {% endif %}
+      {% if recent_exports %}
+        <div class="mt-6 border-t border-border pt-4">
+          <h3 class="mb-3 text-sm font-medium text-primary">Bisherige Exporte</h3>
+          <div class="space-y-2">
+            {% for export in recent_exports %}
+              <div class="flex items-center justify-between rounded-lg bg-surface p-3 text-sm">
+                <span class="text-secondary">{{ export.requested_at|date:"d.m.Y H:i" }}</span>
+                <span class="{% if export.status == 'COMPLETED' %}text-emerald-600{% elif export.status == 'FAILED' %}text-rose-600{% else %}text-amber-600{% endif %} font-medium">
+                  {{ export.get_status_display }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

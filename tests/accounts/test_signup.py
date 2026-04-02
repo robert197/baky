@@ -38,6 +38,7 @@ class TestSignupView:
             "password1": "securePass123!",
             "password2": "securePass123!",
             "selected_plan": "basis",
+            "privacy_consent": True,
         }
         response = client.post("/accounts/signup/", data)
         assert response.status_code == 302
@@ -57,6 +58,7 @@ class TestSignupView:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         client.post("/accounts/signup/", data)
         user = User.objects.get(email="max@example.com")
@@ -69,6 +71,7 @@ class TestSignupView:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         client.post("/accounts/signup/", data)
         assert len(mail.outbox) == 1
@@ -83,6 +86,7 @@ class TestSignupView:
             "password1": "securePass123!",
             "password2": "securePass123!",
             "selected_plan": "standard",
+            "privacy_consent": True,
         }
         client.post("/accounts/signup/", data)
         user = User.objects.get(email="max@example.com")
@@ -97,6 +101,7 @@ class TestSignupView:
             "email": "max@example.com",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         client.post("/accounts/signup/", data)
         response = client.get("/accounts/onboarding/apartment/")
@@ -184,12 +189,44 @@ class TestSignupView:
             "phone": "+43 1 234 5678",
             "password1": "securePass123!",
             "password2": "securePass123!",
+            "privacy_consent": True,
         }
         response = client.post("/accounts/signup/", data)
         assert response.status_code == 302
         user = User.objects.get(email="anna@example.com")
         assert user.first_name == "Ännä"
         assert user.last_name == "Müller-Strauß"
+
+    def test_signup_requires_privacy_consent(self, client, db):
+        data = {
+            "first_name": "Max",
+            "last_name": "Mustermann",
+            "email": "max@example.com",
+            "password1": "securePass123!",
+            "password2": "securePass123!",
+        }
+        response = client.post("/accounts/signup/", data)
+        assert response.status_code == 200
+        assert not User.objects.filter(email="max@example.com").exists()
+
+    def test_signup_with_consent_sets_timestamp(self, client, db):
+        data = {
+            "first_name": "Max",
+            "last_name": "Mustermann",
+            "email": "max@example.com",
+            "password1": "securePass123!",
+            "password2": "securePass123!",
+            "privacy_consent": True,
+        }
+        client.post("/accounts/signup/", data)
+        user = User.objects.get(email="max@example.com")
+        assert user.privacy_consent_at is not None
+
+    def test_signup_form_has_privacy_checkbox(self, client, db):
+        response = client.get("/accounts/signup/")
+        content = response.content.decode()
+        assert "privacy_consent" in content
+        assert "Datenschutz" in content or "datenschutz" in content
 
     def test_login_page_links_to_signup(self, client, db):
         response = client.get("/accounts/login/")
