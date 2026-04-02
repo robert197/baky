@@ -2,7 +2,7 @@ Inspektionsbericht — {{ apartment.address }}
 {{ inspection.completed_at|date:"d.m.Y" }}
 
 Bewertung: {{ rating_display }}
-Inspektor: {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}
+Inspektor: {% if inspection.inspector %}{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}{% else %}Nicht zugewiesen{% endif %}
 Datum: {{ inspection.completed_at|date:"d.m.Y, H:i" }} Uhr
 
 {% if flagged_items %}Auffälligkeiten ({{ flagged_items|length }}):

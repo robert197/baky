@@ -62,16 +62,16 @@ class TestBusinessHoursValidation:
             inspection.clean()
         assert "scheduled_at" in exc_info.value.message_dict
 
-    def test_start_at_18_rejected(self):
-        """Starting at 18:00 is outside business hours (8-18)."""
+    def test_start_at_16_rejected(self):
+        """Starting at 16:00 is outside business hours (8-16)."""
         owner = _make_owner_with_subscription()
         apt = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()
         inspection = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=18),
-            scheduled_end=_make_scheduled_at(hour=20),
+            scheduled_at=_make_scheduled_at(hour=16),
+            scheduled_end=_make_scheduled_at(hour=18),
         )
         with pytest.raises(ValidationError) as exc_info:
             inspection.clean()
@@ -84,8 +84,8 @@ class TestBusinessHoursValidation:
         inspection = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=15),
-            scheduled_end=_make_scheduled_at(hour=19),
+            scheduled_at=_make_scheduled_at(hour=13),
+            scheduled_end=_make_scheduled_at(hour=17),
         )
         with pytest.raises(ValidationError) as exc_info:
             inspection.clean()
@@ -104,16 +104,16 @@ class TestBusinessHoursValidation:
         )
         inspection.clean()  # Should not raise
 
-    def test_end_at_exactly_18_accepted(self):
-        """Ending at exactly 18:00 is valid."""
+    def test_end_at_exactly_16_accepted(self):
+        """Ending at exactly 16:00 is valid."""
         owner = _make_owner_with_subscription()
         apt = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()
         inspection = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=16),
-            scheduled_end=_make_scheduled_at(hour=18),
+            scheduled_at=_make_scheduled_at(hour=14),
+            scheduled_end=_make_scheduled_at(hour=16),
         )
         inspection.clean()  # Should not raise
 
@@ -301,26 +301,26 @@ class TestSubscriptionLimitValidation:
         apt = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()
 
-        # First inspection
+        # First inspection (day 1)
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=8),
-            scheduled_end=_make_scheduled_at(hour=10),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=1),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=1),
         )
-        # Second inspection
+        # Second inspection (day 2)
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=10),
-            scheduled_end=_make_scheduled_at(hour=12),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=2),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=2),
         )
-        # Third — should be rejected
+        # Third — should be rejected (day 3, limit reached)
         i3 = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=14),
-            scheduled_end=_make_scheduled_at(hour=16),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=3),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=3),
         )
         with pytest.raises(ValidationError) as exc_info:
             i3.clean()
@@ -417,34 +417,34 @@ class TestSubscriptionLimitValidation:
         apt = ApartmentFactory(owner=owner)
         inspector = InspectorFactory()
 
-        # Two cancelled inspections
+        # Two cancelled inspections on different days
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=8),
-            scheduled_end=_make_scheduled_at(hour=10),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=1),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=1),
             status=Inspection.Status.CANCELLED,
         )
-        InspectionFactory(
-            apartment=apt,
-            inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=10),
-            scheduled_end=_make_scheduled_at(hour=12),
-            status=Inspection.Status.CANCELLED,
-        )
-
-        # Two new scheduled inspections should be allowed
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
             scheduled_at=_make_scheduled_at(hour=8, days_ahead=2),
             scheduled_end=_make_scheduled_at(hour=10, days_ahead=2),
+            status=Inspection.Status.CANCELLED,
+        )
+
+        # Two new scheduled inspections on different days should be allowed
+        InspectionFactory(
+            apartment=apt,
+            inspector=inspector,
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=3),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=3),
         )
         i4 = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=10, days_ahead=2),
-            scheduled_end=_make_scheduled_at(hour=12, days_ahead=2),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=4),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=4),
         )
         i4.clean()  # Should not raise — cancelled ones don't count
 
@@ -457,20 +457,20 @@ class TestSubscriptionLimitValidation:
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=8),
-            scheduled_end=_make_scheduled_at(hour=10),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=1),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=1),
         )
         InspectionFactory(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=10),
-            scheduled_end=_make_scheduled_at(hour=12),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=2),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=2),
         )
         i3 = InspectionFactory.build(
             apartment=apt,
             inspector=inspector,
-            scheduled_at=_make_scheduled_at(hour=14),
-            scheduled_end=_make_scheduled_at(hour=16),
+            scheduled_at=_make_scheduled_at(hour=8, days_ahead=3),
+            scheduled_end=_make_scheduled_at(hour=10, days_ahead=3),
         )
         with pytest.raises(ValidationError) as exc_info:
             i3.clean()

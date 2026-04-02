@@ -88,11 +88,15 @@ class InspectionAdmin(ModelAdmin):
         writer.writerow(["ID", "Wohnung", "Inspektor", "Geplant", "Ende", "Status", "Bewertung", "Notizen"])
 
         for inspection in queryset.select_related("apartment", "inspector"):
+            if inspection.inspector:
+                inspector_name = inspection.inspector.get_full_name() or inspection.inspector.username
+            else:
+                inspector_name = "Nicht zugewiesen"
             writer.writerow(
                 [
                     inspection.pk,
                     inspection.apartment.address,
-                    inspection.inspector.get_full_name() or inspection.inspector.username,
+                    inspector_name,
                     inspection.scheduled_at.strftime("%d.%m.%Y %H:%M") if inspection.scheduled_at else "",
                     inspection.scheduled_end.strftime("%d.%m.%Y %H:%M") if inspection.scheduled_end else "",
                     inspection.get_status_display(),

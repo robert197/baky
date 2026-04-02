@@ -10,7 +10,7 @@
             class="flex w-full items-center justify-between px-4 py-3 text-left">
       <div class="flex flex-1 items-center gap-3">
         <div class="text-sm font-medium text-primary">{{ inspection.completed_at|date:"d.m.Y" }}</div>
-        <div class="hidden text-sm text-secondary sm:block">{{ inspection.inspector.get_full_name }}</div>
+        <div class="hidden text-sm text-secondary sm:block">{% if inspection.inspector %}{{ inspection.inspector.get_full_name }}{% else %}Nicht zugewiesen{% endif %}</div>
       </div>
       <div class="flex items-center gap-2">
         {% if inspection.overall_rating %}
@@ -27,7 +27,7 @@
     </button>
     {# Mobile: inspector name below #}
     <div class="border-t border-border/50 px-4 py-1.5 sm:hidden">
-      <span class="text-xs text-secondary">{{ inspection.inspector.get_full_name }}</span>
+      <span class="text-xs text-secondary">{% if inspection.inspector %}{{ inspection.inspector.get_full_name }}{% else %}Nicht zugewiesen{% endif %}</span>
     </div>
     {# Expandable summary #}
     <div id="summary-{{ inspection.pk }}" x-show="expanded" x-collapse x-cloak></div>
