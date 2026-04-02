@@ -1,0 +1,115 @@
+{# Alpine.js photo lightbox component #}
+{# Expects parent element to have x-data="photoLightbox()" #}
+<div x-show="isOpen" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+     @keydown.escape.window="closeLightbox()"
+     @keydown.arrow-left.window="prevPhoto()"
+     @keydown.arrow-right.window="nextPhoto()">
+  {# Close button #}
+  <button @click="closeLightbox()" class="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70">
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+  {# Previous button #}
+  <button @click="prevPhoto()" x-show="photos.length > 1"
+          class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 sm:left-4">
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+  {# Next button #}
+  <button @click="nextPhoto()" x-show="photos.length > 1"
+          class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 sm:right-4">
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+  {# Image container with touch support #}
+  <div class="max-h-[90vh] max-w-[90vw]"
+       @touchstart="touchStart($event)"
+       @touchend="touchEnd($event)">
+    <img :src="currentPhotoUrl" :alt="currentCaption"
+         class="max-h-[85vh] max-w-full rounded-lg object-contain"
+         x-show="!loading"
+         @load="loading = false" />
+    {# Loading spinner #}
+    <div x-show="loading" class="flex h-48 w-48 items-center justify-center">
+      <svg class="h-10 w-10 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  </div>
+  {# Caption #}
+  <div x-show="currentCaption" class="absolute inset-x-0 bottom-4 text-center">
+    <span class="rounded-full bg-black/60 px-4 py-1.5 text-sm text-white" x-text="currentCaption"></span>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('photoLightbox', () => ({
+      isOpen: false,
+      photos: [],
+      currentIndex: 0,
+      currentPhotoUrl: '',
+      currentCaption: '',
+      loading: false,
+      touchStartX: 0,
+
+      openLightbox(photoId, url, caption) {
+        // Collect all photo buttons on the page
+        if (this.photos.length === 0) {
+          document.querySelectorAll('[\\@click^="openLightbox"]').forEach(btn => {
+            const match = btn.getAttribute('@click').match(/openLightbox\((\d+),\s*'([^']*)',\s*'([^']*)'\)/);
+            if (match) {
+              this.photos.push({ id: parseInt(match[1]), url: match[2], caption: match[3] });
+            }
+          });
+        }
+        this.currentIndex = this.photos.findIndex(p => p.id === photoId);
+        if (this.currentIndex === -1) this.currentIndex = 0;
+        this.showPhoto();
+        this.isOpen = true;
+        document.body.style.overflow = 'hidden';
+      },
+
+      closeLightbox() {
+        this.isOpen = false;
+        document.body.style.overflow = '';
+      },
+
+      showPhoto() {
+        if (this.photos.length === 0) return;
+        const photo = this.photos[this.currentIndex];
+        this.loading = true;
+        this.currentPhotoUrl = photo.url;
+        this.currentCaption = photo.caption;
+      },
+
+      nextPhoto() {
+        if (this.photos.length <= 1) return;
+        this.currentIndex = (this.currentIndex + 1) % this.photos.length;
+        this.showPhoto();
+      },
+
+      prevPhoto() {
+        if (this.photos.length <= 1) return;
+        this.currentIndex = (this.currentIndex - 1 + this.photos.length) % this.photos.length;
+        this.showPhoto();
+      },
+
+      touchStart(e) {
+        this.touchStartX = e.touches[0].clientX;
+      },
+
+      touchEnd(e) {
+        const diff = this.touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+          diff > 0 ? this.nextPhoto() : this.prevPhoto();
+        }
+      },
+    }));
+  });
+</script>
