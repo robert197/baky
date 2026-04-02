@@ -56,8 +56,8 @@ while true; do
     timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     log_file="$LOG_DIR/iteration-${iteration}-$(date '+%Y%m%d-%H%M%S').log"
 
-    # Check how many MVP issues remain
-    remaining=$(gh issue list -R "$REPO" --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length' 2>/dev/null || echo "?")
+    # Check how many open issues remain (all milestones + no milestone, excluding roadmap #44)
+    remaining=$(gh issue list -R "$REPO" --state open --json number -q '[.[] | select(.number != 44)] | length' 2>/dev/null || echo "?")
 
     if [ "$remaining" = "0" ]; then
         echo ""
@@ -72,7 +72,7 @@ while true; do
     fi
 
     # Show which issues are still open
-    open_issues=$(gh issue list -R "$REPO" --milestone "MVP (Weeks 1-4)" --state open --json number,title -q '.[] | "  #\(.number) \(.title)"' 2>/dev/null || echo "  (could not fetch)")
+    open_issues=$(gh issue list -R "$REPO" --state open --json number,title -q '.[] | select(.number != 44) | "  #\(.number) \(.title)"' 2>/dev/null || echo "  (could not fetch)")
 
     echo ""
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -172,7 +172,7 @@ for line in open('$log_file.raw'):
     seconds=$(( duration % 60 ))
 
     # Check if an issue was shipped this iteration
-    after_count=$(gh issue list -R "$REPO" --milestone "MVP (Weeks 1-4)" --state open --json number -q 'length' 2>/dev/null || echo "?")
+    after_count=$(gh issue list -R "$REPO" --state open --json number -q '[.[] | select(.number != 44)] | length' 2>/dev/null || echo "?")
 
     if [ "$after_count" != "?" ] && [ "$before_count" != "?" ] && [ "$after_count" -lt "$before_count" ]; then
         shipped=$(( before_count - after_count ))
