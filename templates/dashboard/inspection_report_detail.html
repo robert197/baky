@@ -19,9 +19,9 @@
           <h2 class="text-lg font-semibold text-primary">Inspektion vom {{ inspection.completed_at|date:"d.m.Y" }}</h2>
           <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-secondary">
             <span>{{ inspection.inspector.get_full_name }}</span>
-            {% if duration %}
+            {% if duration_display %}
               <span class="text-muted">&bull;</span>
-              <span>{{ duration.total_seconds|floatformat:0 }} Sek.</span>
+              <span>{{ duration_display }}</span>
             {% endif %}
             <span class="text-muted">&bull;</span>
             <span>{{ inspection.completed_at|date:"H:i" }} Uhr</span>

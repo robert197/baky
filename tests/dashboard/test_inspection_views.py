@@ -109,6 +109,22 @@ class TestInspectionTimeline:
         assert resp.status_code == 200
         assert resp.content.decode().count("inspection-item") == 1
 
+    def test_timeline_invalid_page_param(self):
+        owner = OwnerFactory()
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+        resp = client.get(reverse("dashboard:inspection_timeline", args=[apt.pk]), {"page": "abc"})
+        assert resp.status_code == 200  # graceful fallback, not 500
+
+    def test_timeline_invalid_date_filter(self):
+        owner = OwnerFactory()
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+        resp = client.get(reverse("dashboard:inspection_timeline", args=[apt.pk]), {"from": "not-a-date"})
+        assert resp.status_code == 200  # graceful fallback, not 500
+
     def test_timeline_pagination_load_more(self):
         owner = OwnerFactory()
         apt = ApartmentFactory(owner=owner)
@@ -346,5 +362,4 @@ class TestInspectionReportDetail:
         client.force_login(owner)
         resp = client.get(reverse("dashboard:inspection_report_detail", args=[apt.pk, insp.pk]))
         content = resp.content.decode()
-        # Should display duration in some form
-        assert "1" in content  # at least the hour number
+        assert "1 Std. 30 Min." in content

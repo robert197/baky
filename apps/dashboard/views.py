@@ -1,3 +1,4 @@
+from datetime import date as date_type
 from itertools import groupby
 
 from django.contrib import messages
@@ -87,6 +88,15 @@ def apartment_edit(request, pk):
     )
 
 
+def _parse_date(value: str | None) -> date_type | None:
+    if not value:
+        return None
+    try:
+        return date_type.fromisoformat(value)
+    except ValueError:
+        return None
+
+
 def _base_inspection_qs(apartment):
     """Shared queryset for completed inspections with annotations."""
     return (
@@ -114,15 +124,18 @@ def inspection_timeline(request, pk):
     rating = request.GET.get("rating")
     if rating in ("ok", "attention", "urgent"):
         inspections = inspections.filter(overall_rating=rating)
-    date_from = request.GET.get("from")
+    date_from = _parse_date(request.GET.get("from"))
     if date_from:
         inspections = inspections.filter(completed_at__date__gte=date_from)
-    date_to = request.GET.get("to")
+    date_to = _parse_date(request.GET.get("to"))
     if date_to:
         inspections = inspections.filter(completed_at__date__lte=date_to)
 
     # Pagination
-    page = int(request.GET.get("page", 1))
+    try:
+        page = max(1, int(request.GET.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
     per_page = 10
     total = inspections.count()
     inspections_page = inspections[(page - 1) * per_page : page * per_page]
@@ -135,8 +148,8 @@ def inspection_timeline(request, pk):
         "next_page": page + 1,
         "active": "apartments",
         "current_rating": rating or "",
-        "current_from": date_from or "",
-        "current_to": date_to or "",
+        "current_from": date_from.isoformat() if date_from else "",
+        "current_to": date_to.isoformat() if date_to else "",
     }
 
     if request.headers.get("HX-Request") and request.GET.get("page"):
@@ -187,9 +200,15 @@ def inspection_report_detail(request, pk, inspection_pk):
     except Report.DoesNotExist:
         report = None
 
-    duration = None
+    duration_display = ""
     if inspection.started_at and inspection.completed_at:
-        duration = inspection.completed_at - inspection.started_at
+        delta = inspection.completed_at - inspection.started_at
+        total_minutes = int(delta.total_seconds()) // 60
+        hours, minutes = divmod(total_minutes, 60)
+        if hours:
+            duration_display = f"{hours} Std. {minutes} Min."
+        else:
+            duration_display = f"{minutes} Min."
 
     return render(
         request,
@@ -200,7 +219,7 @@ def inspection_report_detail(request, pk, inspection_pk):
             "grouped_items": grouped_items,
             "general_photos": general_photos,
             "report": report,
-            "duration": duration,
+            "duration_display": duration_display,
             "active": "apartments",
         },
     )
