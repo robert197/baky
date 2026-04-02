@@ -414,17 +414,23 @@ def _get_week_availability(start_date, apartment, owner):
     limit_reached = used >= limit
 
     now = timezone.now()
-    days = []
-    for day_offset in range(7):
-        current_date = start_date + timedelta(days=day_offset)
-        day_slots = []
+    week_dates = [start_date + timedelta(days=i) for i in range(7)]
 
-        # Check if apartment already has an inspection on this day
-        has_day_booking = Inspection.objects.filter(
+    # Batch query: find all dates in this week that already have bookings for this apartment
+    booked_dates = set(
+        Inspection.objects.filter(
             apartment=apartment,
-            scheduled_at__date=current_date,
+            scheduled_at__date__in=week_dates,
             status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED],
-        ).exists()
+        )
+        .values_list("scheduled_at__date", flat=True)
+        .distinct()
+    )
+
+    days = []
+    for current_date in week_dates:
+        day_slots = []
+        has_day_booking = current_date in booked_dates
 
         for slot_key in Inspection.TimeSlot:
             sh, sm, eh, em = Inspection.SLOT_TIMES[slot_key]
@@ -465,7 +471,7 @@ def booking_calendar(request):
         week_offset = int(request.GET.get("week", 0))
     except (ValueError, TypeError):
         week_offset = 0
-    week_offset = max(0, week_offset)
+    week_offset = max(0, min(52, week_offset))
 
     today = date_type.today()
     start_of_week = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
@@ -527,8 +533,9 @@ def book_slot(request):
     apartment = get_object_or_404(Apartment, pk=apartment_id, owner=request.user, status=Apartment.Status.ACTIVE)
 
     # Validate slot key
-    valid_slots = {s.value for s in Inspection.TimeSlot}
-    if slot_key not in valid_slots:
+    try:
+        time_slot = Inspection.TimeSlot(slot_key)
+    except ValueError:
         return render(request, "dashboard/_booking_error.html", {"error": "Ungültiger Zeitslot."})
 
     try:
@@ -536,7 +543,7 @@ def book_slot(request):
     except (ValueError, TypeError):
         return render(request, "dashboard/_booking_error.html", {"error": "Ungültiges Datum."})
 
-    sh, sm, eh, em = Inspection.SLOT_TIMES[slot_key]
+    sh, sm, eh, em = Inspection.SLOT_TIMES[time_slot]
     scheduled_at = datetime(target_date.year, target_date.month, target_date.day, sh, sm, tzinfo=VIENNA_TZ)
     scheduled_end = datetime(target_date.year, target_date.month, target_date.day, eh, em, tzinfo=VIENNA_TZ)
 
