@@ -626,7 +626,7 @@ def account_delete(request):
 
         messages.success(
             request,
-            "Ihr Konto wurde zur Löschung vorgemerkt. " "Sie haben 30 Tage Zeit, die Löschung rückgängig zu machen.",
+            "Ihr Konto wurde zur Löschung vorgemerkt. Sie haben 30 Tage Zeit, die Löschung rückgängig zu machen.",
         )
         return redirect("accounts:login")
 
