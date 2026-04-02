@@ -22,6 +22,9 @@ urlpatterns = [
         name="inspection_report_detail",
     ),
     path("reports/<int:report_id>/", report_views.report_detail, name="report_detail"),
+    # Booking
+    path("buchen/", views.booking_calendar, name="booking_calendar"),
+    path("buchen/slot/", views.book_slot, name="book_slot"),
     # Subscription management
     path("subscription/", views.subscription_overview, name="subscription"),
     path("subscription/change/", views.subscription_change, name="subscription_change"),

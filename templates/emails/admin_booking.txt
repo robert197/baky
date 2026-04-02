@@ -1,0 +1,13 @@
+Neue Terminbuchung
+
+Ein Eigentümer hat eine Inspektion über den Kalender gebucht.
+
+Eigentümer: {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+Wohnung: {{ apartment.address }}
+Datum: {{ inspection.scheduled_at|date:"d.m.Y" }}
+Zeitslot: {{ inspection.get_time_slot_display }} ({{ inspection.scheduled_at|date:"H:i" }}–{{ inspection.scheduled_end|date:"H:i" }} Uhr)
+
+Bitte weisen Sie im Admin-Panel einen Inspektor zu.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

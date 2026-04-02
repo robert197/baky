@@ -1,22 +1,30 @@
+import zoneinfo
 from datetime import date as date_type
+from datetime import datetime, timedelta
 from itertools import groupby
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
+from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from apps.accounts.decorators import owner_required
 from apps.accounts.models import Subscription
 from apps.apartments.models import Apartment
 from apps.dashboard.forms import (
     ApartmentEditForm,
+    BookingApartmentForm,
     ExtraInspectionForm,
     PlanChangeRequestForm,
     SubscriptionActionForm,
 )
 from apps.inspections.models import Inspection, InspectionItem
 from apps.reports.models import Report
+
+VIENNA_TZ = zoneinfo.ZoneInfo("Europe/Vienna")
 
 
 def _get_subscription_or_none(user):
@@ -389,4 +397,185 @@ def subscription_billing(request):
         request,
         "dashboard/subscription_billing.html",
         {"subscription": subscription, "active": "subscription"},
+    )
+
+
+# --- Booking views ---
+
+
+def _get_week_availability(start_date, apartment, owner):
+    """Return availability data for a 7-day week starting at start_date."""
+    subscription = _get_subscription_or_none(owner)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        return {"days": [], "used": 0, "limit": 0, "limit_reached": True}
+
+    used = subscription.get_inspections_used_this_month()
+    limit = subscription.get_monthly_inspection_limit()
+    limit_reached = used >= limit
+
+    now = timezone.now()
+    days = []
+    for day_offset in range(7):
+        current_date = start_date + timedelta(days=day_offset)
+        day_slots = []
+
+        # Check if apartment already has an inspection on this day
+        has_day_booking = Inspection.objects.filter(
+            apartment=apartment,
+            scheduled_at__date=current_date,
+            status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED],
+        ).exists()
+
+        for slot_key in Inspection.TimeSlot:
+            sh, sm, eh, em = Inspection.SLOT_TIMES[slot_key]
+            slot_start = datetime(current_date.year, current_date.month, current_date.day, sh, sm, tzinfo=VIENNA_TZ)
+
+            is_past = now >= slot_start - timedelta(hours=24)
+
+            day_slots.append(
+                {
+                    "key": slot_key.value,
+                    "label": slot_key.label,
+                    "start": f"{sh:02d}:{sm:02d}",
+                    "end": f"{eh:02d}:{em:02d}",
+                    "available": not is_past and not has_day_booking and not limit_reached,
+                    "is_past": is_past,
+                    "has_booking": has_day_booking,
+                }
+            )
+        days.append({"date": current_date, "slots": day_slots})
+
+    return {"days": days, "used": used, "limit": limit, "limit_reached": limit_reached}
+
+
+@owner_required
+def booking_calendar(request):
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        messages.warning(request, "Terminbuchung ist nur mit einem aktiven Abonnement möglich.")
+        return redirect("dashboard:subscription")
+
+    apartments = Apartment.objects.filter(owner=request.user, status=Apartment.Status.ACTIVE)
+    if not apartments.exists():
+        messages.info(request, "Bitte fügen Sie zuerst eine Wohnung hinzu.")
+        return redirect("dashboard:index")
+
+    # Parse week offset for navigation
+    try:
+        week_offset = int(request.GET.get("week", 0))
+    except (ValueError, TypeError):
+        week_offset = 0
+    week_offset = max(0, week_offset)
+
+    today = date_type.today()
+    start_of_week = today - timedelta(days=today.weekday()) + timedelta(weeks=week_offset)
+
+    # Selected apartment
+    selected_apartment = None
+    apartment_id = request.GET.get("apartment")
+    if apartment_id:
+        selected_apartment = get_object_or_404(
+            Apartment, pk=apartment_id, owner=request.user, status=Apartment.Status.ACTIVE
+        )
+    elif apartments.count() == 1:
+        selected_apartment = apartments.first()
+
+    availability = None
+    if selected_apartment:
+        availability = _get_week_availability(start_of_week, selected_apartment, request.user)
+
+    form = BookingApartmentForm(owner=request.user)
+    if selected_apartment:
+        form = BookingApartmentForm(initial={"apartment": selected_apartment.pk}, owner=request.user)
+
+    end_of_week = start_of_week + timedelta(days=6)
+
+    context = {
+        "form": form,
+        "apartments": apartments,
+        "selected_apartment": selected_apartment,
+        "availability": availability,
+        "week_offset": week_offset,
+        "start_of_week": start_of_week,
+        "end_of_week": end_of_week,
+        "subscription": subscription,
+        "active": "booking",
+    }
+
+    if request.headers.get("HX-Request"):
+        return render(request, "dashboard/_calendar_week.html", context)
+    return render(request, "dashboard/booking_calendar.html", context)
+
+
+@owner_required
+def book_slot(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        return render(
+            request,
+            "dashboard/_booking_error.html",
+            {"error": "Terminbuchung ist nur mit einem aktiven Abonnement möglich."},
+        )
+
+    apartment_id = request.POST.get("apartment")
+    slot_date = request.POST.get("date")
+    slot_key = request.POST.get("slot")
+
+    apartment = get_object_or_404(Apartment, pk=apartment_id, owner=request.user, status=Apartment.Status.ACTIVE)
+
+    # Validate slot key
+    valid_slots = {s.value for s in Inspection.TimeSlot}
+    if slot_key not in valid_slots:
+        return render(request, "dashboard/_booking_error.html", {"error": "Ungültiger Zeitslot."})
+
+    try:
+        target_date = date_type.fromisoformat(slot_date)
+    except (ValueError, TypeError):
+        return render(request, "dashboard/_booking_error.html", {"error": "Ungültiges Datum."})
+
+    sh, sm, eh, em = Inspection.SLOT_TIMES[slot_key]
+    scheduled_at = datetime(target_date.year, target_date.month, target_date.day, sh, sm, tzinfo=VIENNA_TZ)
+    scheduled_end = datetime(target_date.year, target_date.month, target_date.day, eh, em, tzinfo=VIENNA_TZ)
+
+    # 24-hour advance check
+    if timezone.now() >= scheduled_at - timedelta(hours=24):
+        return render(
+            request,
+            "dashboard/_booking_error.html",
+            {"error": "Buchungen müssen mindestens 24 Stunden im Voraus erfolgen."},
+        )
+
+    inspection = Inspection(
+        apartment=apartment,
+        inspector=None,
+        scheduled_at=scheduled_at,
+        scheduled_end=scheduled_end,
+        time_slot=slot_key,
+        status=Inspection.Status.SCHEDULED,
+    )
+
+    try:
+        inspection.full_clean()
+        inspection.save()
+    except ValidationError as e:
+        error_msg = ". ".join(msg for msgs in e.message_dict.values() for msg in msgs)
+        return render(request, "dashboard/_booking_error.html", {"error": error_msg})
+
+    # Notify admin
+    from baky.tasks import queue_task
+
+    queue_task(
+        "apps.dashboard.tasks.send_booking_notification",
+        request.user.pk,
+        inspection.pk,
+        task_name=f"booking_notification_{inspection.pk}",
+    )
+
+    return render(
+        request,
+        "dashboard/_booking_success.html",
+        {"inspection": inspection, "apartment": apartment},
     )

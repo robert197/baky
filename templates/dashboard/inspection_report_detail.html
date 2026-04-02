@@ -18,7 +18,13 @@
         <div>
           <h2 class="text-lg font-semibold text-primary">Inspektion vom {{ inspection.completed_at|date:"d.m.Y" }}</h2>
           <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-secondary">
-            <span>{% if inspection.inspector %}{{ inspection.inspector.get_full_name }}{% else %}Nicht zugewiesen{% endif %}</span>
+            <span>
+              {% if inspection.inspector %}
+                {{ inspection.inspector.get_full_name }}
+              {% else %}
+                Nicht zugewiesen
+              {% endif %}
+            </span>
             {% if duration_display %}
               <span class="text-muted">&bull;</span>
               <span>{{ duration_display }}</span>

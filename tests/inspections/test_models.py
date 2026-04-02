@@ -67,10 +67,11 @@ class TestInspectionModel:
         apt.delete()
         assert Inspection.objects.filter(pk=inspection.pk).count() == 0
 
-    def test_cascade_delete_inspector(self, db, inspection):
+    def test_set_null_on_inspector_delete(self, db, inspection):
         inspector = inspection.inspector
         inspector.delete()
-        assert Inspection.objects.filter(pk=inspection.pk).count() == 0
+        inspection.refresh_from_db()
+        assert inspection.inspector is None
 
     def test_general_notes_blank(self, inspection):
         assert inspection.general_notes == ""

@@ -23,7 +23,13 @@
     </div>
     {# Inspector #}
     <div class="rounded-lg bg-white p-3 text-center">
-      <div class="text-xs text-secondary">{% if inspection.inspector %}{{ inspection.inspector.get_full_name }}{% else %}Nicht zugewiesen{% endif %}</div>
+      <div class="text-xs text-secondary">
+        {% if inspection.inspector %}
+          {{ inspection.inspector.get_full_name }}
+        {% else %}
+          Nicht zugewiesen
+        {% endif %}
+      </div>
     </div>
   </div>
   {% if inspection.general_notes %}

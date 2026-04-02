@@ -35,7 +35,12 @@
                 font-size: 14px">
     <tr>
       <td style="padding: 4px 0; color: #64748b;">
-        <strong style="color: #1e293b;">Inspektor:</strong> {% if inspection.inspector %}{{ inspection.inspector.get_full_name|default:inspection.inspector.username }}{% else %}Nicht zugewiesen{% endif %}
+        <strong style="color: #1e293b;">Inspektor:</strong>
+        {% if inspection.inspector %}
+          {{ inspection.inspector.get_full_name|default:inspection.inspector.username }}
+        {% else %}
+          Nicht zugewiesen
+        {% endif %}
       </td>
     </tr>
     <tr>

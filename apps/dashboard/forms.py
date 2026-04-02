@@ -62,6 +62,19 @@ class ExtraInspectionForm(forms.Form):
             self.fields["apartment"].queryset = Apartment.objects.filter(owner=owner, status=Apartment.Status.ACTIVE)
 
 
+class BookingApartmentForm(forms.Form):
+    apartment = forms.ModelChoiceField(
+        queryset=Apartment.objects.none(),
+        label="Wohnung",
+        widget=forms.Select(attrs={"class": INPUT_CSS}),
+    )
+
+    def __init__(self, *args, owner=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if owner:
+            self.fields["apartment"].queryset = Apartment.objects.filter(owner=owner, status=Apartment.Status.ACTIVE)
+
+
 class ApartmentEditForm(forms.ModelForm):
     status = forms.ChoiceField(
         choices=OWNER_STATUS_CHOICES,
