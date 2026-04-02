@@ -6,5 +6,8 @@ gunicorn>=22.0
 # Error Tracking
 sentry-sdk[django]>=2.0
 
-# Static Files
-whitenoise>=6.6
+# Static Files (with Brotli compression)
+whitenoise[brotli]>=6.6
+
+# Structured JSON Logging
+python-json-logger>=4.0

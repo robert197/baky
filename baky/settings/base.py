@@ -118,6 +118,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Upload limits — inspector photos (HEIF) can be 5-15MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+
 # Django-Q2 — retries are handled by retry > timeout (re-queues timed-out tasks).
 # Retry limiting is enforced in baky.tasks.on_task_error via attempt_count.
 Q_CLUSTER = {

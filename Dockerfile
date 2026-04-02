@@ -1,6 +1,6 @@
 # =============================================================================
 # BAKY Dockerfile — Multi-stage build
-# Stages: base (system deps) → dev (local dev) → production (slim deploy)
+# Stages: base (system deps) → dev (local dev) → tailwind-builder → production
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -52,9 +52,25 @@ EXPOSE 8000
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # ---------------------------------------------------------------------------
-# Stage 3: Production — slim, secure, ready to deploy
+# Stage 3: Tailwind Builder — compile CSS for production
+# ---------------------------------------------------------------------------
+FROM node:20-slim AS tailwind-builder
+
+WORKDIR /app
+COPY package.json tailwind.config.js ./
+RUN npm install --production=false
+COPY static/css/input.css static/css/input.css
+COPY templates/ templates/
+COPY apps/ apps/
+RUN npx tailwindcss -i static/css/input.css -o static/css/output.css --minify
+
+# ---------------------------------------------------------------------------
+# Stage 4: Production — slim, secure, ready to deploy
 # ---------------------------------------------------------------------------
 FROM base AS production
+
+ARG GIT_SHA
+ENV GIT_SHA=${GIT_SHA}
 
 COPY requirements/base.txt requirements/base.txt
 COPY requirements/production.txt requirements/production.txt
@@ -66,18 +82,31 @@ RUN apt-get purge -y build-essential && apt-get autoremove -y && rm -rf /var/lib
 # Copy application code
 COPY . .
 
+# Copy Tailwind-built CSS from builder stage
+COPY --from=tailwind-builder /app/static/css/output.css static/css/output.css
+
 # Create non-root user
 RUN addgroup --system django && adduser --system --ingroup django django
 
-# Collect static files
+# Collect static files (must fail loudly — no || true)
+# NOTE: All env values below are PLACEHOLDERS for build-time only. Never use in production.
 ENV DJANGO_SETTINGS_MODULE=baky.settings.production
 RUN SECRET_KEY=build-placeholder ALLOWED_HOSTS=localhost \
-    python manage.py collectstatic --noinput 2>/dev/null || true
+    DATABASE_URL=sqlite:///tmp/throwaway.db \
+    FIELD_ENCRYPTION_KEY=dGhpcy1pcy1hLWJ1aWxkLXRpbWUtcGxhY2Vob2xkZXI= \
+    CSRF_TRUSTED_ORIGINS=https://localhost \
+    AWS_ACCESS_KEY_ID=build-placeholder \
+    AWS_SECRET_ACCESS_KEY=build-placeholder \
+    AWS_STORAGE_BUCKET_NAME=build-placeholder \
+    AWS_S3_ENDPOINT_URL=https://localhost \
+    RESEND_API_KEY=build-placeholder \
+    SITE_URL=https://localhost \
+    python manage.py collectstatic --noinput
 
 USER django
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-    CMD curl -f http://localhost:8000/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f --connect-timeout 2 --max-time 4 http://localhost:8000/health/ || exit 1
 
 EXPOSE 8000
-CMD ["gunicorn", "baky.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "baky.wsgi:application"]
