@@ -40,7 +40,7 @@ class Command(BaseCommand):
 
         if options["dry_run"]:
             for user in expired_users:
-                self.stdout.write(f"  Would purge: {user.email} (deleted at {user.deleted_at})")
+                self.stdout.write(f"  Would purge: User ID {user.pk} (deleted at {user.deleted_at})")
             self.stdout.write(f"Would purge {count} accounts (dry run)")
             return
 
@@ -53,9 +53,9 @@ class Command(BaseCommand):
             )
 
             # Delete user (cascades to apartments, inspections, photos, reports)
-            email = user.email
+            user_pk = user.pk
             user.delete()
-            logger.info("Purged account %s and all associated data", email)
+            logger.info("Purged account ID %s and all associated data", user_pk)
 
             # Clean up S3 files
             for file_path, thumb_path in s3_paths:

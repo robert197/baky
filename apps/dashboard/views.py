@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from itertools import groupby
 
 from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
@@ -624,10 +625,9 @@ def account_delete(request):
         request.user.is_active = False
         request.user.save(update_fields=["deleted_at", "is_active"])
 
-        messages.success(
-            request,
-            "Ihr Konto wurde zur Löschung vorgemerkt. Sie haben 30 Tage Zeit, die Löschung rückgängig zu machen.",
-        )
+        # Invalidate all sessions for this user
+        auth_logout(request)
+
         return redirect("accounts:login")
 
     return render(request, "dashboard/account_delete.html", {"active": "account"})
@@ -641,14 +641,16 @@ def account_delete_cancel(request):
     email = request.POST.get("email", "").strip().lower()
     password = request.POST.get("password", "")
 
+    invalid_msg = "Ungültige Anmeldedaten oder kein zur Löschung vorgemerktes Konto gefunden."
+
     try:
         user = User.objects.get(email=email, deleted_at__isnull=False, is_active=False)
     except User.DoesNotExist:
-        messages.error(request, "Kein zur Löschung vorgemerktes Konto mit dieser E-Mail gefunden.")
+        messages.error(request, invalid_msg)
         return render(request, "dashboard/account_delete_cancel.html")
 
     if not user.check_password(password):
-        messages.error(request, "Falsches Passwort.")
+        messages.error(request, invalid_msg)
         return render(request, "dashboard/account_delete_cancel.html")
 
     user.deleted_at = None

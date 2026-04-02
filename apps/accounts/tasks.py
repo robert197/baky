@@ -43,11 +43,20 @@ def generate_data_export(export_request_id: int) -> dict:
         logger.info("Data export completed for user %s", user.email)
         return {"status": "success", "user_id": user.pk}
 
-    except Exception as e:
+    except Exception:
         logger.exception("Data export failed for request %s", export_request_id)
         export_req.status = DataExportRequest.Status.FAILED
         export_req.save(update_fields=["status"])
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": "Data export generation failed"}
+
+
+def _mask_value(value: str) -> str:
+    """Mask sensitive values, showing only last 2 characters."""
+    if not value:
+        return ""
+    if len(value) <= 2:
+        return "**"
+    return "*" * (len(value) - 2) + value[-2:]
 
 
 def _collect_user_data(user) -> dict:
@@ -86,8 +95,8 @@ def _collect_user_data(user) -> dict:
         apt_data = {
             "adresse": apt.address,
             "zugangsart": apt.get_access_method_display(),
-            "zugangscode": apt.access_code,
-            "zugangshinweise": apt.access_notes,
+            "zugangscode": _mask_value(apt.access_code),
+            "zugangshinweise": _mask_value(apt.access_notes),
             "besondere_hinweise": apt.special_instructions,
             "status": apt.get_status_display(),
             "inspektionen": [],
