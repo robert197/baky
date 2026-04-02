@@ -110,6 +110,8 @@ class Inspection(TimeStampedModel):
                     errors["scheduled_at"] = "Dieser Inspektor hat bereits eine Inspektion in diesem Zeitraum."
 
             # Validate global slot exclusivity (one booking per date+time_slot)
+            # NOTE: Date extraction must match the DB partial unique index (migration 0006)
+            # which uses DATE(scheduled_at AT TIME ZONE 'Europe/Vienna').
             if self.time_slot:
                 local_date = timezone.localtime(self.scheduled_at).date()
                 global_conflict = Inspection.objects.filter(
