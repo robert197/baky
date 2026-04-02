@@ -127,46 +127,153 @@ SEED_APARTMENTS = [
     },
 ]
 
-# Each inspection: (apartment_index, inspector_email, status, days_offset, time_slot, rating)
-# days_offset: negative = days ago, positive = days from now, 0 = today
 SEED_INSPECTIONS = [
     # Completed (10)
-    (0, "lisa@baky.at", "completed", -45, "morning", "ok"),
-    (0, "lisa@baky.at", "completed", -30, "midday", "attention"),
-    (1, "lisa@baky.at", "completed", -40, "morning", "ok"),
-    (1, "tom@baky.at", "completed", -25, "afternoon", "ok"),
-    (2, "lisa@baky.at", "completed", -35, "morning", "urgent"),
-    (2, "tom@baky.at", "completed", -20, "midday", "ok"),
-    (3, "tom@baky.at", "completed", -38, "morning", "ok"),
-    (3, "lisa@baky.at", "completed", -15, "afternoon", "attention"),
-    (4, "tom@baky.at", "completed", -50, "morning", "ok"),
-    (0, "tom@baky.at", "completed", -10, "midday", "ok"),
+    {
+        "apt": 0,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -45,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 0,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -30,
+        "slot": Inspection.TimeSlot.MIDDAY,
+        "rating": Inspection.OverallRating.ATTENTION,
+    },
+    {
+        "apt": 1,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -40,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 1,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -25,
+        "slot": Inspection.TimeSlot.AFTERNOON,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 2,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -35,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": Inspection.OverallRating.URGENT,
+    },
+    {
+        "apt": 2,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -20,
+        "slot": Inspection.TimeSlot.MIDDAY,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 3,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -38,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 3,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -15,
+        "slot": Inspection.TimeSlot.AFTERNOON,
+        "rating": Inspection.OverallRating.ATTENTION,
+    },
+    {
+        "apt": 4,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -50,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": Inspection.OverallRating.OK,
+    },
+    {
+        "apt": 0,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.COMPLETED,
+        "days": -10,
+        "slot": Inspection.TimeSlot.MIDDAY,
+        "rating": Inspection.OverallRating.OK,
+    },
     # In-progress (1)
-    (2, "lisa@baky.at", "in_progress", 0, "morning", ""),
+    {
+        "apt": 2,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.IN_PROGRESS,
+        "days": 0,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": "",
+    },
     # Scheduled (4)
-    (0, "lisa@baky.at", "scheduled", 1, "morning", ""),
-    (1, "lisa@baky.at", "scheduled", 2, "midday", ""),
-    (3, "tom@baky.at", "scheduled", 1, "afternoon", ""),
-    (2, "tom@baky.at", "scheduled", 3, "morning", ""),
+    {
+        "apt": 0,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.SCHEDULED,
+        "days": 1,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": "",
+    },
+    {
+        "apt": 1,
+        "inspector": "lisa@baky.at",
+        "status": Inspection.Status.SCHEDULED,
+        "days": 2,
+        "slot": Inspection.TimeSlot.MIDDAY,
+        "rating": "",
+    },
+    {
+        "apt": 3,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.SCHEDULED,
+        "days": 1,
+        "slot": Inspection.TimeSlot.AFTERNOON,
+        "rating": "",
+    },
+    {
+        "apt": 2,
+        "inspector": "tom@baky.at",
+        "status": Inspection.Status.SCHEDULED,
+        "days": 3,
+        "slot": Inspection.TimeSlot.MORNING,
+        "rating": "",
+    },
 ]
 
 SLOT_START_HOURS = {
-    "morning": (8, 0),
-    "midday": (10, 30),
-    "afternoon": (13, 30),
+    Inspection.TimeSlot.MORNING: (8, 0),
+    Inspection.TimeSlot.MIDDAY: (10, 30),
+    Inspection.TimeSlot.AFTERNOON: (13, 30),
 }
 
 SLOT_DURATIONS = {
-    "morning": timedelta(hours=2, minutes=30),
-    "midday": timedelta(hours=2, minutes=30),
-    "afternoon": timedelta(hours=2, minutes=30),
+    Inspection.TimeSlot.MORNING: timedelta(hours=2, minutes=30),
+    Inspection.TimeSlot.MIDDAY: timedelta(hours=2, minutes=30),
+    Inspection.TimeSlot.AFTERNOON: timedelta(hours=2, minutes=30),
 }
 
-# Flagging patterns per rating: (number_of_flagged_items, severities)
+# Flagging patterns per rating: list of severities for items to flag
 RATING_FLAG_PATTERNS = {
-    "ok": [],
-    "attention": [("low",), ("medium",)],
-    "urgent": [("high",), ("urgent",), ("medium",)],
+    Inspection.OverallRating.OK: [],
+    Inspection.OverallRating.ATTENTION: [InspectionItem.Severity.LOW, InspectionItem.Severity.MEDIUM],
+    Inspection.OverallRating.URGENT: [
+        InspectionItem.Severity.HIGH,
+        InspectionItem.Severity.URGENT,
+        InspectionItem.Severity.MEDIUM,
+    ],
 }
 
 
@@ -208,7 +315,7 @@ class Command(BaseCommand):
         created_count = 0
 
         for data in SEED_USERS:
-            user, created = User.objects.update_or_create(
+            user, created = User.objects.get_or_create(
                 username=data["username"],
                 defaults={
                     "email": data["email"],
@@ -294,11 +401,13 @@ class Command(BaseCommand):
         now = timezone.now()
         today_local = timezone.localtime(now).date()
 
-        for apt_idx, inspector_email, status, days_offset, time_slot, rating in SEED_INSPECTIONS:
-            apartment = apartments[apt_idx]
-            inspector = users[inspector_email]
+        for seed in SEED_INSPECTIONS:
+            apartment = apartments[seed["apt"]]
+            inspector = users[seed["inspector"]]
+            status = seed["status"]
+            time_slot = seed["slot"]
 
-            target_date = today_local + timedelta(days=days_offset)
+            target_date = today_local + timedelta(days=seed["days"])
             hour, minute = SLOT_START_HOURS[time_slot]
             scheduled_at = timezone.make_aware(
                 timezone.datetime(target_date.year, target_date.month, target_date.day, hour, minute),
@@ -313,19 +422,19 @@ class Command(BaseCommand):
                 "scheduled_end": scheduled_end,
             }
 
-            if status == "completed":
-                defaults["overall_rating"] = rating
+            if status == Inspection.Status.COMPLETED:
+                defaults["overall_rating"] = seed["rating"]
                 defaults["started_at"] = scheduled_at + timedelta(minutes=5)
                 defaults["completed_at"] = scheduled_at + timedelta(hours=1, minutes=30)
-            elif status == "in_progress":
+            elif status == Inspection.Status.IN_PROGRESS:
                 defaults["started_at"] = scheduled_at + timedelta(minutes=5)
 
-            if status == "scheduled" and days_offset >= 0:
+            if status == Inspection.Status.SCHEDULED and seed["days"] >= 0:
                 # For future inspections, use update_or_create so re-runs keep them fresh
                 insp, created = Inspection.objects.update_or_create(
                     apartment=apartment,
                     inspector=inspector,
-                    status="scheduled",
+                    status=Inspection.Status.SCHEDULED,
                     time_slot=time_slot,
                     defaults={
                         "scheduled_at": scheduled_at,
@@ -350,8 +459,8 @@ class Command(BaseCommand):
         """Create inspection items for completed and in-progress inspections."""
         created_count = 0
 
-        for i, (_, _, status, _, _, rating) in enumerate(SEED_INSPECTIONS):
-            if status not in ("completed", "in_progress"):
+        for i, seed in enumerate(SEED_INSPECTIONS):
+            if seed["status"] not in (Inspection.Status.COMPLETED, Inspection.Status.IN_PROGRESS):
                 continue
 
             inspection = inspections[i]
@@ -359,16 +468,16 @@ class Command(BaseCommand):
                 continue
 
             checklist_items = inspection.apartment.checklist_template.items
-            flag_pattern = RATING_FLAG_PATTERNS.get(rating, [])
+            flag_severities = RATING_FLAG_PATTERNS.get(seed["rating"], [])
 
             for j, cl_item in enumerate(checklist_items):
                 result = InspectionItem.Result.OK
                 severity = InspectionItem.Severity.NONE
                 notes = ""
 
-                if j < len(flag_pattern):
+                if j < len(flag_severities):
                     result = InspectionItem.Result.FLAGGED
-                    severity = flag_pattern[j][0]
+                    severity = flag_severities[j]
                     notes = f"Auffälligkeit bei: {cl_item['label']}"
 
                 InspectionItem.objects.create(
@@ -388,8 +497,8 @@ class Command(BaseCommand):
         """Create placeholder photos for flagged items and general inspection photos."""
         created_count = 0
 
-        for i, (_, _, status, _, _, _) in enumerate(SEED_INSPECTIONS):
-            if status != "completed":
+        for i, seed in enumerate(SEED_INSPECTIONS):
+            if seed["status"] != Inspection.Status.COMPLETED:
                 continue
 
             inspection = inspections[i]
@@ -397,7 +506,7 @@ class Command(BaseCommand):
                 continue
 
             # Photo for each flagged item
-            flagged_items = inspection.items.filter(result="flagged")
+            flagged_items = inspection.items.filter(result=InspectionItem.Result.FLAGGED)
             for item in flagged_items:
                 Photo.objects.create(
                     inspection=inspection,
@@ -422,15 +531,15 @@ class Command(BaseCommand):
         """Create reports for all completed inspections."""
         created_count = 0
 
-        for i, (_, _, status, _, _, _) in enumerate(SEED_INSPECTIONS):
-            if status != "completed":
+        for i, seed in enumerate(SEED_INSPECTIONS):
+            if seed["status"] != Inspection.Status.COMPLETED:
                 continue
 
             inspection = inspections[i]
             apt = inspection.apartment
             rating_display = inspection.get_overall_rating_display()
-            items_ok = inspection.items.filter(result="ok").count()
-            items_flagged = inspection.items.filter(result="flagged").count()
+            items_ok = inspection.items.filter(result=InspectionItem.Result.OK).count()
+            items_flagged = inspection.items.filter(result=InspectionItem.Result.FLAGGED).count()
 
             html_content = (
                 f"<h1>Inspektionsbericht</h1>"
