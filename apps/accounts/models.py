@@ -24,6 +24,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=30, blank=True)
     address = models.TextField(blank=True)
     availability = models.JSONField(default=dict, blank=True, help_text="Inspector schedule data")
+    deleted_at = models.DateTimeField(null=True, blank=True, help_text="Soft-delete timestamp (30-day grace period)")
+    privacy_consent_at = models.DateTimeField(null=True, blank=True, help_text="DSGVO privacy consent timestamp")
 
     def __str__(self) -> str:
         return f"{self.get_full_name() or self.username} ({self.role})"
@@ -165,3 +167,25 @@ class OnboardingProgress(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user.username} — Schritt {self.current_step}"
+
+
+class DataExportRequest(TimeStampedModel):
+    """Tracks DSGVO data export requests (Art. 15 Auskunftsrecht)."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Ausstehend"
+        PROCESSING = "PROCESSING", "In Bearbeitung"
+        COMPLETED = "COMPLETED", "Abgeschlossen"
+        FAILED = "FAILED", "Fehlgeschlagen"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="data_export_requests")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    export_file = models.FileField(upload_to="exports/%Y/%m/", blank=True)
+
+    class Meta:
+        ordering = ["-requested_at"]
+
+    def __str__(self) -> str:
+        return f"Export {self.user.email} — {self.get_status_display()}"

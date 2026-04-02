@@ -173,3 +173,26 @@ class TestPhotoModel:
         photos = list(Photo.objects.filter(inspection=inspection))
         assert photos[0] == p2  # Most recent created_at first
         assert photos[1] == p1
+
+    def test_photo_default_not_flagged(self, photo):
+        assert photo.is_flagged is False
+        assert photo.flagged_at is None
+
+    def test_photo_flag(self, photo):
+        photo.is_flagged = True
+        photo.flagged_at = timezone.now()
+        photo.save()
+        photo.refresh_from_db()
+        assert photo.is_flagged is True
+        assert photo.flagged_at is not None
+
+    def test_photo_unflag(self, photo):
+        photo.is_flagged = True
+        photo.flagged_at = timezone.now()
+        photo.save()
+        photo.is_flagged = False
+        photo.flagged_at = None
+        photo.save()
+        photo.refresh_from_db()
+        assert photo.is_flagged is False
+        assert photo.flagged_at is None
