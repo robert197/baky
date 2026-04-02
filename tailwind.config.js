@@ -17,6 +17,7 @@ module.exports = {
         surface: { DEFAULT: "#f8fafc" },
         card: { DEFAULT: "#ffffff" },
         border: { DEFAULT: "#e2e8f0" },
+        muted: { DEFAULT: "#94a3b8" },
       },
       fontFamily: {
         sans: [
@@ -31,5 +32,13 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".pb-safe": {
+          "padding-bottom": "env(safe-area-inset-bottom)",
+        },
+      });
+    },
+  ],
 };

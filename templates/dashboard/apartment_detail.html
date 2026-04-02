@@ -76,7 +76,7 @@
                 {% elif inspection.overall_rating == "urgent" %}
                   <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Dringend</span>
                 {% endif %}
-                {% if inspection.report.is_ready %}
+                {% if inspection.has_report %}
                   <a href="{% url 'dashboard:report_detail' inspection.report.pk %}"
                      class="text-xs font-medium text-accent hover:text-amber-600">Bericht</a>
                 {% endif %}

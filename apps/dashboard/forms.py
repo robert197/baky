@@ -30,7 +30,7 @@ class ApartmentEditForm(forms.ModelForm):
         widgets = {
             "address": forms.TextInput(attrs={"class": INPUT_CSS}),
             "access_method": forms.Select(attrs={"class": INPUT_CSS}),
-            "access_code": forms.TextInput(attrs={"class": INPUT_CSS}),
+            "access_code": forms.PasswordInput(attrs={"class": INPUT_CSS, "autocomplete": "off"}, render_value=True),
             "access_notes": forms.Textarea(attrs={"class": INPUT_CSS, "rows": 3}),
             "special_instructions": forms.Textarea(attrs={"class": INPUT_CSS, "rows": 3}),
         }

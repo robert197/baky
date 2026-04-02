@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Max, Min, OuterRef, Q, Subquery
+from django.db.models import Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -7,6 +7,7 @@ from apps.accounts.decorators import owner_required
 from apps.apartments.models import Apartment
 from apps.dashboard.forms import ApartmentEditForm
 from apps.inspections.models import Inspection
+from apps.reports.models import Report
 
 
 @owner_required
@@ -45,6 +46,14 @@ def apartment_detail(request, pk):
     checklist = getattr(apartment, "checklist_template", None)
     recent_inspections = (
         apartment.inspections.filter(status=Inspection.Status.COMPLETED)
+        .annotate(
+            has_report=Exists(
+                Report.objects.filter(
+                    inspection=OuterRef("pk"),
+                    status=Report.Status.COMPLETED,
+                ).exclude(html_content="")
+            ),
+        )
         .select_related("report")
         .order_by("-completed_at")[:5]
     )
