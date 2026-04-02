@@ -1,0 +1,12 @@
+Zusätzliche Inspektion angefragt
+
+Eigentümer: {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+Wohnung: {{ apartment.address }}
+Gewünschtes Datum: {{ preferred_date }}
+{% if notes %}
+Anmerkungen: {{ notes }}
+{% endif %}
+Bitte bearbeiten Sie diese Anfrage im Admin-Bereich.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

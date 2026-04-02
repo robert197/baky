@@ -1,0 +1,38 @@
+{% extends "emails/_base.html" %}
+{% block title %}Zusätzliche Inspektion angefragt{% endblock %}
+{% block content %}
+  <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #1e293b;">Zusätzliche Inspektion angefragt</h1>
+  <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
+    Ein Eigentümer möchte eine zusätzliche Inspektion buchen.
+  </p>
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px; font-size: 14px;">
+    <tr>
+      <td style="padding: 4px 0; color: #64748b;">
+        <strong style="color: #1e293b;">Eigentümer:</strong> {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 4px 0; color: #64748b;">
+        <strong style="color: #1e293b;">Wohnung:</strong> {{ apartment.address }}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 4px 0; color: #64748b;">
+        <strong style="color: #1e293b;">Gewünschtes Datum:</strong> {{ preferred_date }}
+      </td>
+    </tr>
+    {% if notes %}
+      <tr>
+        <td style="padding: 12px 0 4px 0; color: #64748b;">
+          <strong style="color: #1e293b;">Anmerkungen:</strong>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 4px 0 4px 12px; border-left: 3px solid #e2e8f0; color: #475569; font-size: 13px;">
+          {{ notes }}
+        </td>
+      </tr>
+    {% endif %}
+  </table>
+  <p style="margin: 0; font-size: 12px; color: #94a3b8;">Bitte bearbeiten Sie diese Anfrage im Admin-Bereich.</p>
+{% endblock %}
