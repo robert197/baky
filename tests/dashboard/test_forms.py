@@ -1,7 +1,12 @@
 import pytest
 
-from apps.dashboard.forms import ApartmentEditForm
-from tests.factories import ApartmentFactory
+from apps.dashboard.forms import (
+    ApartmentEditForm,
+    ExtraInspectionForm,
+    PlanChangeRequestForm,
+    SubscriptionActionForm,
+)
+from tests.factories import ApartmentFactory, OwnerFactory
 
 
 @pytest.mark.django_db
@@ -50,5 +55,79 @@ class TestApartmentEditForm:
                 "status": "active",
             },
             instance=apartment,
+        )
+        assert form.is_valid()
+
+
+@pytest.mark.django_db
+class TestPlanChangeRequestForm:
+    def test_valid_plan_change(self):
+        form = PlanChangeRequestForm(data={"requested_plan": "premium", "message": "Upgrade bitte"})
+        assert form.is_valid()
+
+    def test_plan_required(self):
+        form = PlanChangeRequestForm(data={"requested_plan": "", "message": ""})
+        assert not form.is_valid()
+
+    def test_message_optional(self):
+        form = PlanChangeRequestForm(data={"requested_plan": "standard"})
+        assert form.is_valid()
+
+    def test_invalid_plan_choice(self):
+        form = PlanChangeRequestForm(data={"requested_plan": "invalid"})
+        assert not form.is_valid()
+
+
+class TestSubscriptionActionForm:
+    def test_valid_with_reason(self):
+        form = SubscriptionActionForm(data={"reason": "Urlaub"})
+        assert form.is_valid()
+
+    def test_valid_without_reason(self):
+        form = SubscriptionActionForm(data={})
+        assert form.is_valid()
+
+    def test_umlauts_in_reason(self):
+        form = SubscriptionActionForm(data={"reason": "Längerer Aufenthalt im Ausland"})
+        assert form.is_valid()
+
+
+@pytest.mark.django_db
+class TestExtraInspectionForm:
+    def test_valid_form(self):
+        apartment = ApartmentFactory()
+        form = ExtraInspectionForm(
+            data={"apartment": apartment.pk, "preferred_date": "2026-04-15", "notes": "Dringend"},
+            owner=apartment.owner,
+        )
+        assert form.is_valid()
+
+    def test_apartment_required(self):
+        owner = OwnerFactory()
+        form = ExtraInspectionForm(data={"preferred_date": "2026-04-15"}, owner=owner)
+        assert not form.is_valid()
+
+    def test_preferred_date_required(self):
+        apartment = ApartmentFactory()
+        form = ExtraInspectionForm(
+            data={"apartment": apartment.pk},
+            owner=apartment.owner,
+        )
+        assert not form.is_valid()
+
+    def test_only_own_apartments(self):
+        apartment = ApartmentFactory()
+        other_owner = OwnerFactory()
+        form = ExtraInspectionForm(
+            data={"apartment": apartment.pk, "preferred_date": "2026-04-15"},
+            owner=other_owner,
+        )
+        assert not form.is_valid()
+
+    def test_notes_optional(self):
+        apartment = ApartmentFactory()
+        form = ExtraInspectionForm(
+            data={"apartment": apartment.pk, "preferred_date": "2026-04-15"},
+            owner=apartment.owner,
         )
         assert form.is_valid()

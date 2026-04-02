@@ -1,0 +1,36 @@
+{# Component: _subscription_card.html - Subscription summary for dashboard index #}
+{# Context: subscription (Subscription instance or None) #}
+{% if subscription %}
+  <a href="{% url 'dashboard:subscription' %}"
+     class="block rounded-xl border border-border bg-white p-4 shadow-sm hover:border-accent hover:shadow-md sm:p-5">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+          <svg class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-primary">{{ subscription.get_plan_display }}</p>
+          <p class="text-xs text-secondary">
+            {{ subscription.get_inspections_used_this_month }}/{{ subscription.get_monthly_inspection_limit }} Inspektionen
+          </p>
+        </div>
+      </div>
+      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {% if subscription.status == 'active' %}bg-emerald-100 text-emerald-700{% elif subscription.status == 'paused' %}bg-amber-100 text-amber-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+        {{ subscription.get_status_display }}
+      </span>
+    </div>
+  </a>
+{% else %}
+  <div class="rounded-xl border border-dashed border-border bg-white p-4 sm:p-5">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+        <svg class="h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+      </div>
+      <p class="text-sm text-secondary">Kein aktives Abonnement</p>
+    </div>
+  </div>
+{% endif %}

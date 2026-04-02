@@ -1,0 +1,12 @@
+Anfrage bestätigt
+
+Ihre Anfrage zur {{ request_type }} wurde erfolgreich gesendet.
+
+Anfrage: {{ request_type }}
+{% if detail %}{{ detail }}
+{% endif %}
+Unser Team wird sich innerhalb von 1-2 Werktagen bei Ihnen melden.
+
+---
+Diese E-Mail wurde automatisch versendet.
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

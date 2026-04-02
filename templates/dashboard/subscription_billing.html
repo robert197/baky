@@ -1,0 +1,20 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Rechnungshistorie{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <div class="flex flex-col items-center justify-center rounded-xl border border-border bg-white px-6 py-16 text-center">
+      <svg class="mb-4 h-16 w-16 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+      </svg>
+      <h2 class="mb-2 text-lg font-semibold text-primary">Keine Rechnungen</h2>
+      <p class="text-secondary">Ihre Rechnungen werden hier angezeigt, sobald sie verfügbar sind.</p>
+      <a href="{% url 'dashboard:subscription' %}"
+         class="mt-6 inline-flex items-center text-sm font-medium text-accent hover:text-amber-600">
+        <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Zurück zum Abonnement
+      </a>
+    </div>
+  </div>
+{% endblock %}

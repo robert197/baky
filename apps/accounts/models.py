@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -65,6 +66,12 @@ class Subscription(TimeStampedModel):
         Plan.PREMIUM: 8,
     }
 
+    PLAN_PRICES = {
+        Plan.BASIS: 89,
+        Plan.STANDARD: 149,
+        Plan.PREMIUM: 249,
+    }
+
     class Meta:
         ordering = ["-started_at"]
 
@@ -74,6 +81,36 @@ class Subscription(TimeStampedModel):
     def get_monthly_inspection_limit(self) -> int:
         """Return the maximum number of inspections per month for this plan."""
         return self.PLAN_INSPECTION_LIMITS.get(self.plan, 2)
+
+    def get_monthly_price(self) -> int:
+        """Return the monthly price in EUR for this plan."""
+        return self.PLAN_PRICES.get(self.plan, 89)
+
+    def get_next_billing_date(self) -> date | None:
+        """Return the next billing date, or None if subscription is not active."""
+        if self.status != self.Status.ACTIVE:
+            return None
+        today = date.today()
+        billing_day = min(self.started_at.day, 28)
+        candidate = today.replace(day=billing_day)
+        if candidate <= today:
+            if today.month == 12:
+                candidate = candidate.replace(year=today.year + 1, month=1)
+            else:
+                candidate = candidate.replace(month=today.month + 1)
+        return candidate
+
+    def get_inspections_used_this_month(self) -> int:
+        """Return the number of completed inspections this month across all owner apartments."""
+        from apps.inspections.models import Inspection
+
+        today = date.today()
+        return Inspection.objects.filter(
+            apartment__owner=self.owner,
+            status=Inspection.Status.COMPLETED,
+            completed_at__year=today.year,
+            completed_at__month=today.month,
+        ).count()
 
 
 class EmailVerificationToken(TimeStampedModel):

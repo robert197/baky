@@ -1,0 +1,12 @@
+Planänderung angefragt
+
+Eigentümer: {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+Aktueller Plan: {{ subscription.get_plan_display }}
+Gewünschter Plan: {{ requested_plan|title }}
+{% if message %}
+Nachricht: {{ message }}
+{% endif %}
+Bitte bearbeiten Sie diese Anfrage im Admin-Bereich.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

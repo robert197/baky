@@ -1,0 +1,12 @@
+{{ action_label }} angefragt
+
+Eigentümer: {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+Aktueller Plan: {{ subscription.get_plan_display }}
+Status: {{ subscription.get_status_display }}
+{% if reason %}
+Grund: {{ reason }}
+{% endif %}
+Bitte bearbeiten Sie diese Anfrage im Admin-Bereich.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

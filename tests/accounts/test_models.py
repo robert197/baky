@@ -137,3 +137,53 @@ class TestSubscriptionModel:
         # Simulate unknown plan value
         sub.plan = "unknown"
         assert sub.get_monthly_inspection_limit() == 2
+
+
+class TestSubscriptionPricing:
+    def test_get_monthly_price_basis(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.BASIS)
+        assert sub.get_monthly_price() == 89
+
+    def test_get_monthly_price_standard(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.STANDARD)
+        assert sub.get_monthly_price() == 149
+
+    def test_get_monthly_price_premium(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.PREMIUM)
+        assert sub.get_monthly_price() == 249
+
+    def test_get_monthly_price_unknown_defaults(self, db):
+        sub = SubscriptionFactory(plan=Subscription.Plan.BASIS)
+        sub.plan = "unknown"
+        assert sub.get_monthly_price() == 89
+
+    def test_get_next_billing_date_monthly(self, db):
+        sub = SubscriptionFactory(started_at=datetime.date(2026, 1, 15))
+        next_date = sub.get_next_billing_date()
+        assert next_date is not None
+        assert next_date > datetime.date.today()
+        assert next_date.day == 15
+
+    def test_get_next_billing_date_month_end(self, db):
+        sub = SubscriptionFactory(started_at=datetime.date(2026, 1, 31))
+        next_date = sub.get_next_billing_date()
+        assert next_date is not None
+        # Clamped to 28 for safety
+        assert next_date.day == 28
+
+    def test_get_next_billing_date_paused_returns_none(self, db):
+        sub = SubscriptionFactory(status=Subscription.Status.PAUSED)
+        assert sub.get_next_billing_date() is None
+
+    def test_get_next_billing_date_cancelled_returns_none(self, db):
+        sub = SubscriptionFactory(status=Subscription.Status.CANCELLED)
+        assert sub.get_next_billing_date() is None
+
+    def test_get_inspections_used_this_month(self, db):
+        sub = SubscriptionFactory()
+        assert sub.get_inspections_used_this_month() == 0
+
+    def test_plan_prices_dict(self):
+        assert Subscription.PLAN_PRICES[Subscription.Plan.BASIS] == 89
+        assert Subscription.PLAN_PRICES[Subscription.Plan.STANDARD] == 149
+        assert Subscription.PLAN_PRICES[Subscription.Plan.PREMIUM] == 249
