@@ -30,6 +30,7 @@
         {% block content %}{% endblock %}
       </main>
     {% endblock %}
+    {% include "components/_cookie_banner.html" %}
     <div id="htmx-error-toast" class="fixed bottom-4 left-4 z-50 hidden">
       {% include "components/_alert.html" with type="error" message="Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut." dismissible=True %}
     </div>

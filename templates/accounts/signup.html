@@ -60,6 +60,22 @@
             {{ form.password2 }}
             {% if form.password2.errors %}<p class="mt-1 text-sm text-rose-600">{{ form.password2.errors.0 }}</p>{% endif %}
           </div>
+          <div class="flex items-start gap-3">
+            <input type="checkbox"
+                   name="privacy_consent"
+                   id="id_privacy_consent"
+                   class="mt-1 h-4 w-4 rounded border-border text-accent focus:ring-accent">
+            <label for="id_privacy_consent" class="text-sm text-secondary">
+              Ich stimme der
+              <a href="{% url 'public:datenschutz' %}" target="_blank" class="text-amber-600 underline hover:text-amber-700">Datenschutzerklärung</a>
+              und den
+              <a href="{% url 'public:agb' %}" target="_blank" class="text-amber-600 underline hover:text-amber-700">AGB</a>
+              zu.
+            </label>
+          </div>
+          {% if form.privacy_consent.errors %}
+            <p class="text-sm text-rose-600">{{ form.privacy_consent.errors.0 }}</p>
+          {% endif %}
           <button type="submit"
                   class="w-full rounded-lg bg-accent px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-amber-600">
             Konto erstellen

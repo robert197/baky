@@ -202,6 +202,46 @@ class TestAGBPage:
 
 
 @pytest.mark.django_db
+class TestCookieBanner:
+    """Tests that the cookie banner is present on pages."""
+
+    def test_cookie_banner_on_landing_page(self, client: Client):
+        response = client.get(reverse("public:home"))
+        content = response.content.decode()
+        assert "cookie_dismissed" in content
+
+    def test_cookie_banner_on_datenschutz(self, client: Client):
+        response = client.get(reverse("public:datenschutz"))
+        content = response.content.decode()
+        assert "cookie_dismissed" in content
+
+    def test_cookie_banner_text(self, client: Client):
+        response = client.get(reverse("public:home"))
+        content = response.content.decode()
+        assert "technisch notwendige Cookies" in content
+
+
+@pytest.mark.django_db
+class TestDatenschutzRetentionPeriods:
+    """Tests that datenschutz page has concrete retention periods."""
+
+    def test_photo_retention_period(self, client: Client):
+        response = client.get(reverse("public:datenschutz"))
+        content = response.content.decode()
+        assert "90 Tage" in content
+
+    def test_account_deletion_grace_period(self, client: Client):
+        response = client.get(reverse("public:datenschutz"))
+        content = response.content.decode()
+        assert "30 Tage" in content
+
+    def test_data_export_mentioned(self, client: Client):
+        response = client.get(reverse("public:datenschutz"))
+        content = response.content.decode()
+        assert "Datenexport" in content
+
+
+@pytest.mark.django_db
 class TestFooterLegalLinks:
     """Tests that footer links point to real legal pages."""
 

@@ -1,0 +1,17 @@
+<div x-data="{ show: !localStorage.getItem('cookie_dismissed') }"
+     x-show="show"
+     x-transition
+     class="fixed bottom-0 inset-x-0 z-50 p-4 bg-white border-t border-border shadow-lg"
+     x-cloak>
+  <div class="mx-auto max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4">
+    <p class="text-sm text-secondary">
+      Diese Website verwendet ausschließlich technisch notwendige Cookies (Session, CSRF).
+      Weitere Informationen finden Sie in unserer
+      <a href="{% url 'public:datenschutz' %}" class="text-amber-600 underline hover:text-amber-700">Datenschutzerklärung</a>.
+    </p>
+    <button @click="show = false; localStorage.setItem('cookie_dismissed', '1')"
+            class="shrink-0 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors">
+      Verstanden
+    </button>
+  </div>
+</div>
