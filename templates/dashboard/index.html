@@ -1,6 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% block page_title %}Wohnungen{% endblock %}
 {% block content %}
+  <div class="mb-6">{% include "dashboard/_subscription_card.html" with subscription=subscription %}</div>
   {% if apartments %}
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {% for apartment in apartments %}

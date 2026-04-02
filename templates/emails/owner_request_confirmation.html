@@ -5,7 +5,13 @@
   <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b;">
     Ihre Anfrage zur {{ request_type }} wurde erfolgreich gesendet.
   </p>
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 24px; font-size: 14px;">
+  <table role="presentation"
+         cellpadding="0"
+         cellspacing="0"
+         border="0"
+         width="100%"
+         style="margin-bottom: 24px;
+                font-size: 14px">
     <tr>
       <td style="padding: 4px 0; color: #64748b;">
         <strong style="color: #1e293b;">Anfrage:</strong> {{ request_type }}
@@ -13,9 +19,7 @@
     </tr>
     {% if detail %}
       <tr>
-        <td style="padding: 4px 0; color: #64748b;">
-          {{ detail }}
-        </td>
+        <td style="padding: 4px 0; color: #64748b;">{{ detail }}</td>
       </tr>
     {% endif %}
   </table>

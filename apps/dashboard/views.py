@@ -7,10 +7,24 @@ from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.accounts.decorators import owner_required
+from apps.accounts.models import Subscription
 from apps.apartments.models import Apartment
-from apps.dashboard.forms import ApartmentEditForm
+from apps.dashboard.forms import (
+    ApartmentEditForm,
+    ExtraInspectionForm,
+    PlanChangeRequestForm,
+    SubscriptionActionForm,
+)
 from apps.inspections.models import Inspection, InspectionItem
 from apps.reports.models import Report
+
+
+def _get_subscription_or_none(user):
+    """Safely get a user's subscription, handling OneToOneField DoesNotExist."""
+    try:
+        return user.subscription
+    except Subscription.DoesNotExist:
+        return None
 
 
 @owner_required
@@ -40,7 +54,12 @@ def index(request):
             ),
         )
     )
-    return render(request, "dashboard/index.html", {"apartments": apartments, "active": "apartments"})
+    subscription = _get_subscription_or_none(request.user)
+    return render(
+        request,
+        "dashboard/index.html",
+        {"apartments": apartments, "subscription": subscription, "active": "apartments"},
+    )
 
 
 @owner_required
@@ -222,4 +241,152 @@ def inspection_report_detail(request, pk, inspection_pk):
             "duration_display": duration_display,
             "active": "apartments",
         },
+    )
+
+
+# --- Subscription views ---
+
+
+@owner_required
+def subscription_overview(request):
+    subscription = _get_subscription_or_none(request.user)
+    return render(
+        request,
+        "dashboard/subscription.html",
+        {"subscription": subscription, "active": "subscription"},
+    )
+
+
+@owner_required
+def subscription_change(request):
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        messages.warning(request, "Planänderung ist nur mit einem aktiven Abonnement möglich.")
+        return redirect("dashboard:subscription")
+
+    if request.method == "POST":
+        form = PlanChangeRequestForm(request.POST)
+        if form.is_valid():
+            from baky.tasks import queue_task
+
+            queue_task(
+                "apps.dashboard.tasks.send_plan_change_notification",
+                request.user.pk,
+                form.cleaned_data["requested_plan"],
+                form.cleaned_data.get("message", ""),
+                task_name=f"plan_change_{request.user.pk}",
+            )
+            messages.success(request, "Ihre Anfrage zur Planänderung wurde gesendet.")
+            return redirect("dashboard:subscription")
+    else:
+        form = PlanChangeRequestForm(initial={"requested_plan": subscription.plan})
+
+    return render(
+        request,
+        "dashboard/subscription_change.html",
+        {"form": form, "subscription": subscription, "active": "subscription"},
+    )
+
+
+@owner_required
+def subscription_pause(request):
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        messages.warning(request, "Pausierung ist nur mit einem aktiven Abonnement möglich.")
+        return redirect("dashboard:subscription")
+
+    if request.method == "POST":
+        form = SubscriptionActionForm(request.POST)
+        if form.is_valid():
+            from baky.tasks import queue_task
+
+            queue_task(
+                "apps.dashboard.tasks.send_subscription_action_notification",
+                request.user.pk,
+                "pause",
+                form.cleaned_data.get("reason", ""),
+                task_name=f"pause_request_{request.user.pk}",
+            )
+            messages.success(request, "Ihre Anfrage zur Pausierung wurde gesendet.")
+            return redirect("dashboard:subscription")
+    else:
+        form = SubscriptionActionForm()
+
+    return render(
+        request,
+        "dashboard/subscription_pause.html",
+        {"form": form, "subscription": subscription, "active": "subscription"},
+    )
+
+
+@owner_required
+def subscription_cancel(request):
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status == Subscription.Status.CANCELLED:
+        messages.warning(request, "Kündigung ist nicht möglich.")
+        return redirect("dashboard:subscription")
+
+    if request.method == "POST":
+        form = SubscriptionActionForm(request.POST)
+        if form.is_valid():
+            from baky.tasks import queue_task
+
+            queue_task(
+                "apps.dashboard.tasks.send_subscription_action_notification",
+                request.user.pk,
+                "cancel",
+                form.cleaned_data.get("reason", ""),
+                task_name=f"cancel_request_{request.user.pk}",
+            )
+            messages.success(request, "Ihre Anfrage zur Kündigung wurde gesendet.")
+            return redirect("dashboard:subscription")
+    else:
+        form = SubscriptionActionForm()
+
+    return render(
+        request,
+        "dashboard/subscription_cancel.html",
+        {"form": form, "subscription": subscription, "active": "subscription"},
+    )
+
+
+@owner_required
+def subscription_extra(request):
+    subscription = _get_subscription_or_none(request.user)
+    if not subscription or subscription.status != Subscription.Status.ACTIVE:
+        messages.warning(request, "Zusätzliche Inspektionen sind nur mit einem aktiven Abonnement möglich.")
+        return redirect("dashboard:subscription")
+
+    if request.method == "POST":
+        form = ExtraInspectionForm(request.POST, owner=request.user)
+        if form.is_valid():
+            from baky.tasks import queue_task
+
+            queue_task(
+                "apps.dashboard.tasks.send_extra_inspection_notification",
+                request.user.pk,
+                form.cleaned_data["apartment"].pk,
+                str(form.cleaned_data["preferred_date"]),
+                form.cleaned_data.get("notes", ""),
+                task_name=f"extra_inspection_{request.user.pk}",
+            )
+            messages.success(request, "Ihre Anfrage für eine zusätzliche Inspektion wurde gesendet.")
+            return redirect("dashboard:subscription")
+    else:
+        form = ExtraInspectionForm(owner=request.user)
+
+    return render(
+        request,
+        "dashboard/subscription_extra.html",
+        {"form": form, "subscription": subscription, "active": "subscription"},
+    )
+
+
+@owner_required
+def subscription_billing(request):
+    subscription = _get_subscription_or_none(request.user)
+    return render(
+        request,
+        "dashboard/subscription_billing.html",
+        {"subscription": subscription, "active": "subscription"},
     )

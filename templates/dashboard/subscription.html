@@ -1,0 +1,127 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Abonnement{% endblock %}
+{% block content %}
+  {% if subscription %}
+    {# Subscription overview card #}
+    <div class="mx-auto max-w-2xl space-y-6">
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-primary">Ihr Abonnement</h2>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {% if subscription.status == 'active' %}bg-emerald-100 text-emerald-700{% elif subscription.status == 'paused' %}bg-amber-100 text-amber-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+            {{ subscription.get_status_display }}
+          </span>
+        </div>
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-secondary">Plan</dt>
+            <dd class="font-medium text-primary">
+              {{ subscription.get_plan_display }}
+            </dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">Preis</dt>
+            <dd class="font-medium text-primary">
+              &euro;{{ subscription.get_monthly_price }}/Monat
+            </dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-secondary">Seit</dt>
+            <dd class="font-medium text-primary">
+              {{ subscription.started_at|date:"d.m.Y" }}
+            </dd>
+          </div>
+          {% if subscription.get_next_billing_date %}
+            <div class="flex justify-between">
+              <dt class="text-secondary">N&auml;chste Abrechnung</dt>
+              <dd class="font-medium text-primary">
+                {{ subscription.get_next_billing_date|date:"d.m.Y" }}
+              </dd>
+            </div>
+          {% endif %}
+          <div class="flex justify-between">
+            <dt class="text-secondary">Inspektionen diesen Monat</dt>
+            <dd class="font-medium text-primary">
+              {{ subscription.get_inspections_used_this_month }}/{{ subscription.get_monthly_inspection_limit }}
+            </dd>
+          </div>
+        </dl>
+        {# Action buttons based on status #}
+        {% if subscription.status == 'active' %}
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="{% url 'dashboard:subscription_change' %}"
+               class="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600">
+              Plan &auml;ndern
+            </a>
+            <a href="{% url 'dashboard:subscription_pause' %}"
+               class="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-secondary hover:bg-surface">
+              Pausieren
+            </a>
+            <a href="{% url 'dashboard:subscription_cancel' %}"
+               class="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-secondary hover:bg-surface">
+              K&uuml;ndigen
+            </a>
+          </div>
+        {% elif subscription.status == 'paused' %}
+          <div class="mt-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+            <p class="font-medium">Ihr Abonnement ist pausiert.</p>
+            <p class="mt-1">Kontaktieren Sie uns, um Ihr Abonnement zu reaktivieren.</p>
+          </div>
+          <div class="mt-4">
+            <a href="{% url 'dashboard:subscription_cancel' %}"
+               class="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-secondary hover:bg-surface">
+              K&uuml;ndigen
+            </a>
+          </div>
+        {% elif subscription.status == 'cancelled' %}
+          <div class="mt-6 rounded-lg bg-rose-50 p-4 text-sm text-rose-800">
+            <p class="font-medium">Ihr Abonnement wurde gek&uuml;ndigt.</p>
+            <p class="mt-1">
+              Kontaktieren Sie uns unter <a href="mailto:admin@baky.at" class="underline">admin@baky.at</a>, um ein neues Abonnement abzuschlie&szlig;en.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+      {# Extra inspection card #}
+      {% if subscription.status == 'active' %}
+        <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+          <h2 class="mb-2 text-lg font-semibold text-primary">Zus&auml;tzliche Inspektion</h2>
+          <p class="mb-4 text-sm text-secondary">Buchen Sie eine zus&auml;tzliche Inspektion au&szlig;erhalb Ihres Plans.</p>
+          <a href="{% url 'dashboard:subscription_extra' %}"
+             class="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600">
+            Inspektion buchen
+            <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      {% endif %}
+      {# Billing history card #}
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <h2 class="mb-2 text-lg font-semibold text-primary">Rechnungen</h2>
+        <p class="mb-4 text-sm text-secondary">Ihre Rechnungshistorie und Zahlungen.</p>
+        <a href="{% url 'dashboard:subscription_billing' %}"
+           class="inline-flex items-center text-sm font-medium text-accent hover:text-amber-600">
+          Rechnungshistorie ansehen
+          <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  {% else %}
+    {# No subscription state #}
+    <div class="mx-auto max-w-2xl">
+      <div class="flex flex-col items-center justify-center rounded-xl border border-border bg-white px-6 py-16 text-center">
+        <svg class="mb-4 h-16 w-16 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        <h2 class="mb-2 text-lg font-semibold text-primary">Kein Abonnement</h2>
+        <p class="text-secondary">Sie haben noch kein aktives Abonnement.</p>
+        <p class="mt-2 text-sm text-secondary">
+          Kontaktieren Sie uns unter
+          <a href="mailto:admin@baky.at" class="font-medium text-accent hover:text-amber-600">admin@baky.at</a>
+        </p>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
