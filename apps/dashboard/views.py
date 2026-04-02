@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
-from django.http import HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -635,8 +635,6 @@ def cancel_booking(request, pk):
                 status=Inspection.Status.SCHEDULED,
             )
         except Inspection.DoesNotExist:
-            from django.http import Http404
-
             raise Http404 from None
 
         now = timezone.now()
