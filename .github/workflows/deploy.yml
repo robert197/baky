@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Production Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production Docker image
+        run: docker build --target production -t baky:${{ github.sha }} .
+
+      # TODO: Add deployment steps when hosting provider is chosen
+      # Options: Railway, Render, Fly.io
+      # Steps needed:
+      #   1. Push image to container registry
+      #   2. Deploy to hosting platform
+      #   3. Run migrations: python manage.py migrate --noinput
+      #   4. Collect static files: python manage.py collectstatic --noinput
