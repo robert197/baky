@@ -409,24 +409,36 @@ def _get_week_availability(start_date, apartment, owner):
     """Return availability data for a 7-day week starting at start_date."""
     subscription = _get_subscription_or_none(owner)
     if not subscription or subscription.status != Subscription.Status.ACTIVE:
-        return {"days": [], "used": 0, "limit": 0, "limit_reached": True}
+        return {"days": [], "used": 0, "limit": 0, "limit_reached": True, "percentage": 0, "has_available_slots": False}
 
     used = subscription.get_inspections_used_this_month()
     limit = subscription.get_monthly_inspection_limit()
     limit_reached = used >= limit
+    percentage = min(round(used / limit * 100) if limit > 0 else 0, 100)
 
     now = timezone.now()
     week_dates = [start_date + timedelta(days=i) for i in range(7)]
 
     # Global query: find all booked (date, time_slot) pairs across ALL apartments
     active_statuses = [Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED]
-    booked_slots = set(
+    booked_inspections = (
         Inspection.objects.filter(
             scheduled_at__date__in=week_dates,
             time_slot__in=[ts.value for ts in Inspection.TimeSlot],
             status__in=active_statuses,
-        ).values_list("scheduled_at__date", "time_slot")
+        )
+        .select_related("apartment")
+        .values_list("scheduled_at__date", "time_slot", "apartment__address", "apartment__owner_id", "pk")
     )
+
+    # Build lookup: (date, time_slot) -> {address, owner_id, pk}
+    booked_slot_info = {}
+    for slot_date, slot_ts, apt_address, apt_owner_id, insp_pk in booked_inspections:
+        booked_slot_info[(slot_date, slot_ts)] = {
+            "apartment_name": apt_address,
+            "owner_id": apt_owner_id,
+            "pk": insp_pk,
+        }
 
     # Per-apartment check: same apartment can only have one inspection per day
     apartment_booked_dates = set(
@@ -440,6 +452,7 @@ def _get_week_availability(start_date, apartment, owner):
     )
 
     days = []
+    has_available_slots = False
     for current_date in week_dates:
         day_slots = []
         has_apartment_booking = current_date in apartment_booked_dates
@@ -449,7 +462,14 @@ def _get_week_availability(start_date, apartment, owner):
             slot_start = datetime(current_date.year, current_date.month, current_date.day, sh, sm, tzinfo=VIENNA_TZ)
 
             is_past = now >= slot_start - timedelta(hours=24)
-            is_globally_booked = (current_date, slot_key.value) in booked_slots
+            booking_info = booked_slot_info.get((current_date, slot_key.value))
+            is_globally_booked = booking_info is not None
+
+            booked_by_me = is_globally_booked and booking_info["owner_id"] == owner.pk
+            available = not is_past and not is_globally_booked and not has_apartment_booking and not limit_reached
+
+            if available:
+                has_available_slots = True
 
             day_slots.append(
                 {
@@ -457,17 +477,24 @@ def _get_week_availability(start_date, apartment, owner):
                     "label": slot_key.label,
                     "start": f"{sh:02d}:{sm:02d}",
                     "end": f"{eh:02d}:{em:02d}",
-                    "available": not is_past
-                    and not is_globally_booked
-                    and not has_apartment_booking
-                    and not limit_reached,
+                    "available": available,
                     "is_past": is_past,
                     "has_booking": is_globally_booked or has_apartment_booking,
+                    "booked_by_me": booked_by_me,
+                    "booking_apartment_name": booking_info["apartment_name"] if booked_by_me else None,
+                    "booking_pk": booking_info["pk"] if booked_by_me else None,
                 }
             )
         days.append({"date": current_date, "slots": day_slots})
 
-    return {"days": days, "used": used, "limit": limit, "limit_reached": limit_reached}
+    return {
+        "days": days,
+        "used": used,
+        "limit": limit,
+        "limit_reached": limit_reached,
+        "percentage": percentage,
+        "has_available_slots": has_available_slots,
+    }
 
 
 @owner_required
@@ -536,6 +563,8 @@ def booking_calendar(request):
     }
 
     if request.headers.get("HX-Request"):
+        if request.GET.get("partial") == "upcoming":
+            return render(request, "dashboard/_upcoming_inspections_wrapper.html", context)
         return render(request, "dashboard/_calendar_week.html", context)
     return render(request, "dashboard/booking_calendar.html", context)
 
@@ -614,10 +643,31 @@ def book_slot(request):
         task_name=f"booking_notification_{inspection.pk}",
     )
 
-    return render(
+    response = render(
         request,
         "dashboard/_booking_success.html",
         {"inspection": inspection, "apartment": apartment},
+    )
+    response["HX-Trigger"] = "calendarChanged"
+    return response
+
+
+@owner_required
+def confirm_cancellation(request, pk):
+    """Show cancellation confirmation partial with timely/late policy info."""
+    inspection = get_object_or_404(
+        Inspection.objects.select_related("apartment"),
+        pk=pk,
+        apartment__owner=request.user,
+        status=Inspection.Status.SCHEDULED,
+    )
+    now = timezone.now()
+    cutoff = inspection.scheduled_at - timedelta(hours=24)
+    is_late = now >= cutoff
+    return render(
+        request,
+        "dashboard/_cancellation_confirm.html",
+        {"inspection": inspection, "apartment": inspection.apartment, "is_late": is_late},
     )
 
 
@@ -656,11 +706,13 @@ def cancel_booking(request, pk):
         task_name=f"cancel_notification_{inspection.pk}",
     )
 
-    return render(
+    response = render(
         request,
         "dashboard/_cancel_success.html",
         {"inspection": inspection, "apartment": inspection.apartment, "is_late": is_late},
     )
+    response["HX-Trigger"] = "calendarChanged"
+    return response
 
 
 # --- GDPR / Account views ---

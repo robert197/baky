@@ -10,14 +10,16 @@
             {{ inspection.scheduled_at|date:"d.m.Y" }}, {{ inspection.scheduled_at|date:"H:i" }}&ndash;{{ inspection.scheduled_end|date:"H:i" }} Uhr
           </p>
         </div>
-        <button hx-post="{% url 'dashboard:cancel_booking' inspection.pk %}"
+        <button hx-get="{% url 'dashboard:confirm_cancellation' inspection.pk %}"
                 hx-target="#booking-result"
                 hx-swap="innerHTML"
-                hx-confirm="Termin stornieren: {{ inspection.apartment.address }}, {{ inspection.scheduled_at|date:'d.m.Y' }} {{ inspection.scheduled_at|date:'H:i' }} Uhr? Stornierungen weniger als 24 Stunden vor dem Termin verbrauchen Ihr monatliches Kontingent."
                 class="ml-3 shrink-0 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 transition hover:bg-rose-100">
           Stornieren
         </button>
       </div>
     {% endfor %}
+    <p class="text-xs text-secondary">
+      Stornierungen weniger als 24h vor dem Termin verbrauchen Ihr monatliches Kontingent.
+    </p>
   </div>
 {% endif %}

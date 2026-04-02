@@ -1,0 +1,36 @@
+{# Single calendar slot — included from _calendar_week.html for both desktop and mobile #}
+{% if slot.available %}
+  <button hx-post="{% url 'dashboard:book_slot' %}"
+          hx-target="#booking-result"
+          hx-swap="innerHTML"
+          hx-vals='{"apartment": "{{ selected_apartment.pk }}", "date": "{{ day.date|date:"Y-m-d" }}", "slot": "{{ slot.key }}"}'
+          hx-confirm="Termin buchen: {{ day.date|date:'d.m.Y' }}, {{ slot.start }}–{{ slot.end }} Uhr für {{ selected_apartment.address }}?"
+          aria-label="Verfügbar: {{ day.date|date:'l' }} {{ day.date|date:'d.m.' }}, {{ slot.start }}–{{ slot.end }}"
+          class="flex w-full min-h-[44px] flex-col items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-3 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100">
+    <span>{{ slot.start }}</span>
+    <span class="text-[10px] font-normal text-emerald-600 md:hidden">{{ slot.end }}</span>
+  </button>
+{% elif slot.booked_by_me %}
+  <div aria-label="Ihr Termin: {{ day.date|date:'l' }} {{ day.date|date:'d.m.' }}, {{ slot.start }}–{{ slot.end }}"
+       class="flex w-full min-h-[44px] flex-col items-center justify-center rounded-lg border border-amber-200 bg-amber-50 px-2 py-2 text-xs">
+    <span class="font-medium text-amber-700">{{ slot.start }}</span>
+    <span class="text-[10px] font-normal text-amber-600 md:hidden">{{ slot.end }}</span>
+    <span class="mt-0.5 max-w-full truncate text-[10px] text-amber-600">{{ slot.booking_apartment_name|truncatechars:15 }}</span>
+    <button hx-get="{% url 'dashboard:confirm_cancellation' slot.booking_pk %}"
+            hx-target="#booking-result"
+            hx-swap="innerHTML"
+            class="mt-1 text-[10px] font-medium text-rose-600 hover:text-rose-800">Stornieren</button>
+  </div>
+{% elif slot.is_past %}
+  <div aria-label="Vergangen: {{ day.date|date:'l' }} {{ day.date|date:'d.m.' }}, {{ slot.start }}–{{ slot.end }}"
+       class="flex w-full min-h-[44px] flex-col items-center justify-center rounded-lg bg-slate-50 px-2 py-3 text-xs text-slate-300">
+    <span>{{ slot.start }}</span>
+    <span class="text-[10px] md:hidden">{{ slot.end }}</span>
+  </div>
+{% else %}
+  <div aria-label="Vergeben: {{ day.date|date:'l' }} {{ day.date|date:'d.m.' }}, {{ slot.start }}–{{ slot.end }}"
+       class="flex w-full min-h-[44px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-2 py-3 text-xs text-slate-400{% if availability.limit_reached %} cursor-not-allowed{% endif %}">
+    <span>{{ slot.start }}</span>
+    <span class="text-[10px] md:hidden">{{ slot.end }}</span>
+  </div>
+{% endif %}

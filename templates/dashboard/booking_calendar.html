@@ -1,15 +1,10 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% block page_title %}Termin buchen{% endblock %}
 {% block content %}
-  <div class="mx-auto max-w-4xl space-y-6">
-    {# Subscription usage indicator #}
+  <div class="mx-auto max-w-4xl space-y-4">
+    {# Subscription usage progress bar #}
     {% if availability %}
-      <div class="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
-        <span class="text-sm text-secondary">Inspektionen diesen Monat</span>
-        <span class="text-sm font-semibold {% if availability.limit_reached %}text-rose-600{% else %}text-primary{% endif %}">
-          {{ availability.used }}/{{ availability.limit }}
-        </span>
-      </div>
+      {% include "dashboard/_subscription_progress.html" %}
     {% endif %}
     {# Apartment selector #}
     <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
@@ -29,11 +24,26 @@
           </option>
         {% endfor %}
       </select>
-      <input type="hidden" name="week" value="{{ week_offset }}">
+      <input id="week-input" type="hidden" name="week" value="{{ week_offset }}">
     </div>
+    {# Booking hint for users #}
+    {% if selected_apartment %}
+      <p class="text-sm text-secondary">
+        Wählen Sie einen verfügbaren Termin, um eine Inspektion zu buchen.
+        Buchungen müssen mindestens 24 Stunden im Voraus erfolgen.
+      </p>
+    {% endif %}
+    {# Visual legend #}
+    {% if selected_apartment %}
+      {% include "dashboard/_booking_legend.html" %}
+    {% endif %}
     {# Calendar #}
     {% if selected_apartment %}
-      <div id="calendar-container">{% include "dashboard/_calendar_week.html" %}</div>
+      <div id="calendar-container"
+           hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset }}"
+           hx-trigger="calendarChanged from:body"
+           hx-target="#calendar-container"
+           hx-swap="innerHTML">{% include "dashboard/_calendar_week.html" %}</div>
     {% elif apartments %}
       <div class="rounded-xl border border-border bg-white p-8 text-center shadow-sm">
         <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,12 +53,22 @@
       </div>
     {% endif %}
     {# Upcoming inspections with cancel buttons #}
-    {% include "dashboard/_upcoming_inspections.html" %}
+    <div id="upcoming-inspections"
+         hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset }}&partial=upcoming"
+         hx-trigger="calendarChanged from:body"
+         hx-target="#upcoming-inspections"
+         hx-swap="innerHTML"
+         hx-select="#upcoming-inspections-inner">
+      <div id="upcoming-inspections-inner">{% include "dashboard/_upcoming_inspections.html" %}</div>
+    </div>
     {# Cancellation policy #}
-    <p class="text-xs text-secondary">
-      Stornierungen bis 24 Stunden vor dem Termin sind kostenfrei.
-      Spätere Stornierungen verbrauchen Ihr monatliches Kontingent.
-    </p>
+    <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+      <p class="text-xs text-secondary">
+        <span class="font-medium text-primary">Stornierungsrichtlinie:</span>
+        Stornierungen bis 24 Stunden vor dem Termin sind kostenfrei.
+        Spätere Stornierungen verbrauchen Ihr monatliches Kontingent.
+      </p>
+    </div>
   </div>
   {# Booking result container (for HTMX responses) #}
   <div id="booking-result"></div>
