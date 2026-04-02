@@ -16,9 +16,7 @@
         <p class="mt-1 text-sm font-medium text-primary">
           {{ inspection.scheduled_at|date:"d.m.Y" }}, {{ inspection.scheduled_at|date:"H:i" }}&ndash;{{ inspection.scheduled_end|date:"H:i" }} Uhr
         </p>
-        <p class="mt-2 text-xs text-amber-700">
-          Späte Stornierung: Ihr monatliches Kontingent wird belastet.
-        </p>
+        <p class="mt-2 text-xs text-amber-700">Späte Stornierung: Ihr monatliches Kontingent wird belastet.</p>
       {% else %}
         <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
           <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,9 +28,7 @@
         <p class="mt-1 text-sm font-medium text-primary">
           {{ inspection.scheduled_at|date:"d.m.Y" }}, {{ inspection.scheduled_at|date:"H:i" }}&ndash;{{ inspection.scheduled_end|date:"H:i" }} Uhr
         </p>
-        <p class="mt-2 text-xs text-emerald-700">
-          Ihr monatliches Kontingent wurde wiederhergestellt.
-        </p>
+        <p class="mt-2 text-xs text-emerald-700">Ihr monatliches Kontingent wurde wiederhergestellt.</p>
       {% endif %}
       <a href="{% url 'dashboard:booking_calendar' %}"
          class="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600">

@@ -1028,3 +1028,104 @@ class TestUpcomingInspectionsDisplay:
         content = resp.content.decode()
 
         assert "Stornierungen bis 24 Stunden" in content
+
+
+@pytest.mark.django_db
+class TestCancellationIntegration:
+    def test_book_cancel_rebook_flow(self):
+        """Owner books slot, cancels >=24h before, then rebooks same slot."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner, plan="standard")
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+        target_date = _future_date(days_ahead=5)
+
+        # Book
+        resp = client.post(
+            reverse("dashboard:book_slot"),
+            {"apartment": apt.pk, "date": target_date.isoformat(), "slot": "morning"},
+        )
+        assert resp.status_code == 200
+        inspection = Inspection.objects.get(apartment=apt, status=Inspection.Status.SCHEDULED)
+
+        # Cancel (timely)
+        resp = client.post(reverse("dashboard:cancel_booking", args=[inspection.pk]))
+        assert resp.status_code == 200
+        inspection.refresh_from_db()
+        assert inspection.status == Inspection.Status.CANCELLED
+        assert inspection.late_cancellation is False
+
+        # Rebook same slot
+        resp = client.post(
+            reverse("dashboard:book_slot"),
+            {"apartment": apt.pk, "date": target_date.isoformat(), "slot": "morning"},
+        )
+        assert resp.status_code == 200
+        new_inspection = Inspection.objects.filter(apartment=apt, status=Inspection.Status.SCHEDULED).first()
+        assert new_inspection is not None
+        assert new_inspection.pk != inspection.pk
+
+    def test_late_cancel_prevents_overbooking(self):
+        """Owner at limit, late-cancels, cannot book new (quota consumed)."""
+        from unittest.mock import patch
+
+        owner = OwnerFactory()
+        sub = SubscriptionFactory(owner=owner, plan="basis")  # 2/month limit
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+
+        # Book 2 inspections (at limit)
+        for days in [5, 6]:
+            target_date = _future_date(days_ahead=days)
+            client.post(
+                reverse("dashboard:book_slot"),
+                {"apartment": apt.pk, "date": target_date.isoformat(), "slot": "morning"},
+            )
+        assert sub.get_inspections_used_this_month() == 2
+
+        # Late-cancel one
+        inspection = (
+            Inspection.objects.filter(apartment=apt, status=Inspection.Status.SCHEDULED)
+            .order_by("scheduled_at")
+            .first()
+        )
+        fake_now = inspection.scheduled_at - datetime.timedelta(hours=12)
+        with patch("apps.dashboard.views.timezone.now", return_value=fake_now):
+            client.post(reverse("dashboard:cancel_booking", args=[inspection.pk]))
+
+        inspection.refresh_from_db()
+        assert inspection.late_cancellation is True
+        # Still at limit — late cancel consumed quota
+        assert sub.get_inspections_used_this_month() == 2
+
+    def test_early_cancel_allows_rebooking(self):
+        """Owner at limit, early-cancels, can book new (quota restored)."""
+        owner = OwnerFactory()
+        sub = SubscriptionFactory(owner=owner, plan="basis")  # 2/month limit
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+
+        # Book 2 inspections (at limit)
+        for days in [5, 6]:
+            target_date = _future_date(days_ahead=days)
+            client.post(
+                reverse("dashboard:book_slot"),
+                {"apartment": apt.pk, "date": target_date.isoformat(), "slot": "morning"},
+            )
+        assert sub.get_inspections_used_this_month() == 2
+
+        # Early-cancel one (>=24h before, default behavior with days_ahead=5)
+        inspection = (
+            Inspection.objects.filter(apartment=apt, status=Inspection.Status.SCHEDULED)
+            .order_by("scheduled_at")
+            .first()
+        )
+        client.post(reverse("dashboard:cancel_booking", args=[inspection.pk]))
+
+        inspection.refresh_from_db()
+        assert inspection.late_cancellation is False
+        # Quota restored
+        assert sub.get_inspections_used_this_month() == 1
