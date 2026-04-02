@@ -512,6 +512,16 @@ def booking_calendar(request):
 
     end_of_week = start_of_week + timedelta(days=6)
 
+    upcoming_inspections = (
+        Inspection.objects.filter(
+            apartment__owner=request.user,
+            status=Inspection.Status.SCHEDULED,
+            scheduled_at__gt=timezone.now(),
+        )
+        .select_related("apartment")
+        .order_by("scheduled_at")[:10]
+    )
+
     context = {
         "form": form,
         "apartments": apartments,
@@ -521,6 +531,7 @@ def booking_calendar(request):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "subscription": subscription,
+        "upcoming_inspections": upcoming_inspections,
         "active": "booking",
     }
 

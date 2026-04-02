@@ -938,3 +938,93 @@ class TestCancellationNotification:
         assert len(mail.outbox) == 1
         assert "Stornierung" in mail.outbox[0].subject
         assert apt.address in mail.outbox[0].subject
+
+
+@pytest.mark.django_db
+class TestUpcomingInspectionsDisplay:
+    def test_shows_scheduled_inspections_on_calendar_page(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=5)
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.SCHEDULED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:booking_calendar"))
+        content = resp.content.decode()
+
+        assert resp.status_code == 200
+        assert "Anstehende Termine" in content
+        assert apt.address in content
+
+    def test_hides_completed_inspections(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=5)
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.COMPLETED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:booking_calendar"))
+        content = resp.content.decode()
+
+        assert "Anstehende Termine" not in content
+
+    def test_cancel_button_present(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=5)
+        inspection = InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.SCHEDULED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:booking_calendar"))
+        content = resp.content.decode()
+
+        assert "Stornieren" in content
+        assert f"stornieren/{inspection.pk}/" in content
+
+    def test_shows_cancellation_policy_text(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(reverse("dashboard:booking_calendar"))
+        content = resp.content.decode()
+
+        assert "Stornierungen bis 24 Stunden" in content
