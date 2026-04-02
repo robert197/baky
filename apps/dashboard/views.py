@@ -417,12 +417,22 @@ def _get_week_availability(start_date, apartment, owner):
     now = timezone.now()
     week_dates = [start_date + timedelta(days=i) for i in range(7)]
 
-    # Batch query: find all dates in this week that already have bookings for this apartment
-    booked_dates = set(
+    # Global query: find all booked (date, time_slot) pairs across ALL apartments
+    active_statuses = [Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED]
+    booked_slots = set(
+        Inspection.objects.filter(
+            scheduled_at__date__in=week_dates,
+            time_slot__in=[ts.value for ts in Inspection.TimeSlot],
+            status__in=active_statuses,
+        ).values_list("scheduled_at__date", "time_slot")
+    )
+
+    # Per-apartment check: same apartment can only have one inspection per day
+    apartment_booked_dates = set(
         Inspection.objects.filter(
             apartment=apartment,
             scheduled_at__date__in=week_dates,
-            status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED],
+            status__in=active_statuses,
         )
         .values_list("scheduled_at__date", flat=True)
         .distinct()
@@ -431,13 +441,14 @@ def _get_week_availability(start_date, apartment, owner):
     days = []
     for current_date in week_dates:
         day_slots = []
-        has_day_booking = current_date in booked_dates
+        has_apartment_booking = current_date in apartment_booked_dates
 
         for slot_key in Inspection.TimeSlot:
             sh, sm, eh, em = Inspection.SLOT_TIMES[slot_key]
             slot_start = datetime(current_date.year, current_date.month, current_date.day, sh, sm, tzinfo=VIENNA_TZ)
 
             is_past = now >= slot_start - timedelta(hours=24)
+            is_globally_booked = (current_date, slot_key.value) in booked_slots
 
             day_slots.append(
                 {
@@ -445,9 +456,12 @@ def _get_week_availability(start_date, apartment, owner):
                     "label": slot_key.label,
                     "start": f"{sh:02d}:{sm:02d}",
                     "end": f"{eh:02d}:{em:02d}",
-                    "available": not is_past and not has_day_booking and not limit_reached,
+                    "available": not is_past
+                    and not is_globally_booked
+                    and not has_apartment_booking
+                    and not limit_reached,
                     "is_past": is_past,
-                    "has_booking": has_day_booking,
+                    "has_booking": is_globally_booked or has_apartment_booking,
                 }
             )
         days.append({"date": current_date, "slots": day_slots})
