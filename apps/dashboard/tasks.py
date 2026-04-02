@@ -41,9 +41,11 @@ def send_plan_change_notification(owner_id: int, requested_plan: str, message: s
 
 def send_subscription_action_notification(owner_id: int, action: str, reason: str) -> None:
     """Send pause/cancel request notification to admin and confirmation to owner."""
+    if action not in ACTION_LABELS:
+        raise ValueError(f"Invalid subscription action: {action}")
     owner = User.objects.get(pk=owner_id)
     subscription = owner.subscription
-    action_label = ACTION_LABELS.get(action, action)
+    action_label = ACTION_LABELS[action]
 
     context = {
         "owner": owner,
@@ -69,7 +71,7 @@ def send_extra_inspection_notification(owner_id: int, apartment_id: int, preferr
     from apps.apartments.models import Apartment
 
     owner = User.objects.get(pk=owner_id)
-    apartment = Apartment.objects.get(pk=apartment_id)
+    apartment = Apartment.objects.get(pk=apartment_id, owner=owner)
 
     context = {
         "owner": owner,
