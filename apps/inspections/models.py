@@ -61,6 +61,15 @@ class Inspection(TimeStampedModel):
     overall_rating = models.CharField(max_length=20, choices=OverallRating.choices, blank=True)
     general_notes = models.TextField(blank=True)
     time_slot = models.CharField(max_length=20, choices=TimeSlot.choices, blank=True)
+    late_cancellation = models.BooleanField(
+        default=False,
+        help_text="True wenn Stornierung weniger als 24h vor dem Termin erfolgte.",
+    )
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Zeitpunkt der Stornierung.",
+    )
 
     class Meta:
         ordering = ["-scheduled_at"]

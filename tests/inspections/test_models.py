@@ -76,6 +76,12 @@ class TestInspectionModel:
     def test_general_notes_blank(self, inspection):
         assert inspection.general_notes == ""
 
+    def test_late_cancellation_default_false(self, inspection):
+        assert inspection.late_cancellation is False
+
+    def test_cancelled_at_null_by_default(self, inspection):
+        assert inspection.cancelled_at is None
+
 
 class TestInspectionItemModel:
     def test_create(self, inspection_item):
