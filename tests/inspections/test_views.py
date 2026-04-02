@@ -322,10 +322,10 @@ class TestScheduleView:
         """Inspections for today should be labeled 'Heute'."""
         inspector = InspectorFactory()
         apt = ApartmentFactory()
-        now = timezone.now()
-        # Schedule for today within business hours
+        now = timezone.localtime(timezone.now())
+        # Schedule for today within business hours (use local time to match view's date grouping)
         today_10am = now.replace(hour=10, minute=0, second=0, microsecond=0)
-        if today_10am < now:
+        if today_10am <= now:
             today_10am = now.replace(hour=14, minute=0, second=0, microsecond=0)
         InspectionFactory(
             inspector=inspector,
