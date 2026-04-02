@@ -103,16 +103,28 @@ class Subscription(TimeStampedModel):
         return candidate
 
     def get_inspections_used_this_month(self) -> int:
-        """Return the number of non-cancelled inspections this month across all owner apartments."""
+        """Return the number of quota-consuming inspections this month across all owner apartments.
+
+        Counts active inspections (scheduled/in_progress/completed) plus late-cancelled
+        inspections (cancelled <24h before the slot).
+        """
+        from django.db.models import Q
+
         from apps.inspections.models import Inspection
 
         today = date.today()
-        return Inspection.objects.filter(
-            apartment__owner=self.owner,
-            status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED],
-            scheduled_at__year=today.year,
-            scheduled_at__month=today.month,
-        ).count()
+        return (
+            Inspection.objects.filter(
+                apartment__owner=self.owner,
+                scheduled_at__year=today.year,
+                scheduled_at__month=today.month,
+            )
+            .filter(
+                Q(status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED])
+                | Q(status=Inspection.Status.CANCELLED, late_cancellation=True)
+            )
+            .count()
+        )
 
 
 class EmailVerificationToken(TimeStampedModel):

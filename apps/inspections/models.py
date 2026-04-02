@@ -177,9 +177,11 @@ class Inspection(TimeStampedModel):
 
         scheduled_count = Inspection.objects.filter(
             apartment__owner=self.apartment.owner,
-            status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS, self.Status.COMPLETED],
             scheduled_at__gte=current_month_start,
             scheduled_at__lt=next_month_start,
+        ).filter(
+            models.Q(status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS, self.Status.COMPLETED])
+            | models.Q(status=self.Status.CANCELLED, late_cancellation=True)
         )
         if self.pk:
             scheduled_count = scheduled_count.exclude(pk=self.pk)

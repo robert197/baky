@@ -703,3 +703,46 @@ class TestSubscriptionUsageCounting:
         )
 
         assert sub.get_inspections_used_this_month() == 0
+
+
+@pytest.mark.django_db
+class TestLateCancellationQuotaCounting:
+    def test_late_cancelled_counts_as_used(self):
+        owner = OwnerFactory()
+        sub = SubscriptionFactory(owner=owner, plan="standard")
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=3)
+
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.CANCELLED,
+            late_cancellation=True,
+        )
+
+        assert sub.get_inspections_used_this_month() == 1
+
+    def test_early_cancelled_not_counted(self):
+        owner = OwnerFactory()
+        sub = SubscriptionFactory(owner=owner, plan="standard")
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=3)
+
+        InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.CANCELLED,
+            late_cancellation=False,
+        )
+
+        assert sub.get_inspections_used_this_month() == 0
