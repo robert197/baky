@@ -1,0 +1,14 @@
+Terminbuchung storniert
+
+Ein Eigentümer hat eine gebuchte Inspektion storniert.
+
+Eigentümer: {{ owner.get_full_name|default:owner.username }} ({{ owner.email }})
+Wohnung: {{ apartment.address }}
+Datum: {{ inspection.scheduled_at|date:"d.m.Y" }}
+Zeitslot: {{ inspection.get_time_slot_display }} ({{ inspection.scheduled_at|date:"H:i" }}–{{ inspection.scheduled_end|date:"H:i" }} Uhr)
+{% if is_late %}Stornierungsart: Späte Stornierung (<24h) — Kontingent belastet{% else %}Stornierungsart: Rechtzeitige Stornierung (>=24h) — Kontingent wiederhergestellt{% endif %}
+
+Der Zeitslot ist nun wieder für andere Buchungen verfügbar.
+
+---
+BAKY — Betreuung. Absicherung. Kontrolle. Your Home.

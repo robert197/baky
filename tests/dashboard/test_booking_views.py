@@ -906,3 +906,35 @@ class TestCancelBookingView:
 
         resp = client.post(self._cancel_url(inspection.pk))
         assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+class TestCancellationNotification:
+    def test_cancellation_sends_admin_email(self):
+        """send_cancellation_notification sends email to admin."""
+        from django.core import mail
+
+        from apps.dashboard.tasks import send_cancellation_notification
+
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=5)
+        inspection = InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.CANCELLED,
+            late_cancellation=False,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+
+        send_cancellation_notification(owner.pk, inspection.pk)
+
+        assert len(mail.outbox) == 1
+        assert "Stornierung" in mail.outbox[0].subject
+        assert apt.address in mail.outbox[0].subject

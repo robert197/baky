@@ -112,6 +112,24 @@ def send_booking_notification(owner_id: int, inspection_id: int) -> None:
     _send_email(subject, "emails/admin_booking", context, [settings.BAKY_ADMIN_EMAIL])
 
 
+def send_cancellation_notification(owner_id: int, inspection_id: int) -> None:
+    """Send notification to admin when owner cancels a booking."""
+    from apps.inspections.models import Inspection
+
+    owner = User.objects.get(pk=owner_id)
+    inspection = Inspection.objects.select_related("apartment").get(pk=inspection_id)
+
+    context = {
+        "owner": owner,
+        "inspection": inspection,
+        "apartment": inspection.apartment,
+        "is_late": inspection.late_cancellation,
+    }
+
+    subject = f"Stornierung — {inspection.apartment.address} ({inspection.get_time_slot_display()})"
+    _send_email(subject, "emails/admin_cancellation", context, [settings.BAKY_ADMIN_EMAIL])
+
+
 def _send_email(subject: str, template_prefix: str, context: dict, to: list[str]) -> None:
     """Send an email using HTML and text templates."""
     html_body = render_to_string(f"{template_prefix}.html", context)
