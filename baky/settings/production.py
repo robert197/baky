@@ -2,6 +2,7 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")  # noqa: F405
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS")  # noqa: F405
 
 # Encrypted fields
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")  # noqa: F405
@@ -15,6 +16,11 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_REDIRECT_EXEMPT = [r"^health/$"]
+
+# Upload limits — inspector photos (HEIF) can be 5-15MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
 
 # Static files with Whitenoise
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
@@ -52,5 +58,53 @@ import sentry_sdk  # noqa: E402
 
 sentry_sdk.init(
     dsn=env("SENTRY_DSN", default=""),  # noqa: F405
-    traces_sample_rate=0.1,
+    release=env("GIT_SHA", default=None),  # noqa: F405
+    environment=env("SENTRY_ENVIRONMENT", default="production"),  # noqa: F405
+    traces_sample_rate=float(env("SENTRY_TRACES_SAMPLE_RATE", default="0.1")),  # noqa: F405
+    send_default_pii=False,
 )
+
+# Structured JSON logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.json.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "stream": "ext://sys.stdout",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "baky": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
