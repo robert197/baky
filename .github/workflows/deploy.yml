@@ -6,26 +6,55 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: deploy
   cancel-in-progress: false
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build:
-    name: Build Production Image
+  build-and-push:
+    name: Build & Push Production Image
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build production Docker image
-        run: docker build --target production -t baky:${{ github.sha }} .
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # TODO: Add deployment steps when hosting provider is chosen
-      # Options: Railway, Render, Fly.io
-      # Steps needed:
-      #   1. Push image to container registry
-      #   2. Deploy to hosting platform
-      #   3. Run migrations: python manage.py migrate --noinput
-      #   4. Collect static files: python manage.py collectstatic --noinput
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+
+      # TODO: Add platform-specific deployment steps when hosting provider is chosen
+      # For Railway:  railway up
+      # For Fly.io:   flyctl deploy --image <tag>
+      # For Render:   auto-deploy from registry
+      #
+      # Post-deploy steps:
+      # 1. Run migrations: python manage.py migrate --noinput
+      # 2. Verify health:  curl -sf https://baky.at/health/
