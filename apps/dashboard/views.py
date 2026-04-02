@@ -627,23 +627,28 @@ def cancel_booking(request, pk):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
 
-    inspection = get_object_or_404(
-        Inspection,
-        pk=pk,
-        apartment__owner=request.user,
-        status=Inspection.Status.SCHEDULED,
-    )
+    with transaction.atomic():
+        try:
+            inspection = Inspection.objects.select_for_update().get(
+                pk=pk,
+                apartment__owner=request.user,
+                status=Inspection.Status.SCHEDULED,
+            )
+        except Inspection.DoesNotExist:
+            from django.http import Http404
 
-    now = timezone.now()
-    cutoff = inspection.scheduled_at - timedelta(hours=24)
-    is_late = now >= cutoff
+            raise Http404 from None
 
-    inspection.status = Inspection.Status.CANCELLED
-    inspection.late_cancellation = is_late
-    inspection.cancelled_at = now
-    inspection.save(update_fields=["status", "late_cancellation", "cancelled_at", "updated_at"])
+        now = timezone.now()
+        cutoff = inspection.scheduled_at - timedelta(hours=24)
+        is_late = now >= cutoff
 
-    # Notify admin
+        inspection.status = Inspection.Status.CANCELLED
+        inspection.late_cancellation = is_late
+        inspection.cancelled_at = now
+        inspection.save(update_fields=["status", "late_cancellation", "cancelled_at", "updated_at"])
+
+    # Notify admin (outside transaction)
     from baky.tasks import queue_task
 
     queue_task(
@@ -689,7 +694,11 @@ def account_delete(request):
         Inspection.objects.filter(
             apartment__owner=request.user,
             status=Inspection.Status.SCHEDULED,
-        ).update(status=Inspection.Status.CANCELLED)
+        ).update(
+            status=Inspection.Status.CANCELLED,
+            cancelled_at=timezone.now(),
+            late_cancellation=False,
+        )
 
         # Soft-delete the account
         request.user.deleted_at = timezone.now()
