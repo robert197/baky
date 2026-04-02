@@ -89,6 +89,7 @@ COPY --from=tailwind-builder /app/static/css/output.css static/css/output.css
 RUN addgroup --system django && adduser --system --ingroup django django
 
 # Collect static files (must fail loudly — no || true)
+# NOTE: All env values below are PLACEHOLDERS for build-time only. Never use in production.
 ENV DJANGO_SETTINGS_MODULE=baky.settings.production
 RUN SECRET_KEY=build-placeholder ALLOWED_HOSTS=localhost \
     DATABASE_URL=sqlite:///tmp/throwaway.db \

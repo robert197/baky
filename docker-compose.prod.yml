@@ -10,7 +10,6 @@ services:
       target: production
       args:
         GIT_SHA: ${GIT_SHA:-dev}
-    command: gunicorn --config gunicorn.conf.py baky.wsgi:application
     environment:
       - DJANGO_SETTINGS_MODULE=baky.settings.production
     env_file:

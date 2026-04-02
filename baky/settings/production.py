@@ -18,9 +18,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_REDIRECT_EXEMPT = [r"^health/$"]
 
-# Upload limits — inspector photos (HEIF) can be 5-15MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+# Database connection persistence (avoid per-request connection churn with gthread)
+DATABASES["default"]["CONN_MAX_AGE"] = int(env("CONN_MAX_AGE", default="600"))  # noqa: F405
 
 # Static files with Whitenoise
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
@@ -86,11 +85,6 @@ LOGGING = {
         "level": "INFO",
     },
     "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "INFO",
-            "propagate": False,
-        },
         "django.request": {
             "handlers": ["console"],
             "level": "ERROR",
@@ -99,11 +93,6 @@ LOGGING = {
         "django.db.backends": {
             "handlers": ["console"],
             "level": "WARNING",
-            "propagate": False,
-        },
-        "baky": {
-            "handlers": ["console"],
-            "level": "INFO",
             "propagate": False,
         },
     },

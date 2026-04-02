@@ -24,8 +24,8 @@ accesslog = "-"
 errorlog = "-"
 loglevel = os.environ.get("GUNICORN_LOG_LEVEL", "info")
 
-# Reverse proxy
-forwarded_allow_ips = "*"
+# Reverse proxy — restrict to proxy IPs in non-containerized setups
+forwarded_allow_ips = os.environ.get("FORWARDED_ALLOW_IPS", "*")
 
 # Preload for memory sharing via copy-on-write
 preload_app = True

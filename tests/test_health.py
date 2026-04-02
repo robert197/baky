@@ -23,6 +23,7 @@ class TestHealthCheck:
         response = client.get("/health/")
         data = response.json()
         assert "version" in data
+        assert data["version"]  # not empty
 
     def test_health_get_only(self, client: Client):
         response = client.post("/health/")

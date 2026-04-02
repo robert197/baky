@@ -1,4 +1,5 @@
 import logging
+import os
 
 from django.db import connection
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -31,7 +32,7 @@ def agb(request: HttpRequest) -> HttpResponse:
 @require_GET
 def health_check(request: HttpRequest) -> JsonResponse:
     """Lightweight health check for Docker/LB probes."""
-    checks = {"status": "ok", "version": "1.0.0"}
+    checks = {"status": "ok", "version": os.environ.get("GIT_SHA", "dev")}
     status_code = 200
 
     try:
