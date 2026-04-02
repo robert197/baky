@@ -1,0 +1,99 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}{{ apartment.address }}{% endblock %}
+{% block page_actions %}
+  <a href="{% url 'dashboard:apartment_edit' apartment.pk %}"
+     class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">Bearbeiten</a>
+{% endblock %}
+{% block content %}
+  <div class="space-y-6">
+    {# Apartment details card #}
+    <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+      <h2 class="mb-4 text-lg font-semibold text-primary">Wohnungsdetails</h2>
+      <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <dt class="text-sm text-secondary">Adresse</dt>
+          <dd class="mt-1 text-primary">
+            {{ apartment.address }}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm text-secondary">Status</dt>
+          <dd class="mt-1">
+            {% if apartment.status == "active" %}
+              <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Aktiv</span>
+            {% elif apartment.status == "paused" %}
+              <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">Pausiert</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm text-secondary">Zugangsart</dt>
+          <dd class="mt-1 text-primary">
+            {{ apartment.get_access_method_display }}
+          </dd>
+        </div>
+        {% if apartment.special_instructions %}
+          <div class="sm:col-span-2">
+            <dt class="text-sm text-secondary">Besondere Anweisungen</dt>
+            <dd class="mt-1 text-primary">
+              {{ apartment.special_instructions }}
+            </dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+    {# Checklist summary #}
+    {% if checklist %}
+      <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <h2 class="mb-4 text-lg font-semibold text-primary">Checkliste</h2>
+        <p class="mb-3 text-sm text-secondary">{{ checklist.name }} &mdash; {{ checklist.items|length }} Prüfpunkte</p>
+        <div class="space-y-1">
+          {% for item in checklist.items %}
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-muted">&bull;</span>
+              <span class="text-secondary">{{ item.category }}:</span>
+              <span class="text-primary">{{ item.label }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    {# Recent inspections #}
+    <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+      <h2 class="mb-4 text-lg font-semibold text-primary">Letzte Inspektionen</h2>
+      {% if recent_inspections %}
+        <div class="space-y-3">
+          {% for inspection in recent_inspections %}
+            <div class="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <span class="text-sm text-primary">{{ inspection.completed_at|date:"d.m.Y" }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                {% if inspection.overall_rating == "ok" %}
+                  <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">OK</span>
+                {% elif inspection.overall_rating == "attention" %}
+                  <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Achtung</span>
+                {% elif inspection.overall_rating == "urgent" %}
+                  <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Dringend</span>
+                {% endif %}
+                {% if inspection.has_report %}
+                  <a href="{% url 'dashboard:report_detail' inspection.report.pk %}"
+                     class="text-xs font-medium text-accent hover:text-amber-600">Bericht</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-muted">Noch keine Inspektionen durchgeführt.</p>
+      {% endif %}
+    </div>
+    {# Back link #}
+    <a href="{% url 'dashboard:index' %}" class="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Zurück zur Übersicht
+    </a>
+  </div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Wohnung bearbeiten{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-2xl">
+    <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
+      <form method="post">
+        {% csrf_token %}
+        <div class="space-y-5">
+          {% for field in form %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-medium text-primary">
+                {{ field.label }}
+                {% if field.field.required %}<span class="text-rose-500">*</span>{% endif %}
+              </label>
+              {{ field }}
+              {% if field.errors %}
+                {% for error in field.errors %}<p class="mt-1 text-sm text-rose-600">{{ error }}</p>{% endfor %}
+              {% endif %}
+              {% if field.help_text %}<p class="mt-1 text-sm text-muted">{{ field.help_text }}</p>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <a href="{% url 'dashboard:index' %}"
+             class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-secondary hover:bg-surface">
+            Abbrechen
+          </a>
+          <button type="submit" class="rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white hover:bg-amber-600">
+            Speichern
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
