@@ -60,28 +60,28 @@
     {% endif %}
     {# Recent inspections #}
     <div class="rounded-xl border border-border bg-white p-6 shadow-sm">
-      <h2 class="mb-4 text-lg font-semibold text-primary">Letzte Inspektionen</h2>
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-primary">Letzte Inspektionen</h2>
+        {% if recent_inspections %}
+          <a href="{% url 'dashboard:inspection_timeline' apartment.pk %}"
+             class="text-sm font-medium text-accent hover:text-amber-600">Alle anzeigen</a>
+        {% endif %}
+      </div>
       {% if recent_inspections %}
         <div class="space-y-3">
           {% for inspection in recent_inspections %}
-            <div class="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+            <a href="{% url 'dashboard:inspection_report_detail' apartment.pk inspection.pk %}"
+               class="flex items-center justify-between rounded-lg border border-border px-4 py-3 transition-colors hover:bg-surface">
               <div>
                 <span class="text-sm text-primary">{{ inspection.completed_at|date:"d.m.Y" }}</span>
               </div>
               <div class="flex items-center gap-2">
-                {% if inspection.overall_rating == "ok" %}
-                  <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">OK</span>
-                {% elif inspection.overall_rating == "attention" %}
-                  <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Achtung</span>
-                {% elif inspection.overall_rating == "urgent" %}
-                  <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Dringend</span>
+                {% if inspection.overall_rating %}
+                  {% include "components/_status_badge.html" with status=inspection.overall_rating %}
                 {% endif %}
-                {% if inspection.has_report %}
-                  <a href="{% url 'dashboard:report_detail' inspection.report.pk %}"
-                     class="text-xs font-medium text-accent hover:text-amber-600">Bericht</a>
-                {% endif %}
+                {% if inspection.has_report %}<span class="text-xs font-medium text-accent">Bericht</span>{% endif %}
               </div>
-            </div>
+            </a>
           {% endfor %}
         </div>
       {% else %}

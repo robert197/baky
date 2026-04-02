@@ -5,7 +5,15 @@ from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
-from tests.factories import ApartmentFactory, InspectionFactory, OwnerFactory
+from tests.factories import (
+    ApartmentFactory,
+    InspectionFactory,
+    InspectionItemFactory,
+    InspectorFactory,
+    OwnerFactory,
+    PhotoFactory,
+    ReportFactory,
+)
 
 
 @pytest.mark.django_db
@@ -105,6 +113,62 @@ class TestDashboardIntegration:
             ).status_code
             == 404
         )
+
+    def test_apartment_to_timeline_to_report(self):
+        """Full flow: apartment detail -> timeline -> summary -> report detail."""
+        owner = OwnerFactory()
+        apt = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory(first_name="Anna", last_name="Schmidt")
+        insp = InspectionFactory(
+            apartment=apt,
+            inspector=inspector,
+            status="completed",
+            overall_rating="attention",
+            completed_at=timezone.now(),
+        )
+        InspectionItemFactory(inspection=insp, category="Küche", result="ok")
+        InspectionItemFactory(inspection=insp, category="Küche", result="flagged", severity="medium")
+        PhotoFactory(inspection=insp, caption="Küchenregal")
+        ReportFactory(inspection=insp)
+
+        client = Client()
+        client.force_login(owner)
+
+        # Step 1: Apartment detail shows timeline link
+        resp = client.get(reverse("dashboard:apartment_detail", args=[apt.pk]))
+        assert resp.status_code == 200
+        assert reverse("dashboard:inspection_timeline", args=[apt.pk]) in resp.content.decode()
+
+        # Step 2: Timeline shows the inspection
+        resp = client.get(reverse("dashboard:inspection_timeline", args=[apt.pk]))
+        assert resp.status_code == 200
+        assert "Anna Schmidt" in resp.content.decode()
+
+        # Step 3: Summary expansion
+        resp = client.get(reverse("dashboard:inspection_summary", args=[apt.pk, insp.pk]))
+        assert resp.status_code == 200
+
+        # Step 4: Report detail shows items, photos, inspector
+        resp = client.get(reverse("dashboard:inspection_report_detail", args=[apt.pk, insp.pk]))
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        assert "Küche" in content
+        assert "Küchenregal" in content
+        assert "Anna Schmidt" in content
+
+    def test_cross_owner_inspection_access_blocked(self):
+        """Owner A cannot view Owner B's inspection timeline or report."""
+        owner_a = OwnerFactory()
+        owner_b = OwnerFactory()
+        apt_b = ApartmentFactory(owner=owner_b)
+        insp = InspectionFactory(apartment=apt_b, status="completed", completed_at=timezone.now())
+        ReportFactory(inspection=insp)
+        client = Client()
+        client.force_login(owner_a)
+
+        assert client.get(reverse("dashboard:inspection_timeline", args=[apt_b.pk])).status_code == 404
+        assert client.get(reverse("dashboard:inspection_summary", args=[apt_b.pk, insp.pk])).status_code == 404
+        assert client.get(reverse("dashboard:inspection_report_detail", args=[apt_b.pk, insp.pk])).status_code == 404
 
     def test_pause_apartment_via_edit(self):
         """Owner can pause their apartment via the edit form."""

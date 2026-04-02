@@ -165,6 +165,24 @@ class TestApartmentDetail:
         response = client.get(reverse("dashboard:apartment_detail", args=[apt.pk]))
         assert response.status_code == 404
 
+    def test_links_to_inspection_timeline(self):
+        owner = OwnerFactory()
+        apt = ApartmentFactory(owner=owner)
+        InspectionFactory(apartment=apt, status="completed", completed_at=timezone.now())
+        client = Client()
+        client.force_login(owner)
+        response = client.get(reverse("dashboard:apartment_detail", args=[apt.pk]))
+        assert reverse("dashboard:inspection_timeline", args=[apt.pk]) in response.content.decode()
+
+    def test_links_to_inspection_report_detail(self):
+        owner = OwnerFactory()
+        apt = ApartmentFactory(owner=owner)
+        insp = InspectionFactory(apartment=apt, status="completed", completed_at=timezone.now())
+        client = Client()
+        client.force_login(owner)
+        response = client.get(reverse("dashboard:apartment_detail", args=[apt.pk]))
+        assert reverse("dashboard:inspection_report_detail", args=[apt.pk, insp.pk]) in response.content.decode()
+
 
 @pytest.mark.django_db
 class TestApartmentEdit:

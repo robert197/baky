@@ -1,6 +1,7 @@
 {# Alpine.js photo lightbox component #}
 {# Expects parent element to have x-data="photoLightbox()" #}
-<div x-show="isOpen" x-cloak
+<div x-show="isOpen"
+     x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
      @keydown.escape.window="closeLightbox()"
      @keydown.arrow-left.window="prevPhoto()"
@@ -12,24 +13,25 @@
     </svg>
   </button>
   {# Previous button #}
-  <button @click="prevPhoto()" x-show="photos.length > 1"
+  <button @click="prevPhoto()"
+          x-show="photos.length > 1"
           class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 sm:left-4">
     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>
   </button>
   {# Next button #}
-  <button @click="nextPhoto()" x-show="photos.length > 1"
+  <button @click="nextPhoto()"
+          x-show="photos.length > 1"
           class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 sm:right-4">
     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
     </svg>
   </button>
   {# Image container with touch support #}
-  <div class="max-h-[90vh] max-w-[90vw]"
-       @touchstart="touchStart($event)"
-       @touchend="touchEnd($event)">
-    <img :src="currentPhotoUrl" :alt="currentCaption"
+  <div class="max-h-[90vh] max-w-[90vw]" @touchstart="touchStart($event)" @touchend="touchEnd($event)">
+    <img :src="currentPhotoUrl"
+         :alt="currentCaption"
          class="max-h-[85vh] max-w-full rounded-lg object-contain"
          x-show="!loading"
          @load="loading = false" />
@@ -46,7 +48,6 @@
     <span class="rounded-full bg-black/60 px-4 py-1.5 text-sm text-white" x-text="currentCaption"></span>
   </div>
 </div>
-
 <script>
   document.addEventListener('alpine:init', () => {
     Alpine.data('photoLightbox', () => ({

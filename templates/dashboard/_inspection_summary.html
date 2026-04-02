@@ -33,9 +33,7 @@
   {% endif %}
   <div class="mt-3 flex gap-2">
     <a href="{% url 'dashboard:inspection_report_detail' apartment.pk inspection.pk %}"
-       class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">
-      Bericht ansehen
-    </a>
+       class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">Bericht ansehen</a>
     {% if inspection.has_report %}
       <a href="{% url 'dashboard:report_detail' inspection.report.pk %}"
          class="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-secondary hover:bg-surface">

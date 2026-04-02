@@ -22,19 +22,27 @@
         <div>
           <label class="mb-1 block text-xs font-medium text-secondary">Bewertung</label>
           <div class="flex gap-1">
-            <button type="submit" name="rating" value=""
+            <button type="submit"
+                    name="rating"
+                    value=""
                     class="rounded-full px-3 py-1 text-xs font-medium {% if not current_rating %}bg-primary text-white{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
               Alle
             </button>
-            <button type="submit" name="rating" value="ok"
+            <button type="submit"
+                    name="rating"
+                    value="ok"
                     class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'ok' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
               OK
             </button>
-            <button type="submit" name="rating" value="attention"
+            <button type="submit"
+                    name="rating"
+                    value="attention"
                     class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'attention' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
               Achtung
             </button>
-            <button type="submit" name="rating" value="urgent"
+            <button type="submit"
+                    name="rating"
+                    value="urgent"
                     class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'urgent' %}bg-rose-100 text-rose-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
               Dringend
             </button>
@@ -43,23 +51,26 @@
         {# Date range #}
         <div>
           <label for="filter-from" class="mb-1 block text-xs font-medium text-secondary">Von</label>
-          <input type="date" id="filter-from" name="from" value="{{ current_from }}"
+          <input type="date"
+                 id="filter-from"
+                 name="from"
+                 value="{{ current_from }}"
                  class="rounded-lg border border-border px-3 py-1.5 text-sm text-primary" />
         </div>
         <div>
           <label for="filter-to" class="mb-1 block text-xs font-medium text-secondary">Bis</label>
-          <input type="date" id="filter-to" name="to" value="{{ current_to }}"
+          <input type="date"
+                 id="filter-to"
+                 name="to"
+                 value="{{ current_to }}"
                  class="rounded-lg border border-border px-3 py-1.5 text-sm text-primary" />
         </div>
-        <button type="submit"
-                class="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+        <button type="submit" class="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
           Filtern
         </button>
       </form>
     </div>
     {# Timeline items #}
-    <div id="timeline-items">
-      {% include "dashboard/_inspection_timeline_items.html" %}
-    </div>
+    <div id="timeline-items">{% include "dashboard/_inspection_timeline_items.html" %}</div>
   </div>
 {% endblock %}
