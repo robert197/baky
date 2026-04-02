@@ -1,0 +1,43 @@
+{# HTMX response: booking cancelled #}
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-primary/50 p-4"
+     x-data="{ show: true }"
+     x-show="show"
+     x-transition>
+  <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+    <div class="text-center">
+      {% if is_late %}
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+          <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h3 class="mt-3 text-lg font-semibold text-primary">Termin storniert</h3>
+        <p class="mt-1 text-sm text-secondary">{{ apartment.address }}</p>
+        <p class="mt-1 text-sm font-medium text-primary">
+          {{ inspection.scheduled_at|date:"d.m.Y" }}, {{ inspection.scheduled_at|date:"H:i" }}&ndash;{{ inspection.scheduled_end|date:"H:i" }} Uhr
+        </p>
+        <p class="mt-2 text-xs text-amber-700">
+          Späte Stornierung: Ihr monatliches Kontingent wird belastet.
+        </p>
+      {% else %}
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+          <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="mt-3 text-lg font-semibold text-primary">Termin storniert</h3>
+        <p class="mt-1 text-sm text-secondary">{{ apartment.address }}</p>
+        <p class="mt-1 text-sm font-medium text-primary">
+          {{ inspection.scheduled_at|date:"d.m.Y" }}, {{ inspection.scheduled_at|date:"H:i" }}&ndash;{{ inspection.scheduled_end|date:"H:i" }} Uhr
+        </p>
+        <p class="mt-2 text-xs text-emerald-700">
+          Ihr monatliches Kontingent wurde wiederhergestellt.
+        </p>
+      {% endif %}
+      <a href="{% url 'dashboard:booking_calendar' %}"
+         class="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600">
+        Zurück zum Kalender
+      </a>
+    </div>
+  </div>
+</div>

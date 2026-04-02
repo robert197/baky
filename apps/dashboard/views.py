@@ -610,6 +610,45 @@ def book_slot(request):
     )
 
 
+@owner_required
+def cancel_booking(request, pk):
+    """Cancel a scheduled inspection with 24h policy enforcement."""
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    inspection = get_object_or_404(
+        Inspection,
+        pk=pk,
+        apartment__owner=request.user,
+        status=Inspection.Status.SCHEDULED,
+    )
+
+    now = timezone.now()
+    cutoff = inspection.scheduled_at - timedelta(hours=24)
+    is_late = now >= cutoff
+
+    inspection.status = Inspection.Status.CANCELLED
+    inspection.late_cancellation = is_late
+    inspection.cancelled_at = now
+    inspection.save(update_fields=["status", "late_cancellation", "cancelled_at", "updated_at"])
+
+    # Notify admin
+    from baky.tasks import queue_task
+
+    queue_task(
+        "apps.dashboard.tasks.send_cancellation_notification",
+        request.user.pk,
+        inspection.pk,
+        task_name=f"cancel_notification_{inspection.pk}",
+    )
+
+    return render(
+        request,
+        "dashboard/_cancel_success.html",
+        {"inspection": inspection, "apartment": inspection.apartment, "is_late": is_late},
+    )
+
+
 # --- GDPR / Account views ---
 
 

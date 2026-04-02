@@ -746,3 +746,163 @@ class TestLateCancellationQuotaCounting:
         )
 
         assert sub.get_inspections_used_this_month() == 0
+
+
+@pytest.mark.django_db
+class TestCancelBookingView:
+    def _cancel_url(self, inspection_pk):
+        return reverse("dashboard:cancel_booking", args=[inspection_pk])
+
+    def _create_inspection(self, owner, days_ahead=5):
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=days_ahead)
+        return InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.SCHEDULED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+
+    def test_cancel_scheduled_inspection_timely(self):
+        """>=24h before: status=CANCELLED, late_cancellation=False."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner, days_ahead=5)
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+
+        assert resp.status_code == 200
+        inspection.refresh_from_db()
+        assert inspection.status == Inspection.Status.CANCELLED
+        assert inspection.late_cancellation is False
+        assert inspection.cancelled_at is not None
+
+    def test_cancel_scheduled_inspection_late(self):
+        """<24h before: status=CANCELLED, late_cancellation=True."""
+        from unittest.mock import patch
+
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        target_date = _future_date(days_ahead=1)
+        inspection = InspectionFactory(
+            apartment=apt,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            status=Inspection.Status.SCHEDULED,
+            time_slot=Inspection.TimeSlot.MORNING,
+        )
+        # Mock timezone.now() to be <24h before the slot
+        fake_now = inspection.scheduled_at - datetime.timedelta(hours=12)
+        client = Client()
+        client.force_login(owner)
+
+        with patch("apps.dashboard.views.timezone.now", return_value=fake_now):
+            resp = client.post(self._cancel_url(inspection.pk))
+
+        assert resp.status_code == 200
+        inspection.refresh_from_db()
+        assert inspection.status == Inspection.Status.CANCELLED
+        assert inspection.late_cancellation is True
+
+    def test_cancel_sets_cancelled_at(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        client = Client()
+        client.force_login(owner)
+
+        client.post(self._cancel_url(inspection.pk))
+
+        inspection.refresh_from_db()
+        assert inspection.cancelled_at is not None
+
+    def test_cannot_cancel_completed_inspection(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        inspection.status = Inspection.Status.COMPLETED
+        inspection.save(update_fields=["status"])
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 404
+
+    def test_cannot_cancel_in_progress_inspection(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        inspection.status = Inspection.Status.IN_PROGRESS
+        inspection.save(update_fields=["status"])
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 404
+
+    def test_cannot_cancel_other_owners_inspection(self):
+        owner1 = OwnerFactory()
+        owner2 = OwnerFactory()
+        SubscriptionFactory(owner=owner1)
+        SubscriptionFactory(owner=owner2)
+        inspection = self._create_inspection(owner1)
+        client = Client()
+        client.force_login(owner2)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 404
+
+    def test_unauthenticated_redirects_to_login(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        client = Client()
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 302
+        assert "/login/" in resp.url
+
+    def test_inspector_cannot_cancel(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        inspector = InspectorFactory()
+        client = Client()
+        client.force_login(inspector)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 404
+
+    def test_get_not_allowed(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.get(self._cancel_url(inspection.pk))
+        assert resp.status_code == 405
+
+    def test_double_cancel_returns_404(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        inspection = self._create_inspection(owner)
+        inspection.status = Inspection.Status.CANCELLED
+        inspection.save(update_fields=["status"])
+        client = Client()
+        client.force_login(owner)
+
+        resp = client.post(self._cancel_url(inspection.pk))
+        assert resp.status_code == 404
