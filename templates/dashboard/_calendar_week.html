@@ -1,0 +1,110 @@
+{% load i18n %}
+{# Week navigation #}
+<div class="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
+  {% if week_offset > 0 %}
+    <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset|add:"-1" }}"
+            hx-target="#calendar-container"
+            hx-swap="innerHTML"
+            class="flex items-center gap-1 text-sm font-medium text-accent hover:text-amber-600">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Vorherige
+    </button>
+  {% else %}
+    <span class="text-sm text-slate-300">Vorherige</span>
+  {% endif %}
+  <span class="text-sm font-semibold text-primary">
+    {{ start_of_week|date:"d.m." }} – {{ end_of_week|date:"d.m.Y" }}
+  </span>
+  <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset|add:"1" }}"
+          hx-target="#calendar-container"
+          hx-swap="innerHTML"
+          class="flex items-center gap-1 text-sm font-medium text-accent hover:text-amber-600">
+    Nächste
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+</div>
+{# Calendar grid — desktop: 7 columns, mobile: vertical stack #}
+<div class="mt-4 hidden gap-2 md:grid md:grid-cols-7">
+  {% for day in availability.days %}
+    <div class="rounded-xl border border-border bg-white p-3 shadow-sm">
+      <div class="mb-2 text-center">
+        <div class="text-xs font-medium uppercase text-secondary">{{ day.date|date:"D" }}</div>
+        <div class="text-lg font-semibold text-primary">{{ day.date|date:"d" }}</div>
+        <div class="text-xs text-secondary">{{ day.date|date:"M" }}</div>
+      </div>
+      <div class="space-y-1.5">
+        {% for slot in day.slots %}
+          {% if slot.available %}
+            <button hx-post="{% url 'dashboard:book_slot' %}"
+                    hx-target="#booking-result"
+                    hx-swap="innerHTML"
+                    hx-vals='{"apartment": "{{ selected_apartment.pk }}", "date": "{{ day.date|date:"Y-m-d" }}", "slot": "{{ slot.key }}"}'
+                    hx-confirm="Termin buchen: {{ day.date|date:'d.m.Y' }}, {{ slot.start }}–{{ slot.end }} Uhr für {{ selected_apartment.address }}?"
+                    class="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100">
+              {{ slot.start }}
+            </button>
+          {% elif slot.is_past %}
+            <div class="w-full rounded-lg bg-slate-50 px-2 py-1.5 text-center text-xs text-slate-300">{{ slot.start }}</div>
+          {% else %}
+            <div class="w-full rounded-lg border border-slate-200 bg-slate-100 px-2 py-1.5 text-center text-xs text-slate-400">
+              {{ slot.start }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{# Mobile: vertical day list #}
+<div class="mt-4 space-y-3 md:hidden">
+  {% for day in availability.days %}
+    <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="text-sm font-semibold text-primary">{{ day.date|date:"l" }}</span>
+        <span class="text-sm text-secondary">{{ day.date|date:"d.m.Y" }}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        {% for slot in day.slots %}
+          {% if slot.available %}
+            <button hx-post="{% url 'dashboard:book_slot' %}"
+                    hx-target="#booking-result"
+                    hx-swap="innerHTML"
+                    hx-vals='{"apartment": "{{ selected_apartment.pk }}", "date": "{{ day.date|date:"Y-m-d" }}", "slot": "{{ slot.key }}"}'
+                    hx-confirm="Termin buchen: {{ day.date|date:'d.m.Y' }}, {{ slot.start }}–{{ slot.end }} Uhr?"
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-xs font-medium text-emerald-700 transition hover:bg-emerald-100">
+              <div>{{ slot.start }}</div>
+              <div class="text-[10px] font-normal text-emerald-600">{{ slot.end }}</div>
+            </button>
+          {% elif slot.is_past %}
+            <div class="rounded-lg bg-slate-50 px-3 py-2.5 text-center text-xs text-slate-300">
+              <div>{{ slot.start }}</div>
+              <div class="text-[10px]">{{ slot.end }}</div>
+            </div>
+          {% else %}
+            <div class="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2.5 text-center text-xs text-slate-400">
+              <div>{{ slot.start }}</div>
+              <div class="text-[10px]">{{ slot.end }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{# Limit reached message #}
+{% if availability.limit_reached %}
+  <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-center shadow-sm">
+    <p class="text-sm font-medium text-amber-800">
+      Monatliches Inspektionslimit erreicht ({{ availability.used }}/{{ availability.limit }})
+    </p>
+    <p class="mt-1 text-xs text-amber-600">
+      <a href="{% url 'dashboard:subscription_change' %}" class="underline hover:text-amber-800">Plan upgraden</a>
+      oder
+      <a href="{% url 'dashboard:subscription_extra' %}" class="underline hover:text-amber-800">zusätzliche Inspektion anfragen</a>
+    </p>
+  </div>
+{% endif %}

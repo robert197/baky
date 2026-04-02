@@ -94,7 +94,11 @@
         <dl class="summary-details">
           <dt>Inspektor:</dt>
           <dd>
-            {{ inspector.get_full_name|default:inspector.username }}
+            {% if inspector %}
+              {{ inspector.get_full_name|default:inspector.username }}
+            {% else %}
+              Nicht zugewiesen
+            {% endif %}
           </dd>
           {% if duration %}
             <dt>Dauer:</dt>

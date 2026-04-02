@@ -101,15 +101,15 @@ class Subscription(TimeStampedModel):
         return candidate
 
     def get_inspections_used_this_month(self) -> int:
-        """Return the number of completed inspections this month across all owner apartments."""
+        """Return the number of non-cancelled inspections this month across all owner apartments."""
         from apps.inspections.models import Inspection
 
         today = date.today()
         return Inspection.objects.filter(
             apartment__owner=self.owner,
-            status=Inspection.Status.COMPLETED,
-            completed_at__year=today.year,
-            completed_at__month=today.month,
+            status__in=[Inspection.Status.SCHEDULED, Inspection.Status.IN_PROGRESS, Inspection.Status.COMPLETED],
+            scheduled_at__year=today.year,
+            scheduled_at__month=today.month,
         ).count()
 
 

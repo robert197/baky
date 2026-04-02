@@ -18,7 +18,13 @@
         <div>
           <h2 class="text-lg font-semibold text-primary">Inspektion vom {{ inspection.completed_at|date:"d.m.Y" }}</h2>
           <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-secondary">
-            <span>{{ inspection.inspector.get_full_name }}</span>
+            <span>
+              {% if inspection.inspector %}
+                {{ inspection.inspector.get_full_name }}
+              {% else %}
+                Nicht zugewiesen
+              {% endif %}
+            </span>
             {% if duration_display %}
               <span class="text-muted">&bull;</span>
               <span>{{ duration_display }}</span>
@@ -148,19 +154,24 @@
           </svg>
         </div>
         <div>
-          <div class="font-medium text-primary">{{ inspection.inspector.get_full_name }}</div>
-          {% if inspection.inspector.phone %}
-            <a href="tel:{{ inspection.inspector.phone }}" class="mt-1 block text-sm text-accent hover:text-amber-600">
-              {{ inspection.inspector.phone }}
-            </a>
-          {% endif %}
-          {% if inspection.inspector.email %}
-            <a href="mailto:{{ inspection.inspector.email }}" class="mt-0.5 block text-sm text-accent hover:text-amber-600">
-              {{ inspection.inspector.email }}
-            </a>
-          {% endif %}
-          {% if not inspection.inspector.phone and not inspection.inspector.email %}
-            <p class="mt-1 text-sm text-secondary">Für Rückfragen kontaktieren Sie bitte BAKY.</p>
+          {% if inspection.inspector %}
+            <div class="font-medium text-primary">{{ inspection.inspector.get_full_name }}</div>
+            {% if inspection.inspector.phone %}
+              <a href="tel:{{ inspection.inspector.phone }}" class="mt-1 block text-sm text-accent hover:text-amber-600">
+                {{ inspection.inspector.phone }}
+              </a>
+            {% endif %}
+            {% if inspection.inspector.email %}
+              <a href="mailto:{{ inspection.inspector.email }}" class="mt-0.5 block text-sm text-accent hover:text-amber-600">
+                {{ inspection.inspector.email }}
+              </a>
+            {% endif %}
+            {% if not inspection.inspector.phone and not inspection.inspector.email %}
+              <p class="mt-1 text-sm text-secondary">Für Rückfragen kontaktieren Sie bitte BAKY.</p>
+            {% endif %}
+          {% else %}
+            <div class="font-medium text-primary">Nicht zugewiesen</div>
+            <p class="mt-1 text-sm text-secondary">Ein Inspektor wird in Kürze zugewiesen.</p>
           {% endif %}
         </div>
       </div>

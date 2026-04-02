@@ -9,7 +9,7 @@ from apps.accounts.models import TimeStampedModel
 from baky.storage import generate_thumbnail_path, generate_upload_path, get_signed_url, validate_photo_file
 
 BUSINESS_HOURS_START = 8
-BUSINESS_HOURS_END = 18
+BUSINESS_HOURS_END = 16
 MIN_INSPECTION_DURATION = timedelta(hours=2)
 
 
@@ -25,6 +25,17 @@ class Inspection(TimeStampedModel):
         ATTENTION = "attention", "Achtung"
         URGENT = "urgent", "Dringend"
 
+    class TimeSlot(models.TextChoices):
+        MORNING = "morning", "Vormittag (08:00–10:30)"
+        MIDDAY = "midday", "Mittag (10:30–13:00)"
+        AFTERNOON = "afternoon", "Nachmittag (13:30–16:00)"
+
+    SLOT_TIMES = {
+        TimeSlot.MORNING: (8, 0, 10, 30),
+        TimeSlot.MIDDAY: (10, 30, 13, 0),
+        TimeSlot.AFTERNOON: (13, 30, 16, 0),
+    }
+
     apartment = models.ForeignKey(
         "apartments.Apartment",
         on_delete=models.CASCADE,
@@ -32,9 +43,11 @@ class Inspection(TimeStampedModel):
     )
     inspector = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="inspections",
         limit_choices_to={"role": "inspector"},
+        null=True,
+        blank=True,
     )
     scheduled_at = models.DateTimeField()
     scheduled_end = models.DateTimeField(
@@ -47,6 +60,7 @@ class Inspection(TimeStampedModel):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
     overall_rating = models.CharField(max_length=20, choices=OverallRating.choices, blank=True)
     general_notes = models.TextField(blank=True)
+    time_slot = models.CharField(max_length=20, choices=TimeSlot.choices, blank=True)
 
     class Meta:
         ordering = ["-scheduled_at"]
@@ -94,6 +108,19 @@ class Inspection(TimeStampedModel):
                     overlapping = overlapping.exclude(pk=self.pk)
                 if overlapping.exists():
                     errors["scheduled_at"] = "Dieser Inspektor hat bereits eine Inspektion in diesem Zeitraum."
+
+            # Validate no same-apartment same-day booking
+            if self.apartment_id:
+                local_date = timezone.localtime(self.scheduled_at).date()
+                same_day = Inspection.objects.filter(
+                    apartment=self.apartment,
+                    scheduled_at__date=local_date,
+                    status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS, self.Status.COMPLETED],
+                )
+                if self.pk:
+                    same_day = same_day.exclude(pk=self.pk)
+                if same_day.exists():
+                    errors["scheduled_at"] = "Für diese Wohnung ist an diesem Tag bereits eine Inspektion geplant."
 
             # Validate subscription limits (skip only for cancelled inspections)
             if self.apartment_id and self.status != self.Status.CANCELLED:

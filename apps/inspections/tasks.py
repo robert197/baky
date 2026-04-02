@@ -49,6 +49,10 @@ def send_inspection_reminder(inspection_id: int) -> dict:
         logger.warning("Inspection %d scheduled_at is in the past, skipping reminder", inspection_id)
         return {"inspection_id": inspection_id, "status": "skipped", "reason": "past_due"}
 
+    if not inspection.inspector:
+        logger.info("Inspection %d has no inspector assigned, skipping reminder", inspection_id)
+        return {"inspection_id": inspection_id, "status": "skipped", "reason": "no_inspector"}
+
     subject = f"BAKY Inspektion morgen — {inspection.apartment.address}"
     scheduled_date = timezone.localtime(inspection.scheduled_at).strftime("%d.%m.%Y")
     scheduled_time = timezone.localtime(inspection.scheduled_at).strftime("%H:%M")

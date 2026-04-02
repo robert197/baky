@@ -1,0 +1,48 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Termin buchen{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-4xl space-y-6">
+    {# Subscription usage indicator #}
+    {% if availability %}
+      <div class="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
+        <span class="text-sm text-secondary">Inspektionen diesen Monat</span>
+        <span class="text-sm font-semibold {% if availability.limit_reached %}text-rose-600{% else %}text-primary{% endif %}">
+          {{ availability.used }}/{{ availability.limit }}
+        </span>
+      </div>
+    {% endif %}
+    {# Apartment selector #}
+    <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
+      <label for="id_apartment" class="mb-1.5 block text-sm font-medium text-primary">Wohnung auswählen</label>
+      <select id="id_apartment"
+              name="apartment"
+              class="w-full rounded-lg border border-border px-4 py-3"
+              hx-get="{% url 'dashboard:booking_calendar' %}"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+              hx-include="[name='week']">
+        <option value="">— Wohnung wählen —</option>
+        {% for apt in apartments %}
+          <option value="{{ apt.pk }}" {% if selected_apartment and selected_apartment.pk == apt.pk %}selected{% endif %}>
+            {{ apt.address }}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="hidden" name="week" value="{{ week_offset }}">
+    </div>
+    {# Calendar #}
+    {% if selected_apartment %}
+      <div id="calendar-container">{% include "dashboard/_calendar_week.html" %}</div>
+    {% elif apartments %}
+      <div class="rounded-xl border border-border bg-white p-8 text-center shadow-sm">
+        <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="mt-3 text-sm text-secondary">Wählen Sie eine Wohnung, um verfügbare Termine zu sehen.</p>
+      </div>
+    {% endif %}
+  </div>
+  {# Booking result container (for HTMX responses) #}
+  <div id="booking-result"></div>
+{% endblock %}
