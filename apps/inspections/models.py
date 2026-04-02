@@ -109,6 +109,21 @@ class Inspection(TimeStampedModel):
                 if overlapping.exists():
                     errors["scheduled_at"] = "Dieser Inspektor hat bereits eine Inspektion in diesem Zeitraum."
 
+            # Validate global slot exclusivity (one booking per date+time_slot)
+            # NOTE: Date extraction must match the DB partial unique index (migration 0006)
+            # which uses DATE(scheduled_at AT TIME ZONE 'Europe/Vienna').
+            if self.time_slot:
+                local_date = timezone.localtime(self.scheduled_at).date()
+                global_conflict = Inspection.objects.filter(
+                    scheduled_at__date=local_date,
+                    time_slot=self.time_slot,
+                    status__in=[self.Status.SCHEDULED, self.Status.IN_PROGRESS, self.Status.COMPLETED],
+                )
+                if self.pk:
+                    global_conflict = global_conflict.exclude(pk=self.pk)
+                if global_conflict.exists():
+                    errors["time_slot"] = "Dieser Termin ist bereits vergeben."
+
             # Validate no same-apartment same-day booking
             if self.apartment_id:
                 local_date = timezone.localtime(self.scheduled_at).date()

@@ -4,6 +4,7 @@ import datetime
 import zoneinfo
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.test import Client
 from django.urls import reverse
 
@@ -333,7 +334,8 @@ class TestBookSlotView:
         assert local_end.hour == 13
         assert local_end.minute == 0
 
-    def test_different_apartment_same_day_accepted(self):
+    def test_different_apartment_same_slot_rejected(self):
+        """Global slot exclusivity: same date+slot across apartments is rejected."""
         owner = OwnerFactory()
         SubscriptionFactory(owner=owner, plan="standard")  # 4/month
         apt1 = ApartmentFactory(owner=owner)
@@ -341,7 +343,7 @@ class TestBookSlotView:
         inspector = InspectorFactory()
         target_date = _future_date(days_ahead=5)
 
-        # Book apt1 on target date
+        # Book apt1 morning slot
         InspectionFactory(
             apartment=apt1,
             inspector=inspector,
@@ -351,6 +353,7 @@ class TestBookSlotView:
             scheduled_end=datetime.datetime(
                 target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
             ),
+            time_slot="morning",
         )
 
         client = Client()
@@ -360,7 +363,74 @@ class TestBookSlotView:
             {"apartment": apt2.pk, "date": target_date.isoformat(), "slot": "morning"},
         )
         assert resp.status_code == 200
+        assert "bereits vergeben" in resp.content.decode()
+        assert Inspection.objects.filter(apartment=apt2).count() == 0
+
+    def test_different_apartment_different_slot_accepted(self):
+        """Different slots on the same day for different apartments are OK."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner, plan="standard")  # 4/month
+        apt1 = ApartmentFactory(owner=owner)
+        apt2 = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        # Book apt1 morning slot
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        client = Client()
+        client.force_login(owner)
+        resp = client.post(
+            reverse("dashboard:book_slot"),
+            {"apartment": apt2.pk, "date": target_date.isoformat(), "slot": "afternoon"},
+        )
+        assert resp.status_code == 200
         assert "Termin gebucht" in resp.content.decode()
+
+    def test_cross_owner_same_slot_rejected(self):
+        """Owner B cannot book a slot already booked by Owner A."""
+        owner_a = OwnerFactory()
+        owner_b = OwnerFactory()
+        SubscriptionFactory(owner=owner_a, plan="standard")
+        SubscriptionFactory(owner=owner_b, plan="standard")
+        apt_a = ApartmentFactory(owner=owner_a)
+        apt_b = ApartmentFactory(owner=owner_b)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        # Owner A books morning slot
+        InspectionFactory(
+            apartment=apt_a,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        # Owner B tries to book the same slot
+        client = Client()
+        client.force_login(owner_b)
+        resp = client.post(
+            reverse("dashboard:book_slot"),
+            {"apartment": apt_b.pk, "date": target_date.isoformat(), "slot": "morning"},
+        )
+        assert resp.status_code == 200
+        assert "bereits vergeben" in resp.content.decode()
+        assert Inspection.objects.filter(apartment=apt_b).count() == 0
 
 
 @pytest.mark.django_db
@@ -517,7 +587,8 @@ class TestSameDayDuplicateValidation:
         )
         inspection2.full_clean()  # Should not raise
 
-    def test_different_apartment_same_day_accepted(self):
+    def test_different_apartment_same_slot_rejected(self):
+        """Global slot exclusivity at model level: same date+slot is rejected."""
         owner = OwnerFactory()
         SubscriptionFactory(owner=owner, plan="standard")
         apt1 = ApartmentFactory(owner=owner)
@@ -534,6 +605,7 @@ class TestSameDayDuplicateValidation:
             scheduled_end=datetime.datetime(
                 target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
             ),
+            time_slot="morning",
         )
 
         inspection2 = Inspection(
@@ -545,6 +617,44 @@ class TestSameDayDuplicateValidation:
             scheduled_end=datetime.datetime(
                 target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
             ),
+            time_slot="morning",
+            status=Inspection.Status.SCHEDULED,
+        )
+        with pytest.raises(ValidationError) as exc_info:
+            inspection2.full_clean()
+        assert "bereits vergeben" in str(exc_info.value)
+
+    def test_different_apartment_different_slot_accepted(self):
+        """Different slots on same day for different apartments are fine."""
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner, plan="standard")
+        apt1 = ApartmentFactory(owner=owner)
+        apt2 = ApartmentFactory(owner=owner)
+        inspector = InspectorFactory()
+        target_date = _future_date(days_ahead=5)
+
+        InspectionFactory(
+            apartment=apt1,
+            inspector=inspector,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 8, 0, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 10, 30, tzinfo=VIENNA_TZ
+            ),
+            time_slot="morning",
+        )
+
+        inspection2 = Inspection(
+            apartment=apt2,
+            inspector=None,
+            scheduled_at=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 13, 30, tzinfo=VIENNA_TZ
+            ),
+            scheduled_end=datetime.datetime(
+                target_date.year, target_date.month, target_date.day, 16, 0, tzinfo=VIENNA_TZ
+            ),
+            time_slot="afternoon",
             status=Inspection.Status.SCHEDULED,
         )
         inspection2.full_clean()  # Should not raise
