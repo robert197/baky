@@ -1,0 +1,44 @@
+{# HTMX fragment: inline summary for a timeline item #}
+<div class="border-t border-border bg-surface/50 px-4 py-4">
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {# Flagged items count #}
+    <div class="rounded-lg bg-white p-3 text-center">
+      <div class="text-lg font-semibold {% if inspection.flagged_count > 0 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+        {{ inspection.flagged_count }}
+      </div>
+      <div class="text-xs text-secondary">Auffällig</div>
+    </div>
+    {# Photos count #}
+    <div class="rounded-lg bg-white p-3 text-center">
+      <div class="text-lg font-semibold text-primary">{{ inspection.photo_count }}</div>
+      <div class="text-xs text-secondary">Fotos</div>
+    </div>
+    {# Rating #}
+    <div class="rounded-lg bg-white p-3 text-center">
+      {% if inspection.overall_rating %}
+        {% include "components/_status_badge.html" with status=inspection.overall_rating %}
+      {% else %}
+        <span class="text-xs text-muted">—</span>
+      {% endif %}
+    </div>
+    {# Inspector #}
+    <div class="rounded-lg bg-white p-3 text-center">
+      <div class="text-xs text-secondary">{{ inspection.inspector.get_full_name }}</div>
+    </div>
+  </div>
+  {% if inspection.general_notes %}
+    <div class="mt-3 rounded-lg bg-white p-3">
+      <p class="text-sm text-secondary">{{ inspection.general_notes|truncatewords:30 }}</p>
+    </div>
+  {% endif %}
+  <div class="mt-3 flex gap-2">
+    <a href="{% url 'dashboard:inspection_report_detail' apartment.pk inspection.pk %}"
+       class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">Bericht ansehen</a>
+    {% if inspection.has_report %}
+      <a href="{% url 'dashboard:report_detail' inspection.report.pk %}"
+         class="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-secondary hover:bg-surface">
+        Original-Bericht
+      </a>
+    {% endif %}
+  </div>
+</div>

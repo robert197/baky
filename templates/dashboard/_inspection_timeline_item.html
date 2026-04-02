@@ -1,0 +1,35 @@
+{# Single inspection timeline item with HTMX expandable summary #}
+<div class="inspection-item" x-data="{ expanded: false }">
+  <div class="rounded-xl border border-border bg-white shadow-sm transition-shadow hover:shadow-md">
+    <button @click="expanded = !expanded"
+            :aria-expanded="expanded"
+            hx-get="{% url 'dashboard:inspection_summary' apartment.pk inspection.pk %}"
+            hx-target="#summary-{{ inspection.pk }}"
+            hx-trigger="click once"
+            hx-swap="innerHTML"
+            class="flex w-full items-center justify-between px-4 py-3 text-left">
+      <div class="flex flex-1 items-center gap-3">
+        <div class="text-sm font-medium text-primary">{{ inspection.completed_at|date:"d.m.Y" }}</div>
+        <div class="hidden text-sm text-secondary sm:block">{{ inspection.inspector.get_full_name }}</div>
+      </div>
+      <div class="flex items-center gap-2">
+        {% if inspection.overall_rating %}
+          {% include "components/_status_badge.html" with status=inspection.overall_rating %}
+        {% endif %}
+        <svg class="h-4 w-4 text-secondary transition-transform"
+             :class="{ 'rotate-180': expanded }"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </button>
+    {# Mobile: inspector name below #}
+    <div class="border-t border-border/50 px-4 py-1.5 sm:hidden">
+      <span class="text-xs text-secondary">{{ inspection.inspector.get_full_name }}</span>
+    </div>
+    {# Expandable summary #}
+    <div id="summary-{{ inspection.pk }}" x-show="expanded" x-collapse x-cloak></div>
+  </div>
+</div>

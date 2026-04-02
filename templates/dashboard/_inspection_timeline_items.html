@@ -1,0 +1,25 @@
+{% if inspections %}
+  <div class="space-y-3">
+    {% for inspection in inspections %}
+      {% include "dashboard/_inspection_timeline_item.html" %}
+    {% endfor %}
+  </div>
+  {% if has_more %}
+    <div class="mt-4 text-center">
+      <button hx-get="{% url 'dashboard:inspection_timeline' apartment.pk %}?page={{ next_page }}{% if current_rating %}&rating={{ current_rating }}{% endif %}{% if current_from %}&from={{ current_from }}{% endif %}{% if current_to %}&to={{ current_to }}{% endif %}"
+              hx-target="#timeline-items .space-y-3"
+              hx-swap="beforeend"
+              hx-select=".space-y-3 > *"
+              class="rounded-lg border border-border bg-white px-6 py-2 text-sm font-medium text-secondary hover:bg-surface">
+        Mehr laden
+      </button>
+    </div>
+  {% endif %}
+{% else %}
+  <div class="rounded-xl border border-border bg-white p-8 text-center">
+    <svg class="mx-auto mb-3 h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+    <p class="text-sm text-muted">Noch keine Inspektionen durchgeführt.</p>
+  </div>
+{% endif %}

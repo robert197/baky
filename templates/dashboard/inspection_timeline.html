@@ -1,0 +1,76 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block page_title %}Inspektionen — {{ apartment.address }}{% endblock %}
+{% block page_actions %}
+  <a href="{% url 'dashboard:apartment_detail' apartment.pk %}"
+     class="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-secondary hover:bg-surface">
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    Zurück
+  </a>
+{% endblock %}
+{% block content %}
+  <div class="space-y-4">
+    {# Filters #}
+    <div class="rounded-xl border border-border bg-white p-4 shadow-sm">
+      <form hx-get="{% url 'dashboard:inspection_timeline' apartment.pk %}"
+            hx-target="#timeline-items"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+            class="flex flex-wrap items-end gap-3">
+        {# Rating filter chips #}
+        <div>
+          <label class="mb-1 block text-xs font-medium text-secondary">Bewertung</label>
+          <div class="flex gap-1">
+            <button type="submit"
+                    name="rating"
+                    value=""
+                    class="rounded-full px-3 py-1 text-xs font-medium {% if not current_rating %}bg-primary text-white{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
+              Alle
+            </button>
+            <button type="submit"
+                    name="rating"
+                    value="ok"
+                    class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'ok' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
+              OK
+            </button>
+            <button type="submit"
+                    name="rating"
+                    value="attention"
+                    class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'attention' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
+              Achtung
+            </button>
+            <button type="submit"
+                    name="rating"
+                    value="urgent"
+                    class="rounded-full px-3 py-1 text-xs font-medium {% if current_rating == 'urgent' %}bg-rose-100 text-rose-800{% else %}bg-slate-100 text-secondary hover:bg-slate-200{% endif %}">
+              Dringend
+            </button>
+          </div>
+        </div>
+        {# Date range #}
+        <div>
+          <label for="filter-from" class="mb-1 block text-xs font-medium text-secondary">Von</label>
+          <input type="date"
+                 id="filter-from"
+                 name="from"
+                 value="{{ current_from }}"
+                 class="rounded-lg border border-border px-3 py-1.5 text-sm text-primary" />
+        </div>
+        <div>
+          <label for="filter-to" class="mb-1 block text-xs font-medium text-secondary">Bis</label>
+          <input type="date"
+                 id="filter-to"
+                 name="to"
+                 value="{{ current_to }}"
+                 class="rounded-lg border border-border px-3 py-1.5 text-sm text-primary" />
+        </div>
+        <button type="submit" class="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-slate-700">
+          Filtern
+        </button>
+      </form>
+    </div>
+    {# Timeline items #}
+    <div id="timeline-items">{% include "dashboard/_inspection_timeline_items.html" %}</div>
+  </div>
+{% endblock %}
