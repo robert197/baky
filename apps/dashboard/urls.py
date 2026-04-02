@@ -25,6 +25,7 @@ urlpatterns = [
     # Booking
     path("buchen/", views.booking_calendar, name="booking_calendar"),
     path("buchen/slot/", views.book_slot, name="book_slot"),
+    path("buchen/stornieren/<int:pk>/", views.cancel_booking, name="cancel_booking"),
     # Subscription management
     path("subscription/", views.subscription_overview, name="subscription"),
     path("subscription/change/", views.subscription_change, name="subscription_change"),

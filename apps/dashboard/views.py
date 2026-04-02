@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
-from django.http import HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -512,6 +512,16 @@ def booking_calendar(request):
 
     end_of_week = start_of_week + timedelta(days=6)
 
+    upcoming_inspections = (
+        Inspection.objects.filter(
+            apartment__owner=request.user,
+            status=Inspection.Status.SCHEDULED,
+            scheduled_at__gt=timezone.now(),
+        )
+        .select_related("apartment")
+        .order_by("scheduled_at")[:10]
+    )
+
     context = {
         "form": form,
         "apartments": apartments,
@@ -521,6 +531,7 @@ def booking_calendar(request):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "subscription": subscription,
+        "upcoming_inspections": upcoming_inspections,
         "active": "booking",
     }
 
@@ -610,6 +621,48 @@ def book_slot(request):
     )
 
 
+@owner_required
+def cancel_booking(request, pk):
+    """Cancel a scheduled inspection with 24h policy enforcement."""
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    with transaction.atomic():
+        try:
+            inspection = Inspection.objects.select_for_update().get(
+                pk=pk,
+                apartment__owner=request.user,
+                status=Inspection.Status.SCHEDULED,
+            )
+        except Inspection.DoesNotExist:
+            raise Http404 from None
+
+        now = timezone.now()
+        cutoff = inspection.scheduled_at - timedelta(hours=24)
+        is_late = now >= cutoff
+
+        inspection.status = Inspection.Status.CANCELLED
+        inspection.late_cancellation = is_late
+        inspection.cancelled_at = now
+        inspection.save(update_fields=["status", "late_cancellation", "cancelled_at", "updated_at"])
+
+    # Notify admin (outside transaction)
+    from baky.tasks import queue_task
+
+    queue_task(
+        "apps.dashboard.tasks.send_cancellation_notification",
+        request.user.pk,
+        inspection.pk,
+        task_name=f"cancel_notification_{inspection.pk}",
+    )
+
+    return render(
+        request,
+        "dashboard/_cancel_success.html",
+        {"inspection": inspection, "apartment": inspection.apartment, "is_late": is_late},
+    )
+
+
 # --- GDPR / Account views ---
 
 
@@ -639,7 +692,11 @@ def account_delete(request):
         Inspection.objects.filter(
             apartment__owner=request.user,
             status=Inspection.Status.SCHEDULED,
-        ).update(status=Inspection.Status.CANCELLED)
+        ).update(
+            status=Inspection.Status.CANCELLED,
+            cancelled_at=timezone.now(),
+            late_cancellation=False,
+        )
 
         # Soft-delete the account
         request.user.deleted_at = timezone.now()

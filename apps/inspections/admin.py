@@ -3,6 +3,7 @@ import csv
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
+from django.utils import timezone
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
@@ -75,7 +76,11 @@ class InspectionAdmin(ModelAdmin):
 
     @action(description="Inspektionen stornieren")
     def cancel_inspections(self, request, queryset):
-        updated = queryset.filter(status=Inspection.Status.SCHEDULED).update(status=Inspection.Status.CANCELLED)
+        updated = queryset.filter(status=Inspection.Status.SCHEDULED).update(
+            status=Inspection.Status.CANCELLED,
+            late_cancellation=False,
+            cancelled_at=timezone.now(),
+        )
         self.message_user(request, f"{updated} Inspektion(en) storniert.")
 
     @action(description="Als CSV exportieren")

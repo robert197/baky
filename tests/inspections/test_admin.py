@@ -99,6 +99,20 @@ class TestInspectionAdmin:
         inspection.refresh_from_db()
         assert inspection.status == Inspection.Status.CANCELLED
 
+    def test_cancel_sets_late_cancellation_false(self, client):
+        client.force_login(self.superuser)
+        inspection = InspectionFactory(status=Inspection.Status.SCHEDULED)
+        url = reverse("admin:inspections_inspection_changelist")
+        client.post(
+            url,
+            {"action": "cancel_inspections", "_selected_action": [inspection.pk]},
+            follow=True,
+        )
+        inspection.refresh_from_db()
+        assert inspection.status == Inspection.Status.CANCELLED
+        assert inspection.late_cancellation is False
+        assert inspection.cancelled_at is not None
+
     def test_cancel_only_affects_scheduled(self, client):
         client.force_login(self.superuser)
         completed = InspectionFactory(status=Inspection.Status.COMPLETED)
