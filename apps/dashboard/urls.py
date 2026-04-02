@@ -32,4 +32,7 @@ urlpatterns = [
     path("subscription/cancel/", views.subscription_cancel, name="subscription_cancel"),
     path("subscription/extra/", views.subscription_extra, name="subscription_extra"),
     path("subscription/billing/", views.subscription_billing, name="subscription_billing"),
+    # Account / GDPR
+    path("account/delete/", views.account_delete, name="account_delete"),
+    path("account/export/", views.data_export_request, name="data_export"),
 ]

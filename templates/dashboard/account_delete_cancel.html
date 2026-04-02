@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Kontolöschung rückgängig machen — BAKY{% endblock %}
+{% block body %}
+  <div class="flex min-h-screen items-center justify-center bg-surface px-4">
+    <div class="w-full max-w-md">
+      <div class="rounded-xl border border-border bg-white p-8 shadow-sm">
+        <h1 class="mb-2 text-xl font-bold text-primary">Kontolöschung rückgängig machen</h1>
+        <p class="mb-6 text-sm text-secondary">
+          Geben Sie Ihre E-Mail-Adresse und Ihr Passwort ein, um die Kontolöschung rückgängig zu machen.
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="space-y-4">
+            <div>
+              <label for="email" class="mb-1.5 block text-sm font-medium text-primary">E-Mail-Adresse</label>
+              <input type="email"
+                     name="email"
+                     id="email"
+                     required
+                     class="w-full rounded-lg border border-border px-4 py-3"
+                     autofocus>
+            </div>
+            <div>
+              <label for="password" class="mb-1.5 block text-sm font-medium text-primary">Passwort</label>
+              <input type="password"
+                     name="password"
+                     id="password"
+                     required
+                     class="w-full rounded-lg border border-border px-4 py-3">
+            </div>
+          </div>
+          <button type="submit"
+                  class="mt-6 w-full rounded-lg bg-amber-500 px-6 py-3 text-sm font-medium text-white hover:bg-amber-600">
+            Löschung rückgängig machen
+          </button>
+        </form>
+        <p class="mt-4 text-center text-xs text-secondary">
+          <a href="{% url 'accounts:login' %}" class="text-amber-600 hover:text-amber-700">Zurück zum Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

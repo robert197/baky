@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.accounts.decorators import owner_required
-from apps.accounts.models import Subscription
+from apps.accounts.models import DataExportRequest, Subscription, User
 from apps.apartments.models import Apartment
 from apps.dashboard.forms import (
     ApartmentEditForm,
@@ -585,4 +585,107 @@ def book_slot(request):
         request,
         "dashboard/_booking_success.html",
         {"inspection": inspection, "apartment": apartment},
+    )
+
+
+# --- GDPR / Account views ---
+
+
+@owner_required
+def account_delete(request):
+    """Request account deletion with password confirmation."""
+    if request.method == "POST":
+        password = request.POST.get("password", "")
+        if not request.user.check_password(password):
+            messages.error(request, "Falsches Passwort. Bitte versuchen Sie es erneut.")
+            return render(request, "dashboard/account_delete.html", {"active": "account"})
+
+        # Block if any inspection is in progress
+        in_progress = Inspection.objects.filter(
+            apartment__owner=request.user,
+            status=Inspection.Status.IN_PROGRESS,
+        ).exists()
+        if in_progress:
+            messages.error(
+                request,
+                "Kontolöschung nicht möglich: Es gibt laufende Inspektionen. "
+                "Bitte warten Sie, bis alle Inspektionen abgeschlossen sind.",
+            )
+            return render(request, "dashboard/account_delete.html", {"active": "account"})
+
+        # Cancel scheduled inspections
+        Inspection.objects.filter(
+            apartment__owner=request.user,
+            status=Inspection.Status.SCHEDULED,
+        ).update(status=Inspection.Status.CANCELLED)
+
+        # Soft-delete the account
+        request.user.deleted_at = timezone.now()
+        request.user.is_active = False
+        request.user.save(update_fields=["deleted_at", "is_active"])
+
+        messages.success(
+            request,
+            "Ihr Konto wurde zur Löschung vorgemerkt. " "Sie haben 30 Tage Zeit, die Löschung rückgängig zu machen.",
+        )
+        return redirect("accounts:login")
+
+    return render(request, "dashboard/account_delete.html", {"active": "account"})
+
+
+def account_delete_cancel(request):
+    """Cancel a pending account deletion (allows login for soft-deleted users)."""
+    if request.method != "POST":
+        return render(request, "dashboard/account_delete_cancel.html")
+
+    email = request.POST.get("email", "").strip().lower()
+    password = request.POST.get("password", "")
+
+    try:
+        user = User.objects.get(email=email, deleted_at__isnull=False, is_active=False)
+    except User.DoesNotExist:
+        messages.error(request, "Kein zur Löschung vorgemerktes Konto mit dieser E-Mail gefunden.")
+        return render(request, "dashboard/account_delete_cancel.html")
+
+    if not user.check_password(password):
+        messages.error(request, "Falsches Passwort.")
+        return render(request, "dashboard/account_delete_cancel.html")
+
+    user.deleted_at = None
+    user.is_active = True
+    user.save(update_fields=["deleted_at", "is_active"])
+
+    messages.success(request, "Kontolöschung erfolgreich rückgängig gemacht. Willkommen zurück!")
+    return redirect("accounts:login")
+
+
+@owner_required
+def data_export_request(request):
+    """Request a DSGVO data export."""
+    # Check for pending export
+    pending = DataExportRequest.objects.filter(
+        user=request.user,
+        status__in=[DataExportRequest.Status.PENDING, DataExportRequest.Status.PROCESSING],
+    ).first()
+
+    if request.method == "POST" and not pending:
+        export_req = DataExportRequest.objects.create(user=request.user)
+
+        from baky.tasks import queue_task
+
+        queue_task(
+            "apps.accounts.tasks.generate_data_export",
+            export_req.pk,
+            task_name=f"data_export_{request.user.pk}",
+        )
+
+        messages.success(request, "Ihr Datenexport wird erstellt. Sie erhalten eine E-Mail, sobald er bereit ist.")
+        return redirect("dashboard:data_export")
+
+    recent_exports = DataExportRequest.objects.filter(user=request.user).order_by("-requested_at")[:5]
+
+    return render(
+        request,
+        "dashboard/data_export.html",
+        {"pending": pending, "recent_exports": recent_exports, "active": "account"},
     )

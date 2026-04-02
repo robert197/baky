@@ -187,3 +187,56 @@ class TestSubscriptionPricing:
         assert Subscription.PLAN_PRICES[Subscription.Plan.BASIS] == 89
         assert Subscription.PLAN_PRICES[Subscription.Plan.STANDARD] == 149
         assert Subscription.PLAN_PRICES[Subscription.Plan.PREMIUM] == 249
+
+
+class TestUserSoftDelete:
+    def test_user_default_no_deleted_at(self, user):
+        assert user.deleted_at is None
+
+    def test_user_default_no_privacy_consent(self, user):
+        assert user.privacy_consent_at is None
+
+    def test_user_soft_delete_sets_fields(self, user):
+        from django.utils import timezone
+
+        user.deleted_at = timezone.now()
+        user.is_active = False
+        user.save()
+        user.refresh_from_db()
+        assert user.deleted_at is not None
+        assert user.is_active is False
+
+    def test_user_cancel_deletion(self, user):
+        from django.utils import timezone
+
+        user.deleted_at = timezone.now()
+        user.is_active = False
+        user.save()
+        user.deleted_at = None
+        user.is_active = True
+        user.save()
+        user.refresh_from_db()
+        assert user.deleted_at is None
+        assert user.is_active is True
+
+
+class TestDataExportRequest:
+    def test_create_export_request(self, user):
+        from apps.accounts.models import DataExportRequest
+
+        request = DataExportRequest.objects.create(user=user)
+        assert request.status == "PENDING"
+        assert request.requested_at is not None
+
+    def test_str_representation(self, user):
+        from apps.accounts.models import DataExportRequest
+
+        request = DataExportRequest.objects.create(user=user)
+        assert user.email in str(request)
+
+    def test_cascade_delete_with_user(self, user):
+        from apps.accounts.models import DataExportRequest
+
+        request = DataExportRequest.objects.create(user=user)
+        user.delete()
+        assert not DataExportRequest.objects.filter(pk=request.pk).exists()

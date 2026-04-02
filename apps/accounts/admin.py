@@ -3,15 +3,34 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db.models import Count
 from unfold.admin import ModelAdmin
 
-from .models import EmailVerificationToken, OnboardingProgress, Subscription, User
+from .models import DataExportRequest, EmailVerificationToken, OnboardingProgress, Subscription, User
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
-    list_display = ["username", "email", "role", "phone", "is_active", "apartment_count"]
-    list_filter = ["role", "is_active"]
+    list_display = ["username", "email", "role", "phone", "is_active", "deleted_at", "apartment_count"]
+    list_filter = ["role", "is_active", "deleted_at"]
     search_fields = ["username", "email", "first_name", "last_name", "phone"]
-    fieldsets = BaseUserAdmin.fieldsets + (("BAKY", {"fields": ("role", "phone", "address", "availability")}),)
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ("BAKY", {"fields": ("role", "phone", "address", "availability")}),
+        ("DSGVO", {"fields": ("deleted_at", "privacy_consent_at")}),
+    )
+    actions = ["generate_data_export"]
+
+    @admin.action(description="Datenexport erstellen")
+    def generate_data_export(self, request, queryset):
+        from baky.tasks import queue_task
+
+        count = 0
+        for user in queryset:
+            export_req = DataExportRequest.objects.create(user=user)
+            queue_task(
+                "apps.accounts.tasks.generate_data_export",
+                export_req.pk,
+                task_name=f"admin_data_export_{user.pk}",
+            )
+            count += 1
+        self.message_user(request, f"{count} Datenexport(e) in die Warteschlange gestellt.")
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(_apartment_count=Count("apartments"))
@@ -44,3 +63,12 @@ class OnboardingProgressAdmin(ModelAdmin):
     list_filter = ["current_step", "is_complete"]
     search_fields = ["user__username", "user__email"]
     raw_id_fields = ["user", "apartment"]
+
+
+@admin.register(DataExportRequest)
+class DataExportRequestAdmin(ModelAdmin):
+    list_display = ["user", "status", "requested_at", "completed_at"]
+    list_filter = ["status"]
+    search_fields = ["user__email"]
+    raw_id_fields = ["user"]
+    readonly_fields = ["requested_at"]
