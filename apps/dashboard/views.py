@@ -6,6 +6,7 @@ from itertools import groupby
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Count, Exists, Max, Min, OuterRef, Q, Subquery
 from django.db.models.functions import Now
 from django.http import HttpResponseNotAllowed
@@ -570,18 +571,18 @@ def book_slot(request):
             {"error": "Buchungen müssen mindestens 24 Stunden im Voraus erfolgen."},
         )
 
-    inspection = Inspection(
-        apartment=apartment,
-        inspector=None,
-        scheduled_at=scheduled_at,
-        scheduled_end=scheduled_end,
-        time_slot=slot_key,
-        status=Inspection.Status.SCHEDULED,
-    )
-
     try:
-        inspection.full_clean()
-        inspection.save()
+        with transaction.atomic():
+            inspection = Inspection(
+                apartment=apartment,
+                inspector=None,
+                scheduled_at=scheduled_at,
+                scheduled_end=scheduled_end,
+                time_slot=slot_key,
+                status=Inspection.Status.SCHEDULED,
+            )
+            inspection.full_clean()
+            inspection.save()
     except ValidationError as e:
         error_msg = ". ".join(msg for msgs in e.message_dict.values() for msg in msgs)
         return render(request, "dashboard/_booking_error.html", {"error": error_msg})
