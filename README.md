@@ -42,16 +42,69 @@ flowchart TD
     subgraph onboarding ["Onboarding Wizard"]
         O1["Step 1: Register Apartment\nAddress via Google Maps autocomplete\nAccess method + encrypted access code"]
         O2["Step 2: Customize Checklist\nEnable/disable default items\nAdd custom items"]
-        O3["Step 3: Select Plan\nBasis EUR 59.90/mo - 2 inspections\nExtra EUR 99.90/mo - 4 inspections"]
+        O3["Step 3: Select Plan\nBasis / Standard / Premium"]
         O4["Step 4: Confirmation\nReview summary + welcome email"]
         O1 --> O2 --> O3 --> O4
     end
 
     O4 --> D["/dashboard/\nOwner Dashboard"]
-    D --> D1["View apartments"]
-    D --> D2["View inspection reports"]
-    D --> D3["Manage subscription"]
+    D --> D1["View apartments + details"]
+    D --> D2["Book inspections via calendar"]
+    D --> D3["View inspection reports"]
+    D --> D4["Manage subscription"]
+    D --> D5["Account settings + GDPR"]
 ```
+
+### Owner Dashboard Flows
+
+**Apartment Management**
+- View all apartments with status badges (Aktiv/Pausiert), last/next inspection dates and ratings
+- Click into apartment detail: address, access method, full checklist, recent inspections
+- Edit apartment: change address, access method/code, access notes, special instructions, status
+
+**Booking Calendar**
+- Select apartment from dropdown to see weekly calendar view
+- 3 time slots per day: 08:00-10:30, 10:30-13:00, 13:30-16:00
+- Color-coded slots: green (available), amber (your booking), grey (taken/past)
+- Book a slot with confirmation dialog; cancel booking with cancellation confirmation
+- 24-hour advance booking rule enforced; double-booking prevented
+- Subscription progress bar shows used/total inspections this month
+
+**Subscription Management**
+- Overview: plan, price, billing date, inspection usage
+- Change plan: request upgrade/downgrade (sends confirmation email)
+- Pause subscription: request pause (sends confirmation email)
+- Cancel subscription: request cancellation with optional reason (sends confirmation email)
+- Extra inspections: book additional inspections outside plan
+- Billing history
+
+**Account & GDPR**
+- Account deletion: password-confirmed, 30-day soft-delete grace period
+- Cancel deletion: recover account within 30 days via `/accounts/delete-cancel/`
+- GDPR data export: request ZIP export of all personal data (DSGVO Art. 15)
+
+### Inspector Mobile Flow
+
+```mermaid
+flowchart TD
+    L["/inspector/"] --> S["Today's schedule\nGrouped by date"]
+    S -->|"Tap access info"| A["View access details\nLockbox code, notes"]
+    S -->|"Tap Start"| E["/inspector/<id>/execute/\nFull checklist UI"]
+    E -->|"Mark each item"| I["OK / Auffällig / N/A\nPer checklist item"]
+    I -->|"Add photos"| P["Photo upload per item\n+ general photos"]
+    I -->|"Add notes"| N["General notes field"]
+    E --> R["/inspector/<id>/review/\nSummary: counts + flagged items"]
+    R -->|"Select rating"| G["OK / Achtung / Dringend"]
+    G -->|"Submit"| C["/inspector/<id>/submitted/\nSuccess confirmation"]
+    C -->|"Background"| BG["Report generated\n+ emailed to owner"]
+```
+
+**Inspector checklist execution:**
+- 22 default checklist items across 8 categories (Allgemeiner Eindruck, Kuche, Badezimmer, Wohnbereiche, Gerate, Schlafzimmer, Zugang & Sicherheit, Nach der Reinigung)
+- Each item: OK / Auffällig (flagged) / N/A with optional photos and notes
+- Review page shows counts (OK/Auffällig/N/A), lists flagged items, requires overall rating
+- Submit button disabled until overall rating selected
+- On submission: inspection marked completed, report auto-generated as HTML, email sent to owner
 
 ### Inspection Lifecycle
 
@@ -90,39 +143,85 @@ stateDiagram-v2
 
 | Area | URL | Auth | Description |
 |------|-----|------|-------------|
-| **Public** | `/` | -- | Landing page |
-| | `/preise/` | -- | Pricing |
+| **Public** | `/` | -- | Landing page (hero, features, FAQ, testimonials) |
+| | `/preise/` | -- | Pricing (3 tiers with FAQ) |
 | | `/impressum/` | -- | Legal notice |
 | | `/datenschutz/` | -- | Privacy policy |
 | | `/agb/` | -- | Terms of service |
-| **Auth** | `/accounts/login/` | -- | Login (all roles) |
-| | `/accounts/signup/` | -- | Owner self-signup |
+| **Auth** | `/accounts/login/` | -- | Login (email or username, all roles) |
+| | `/accounts/signup/` | -- | Owner self-signup (accepts `?plan=` from pricing) |
 | | `/accounts/verify/<token>/` | -- | Email verification |
-| | `/accounts/onboarding/*` | Owner | 4-step onboarding wizard |
-| | `/accounts/password-reset/` | -- | Password reset flow |
-| **Dashboard** | `/dashboard/` | Owner | Apartment list, reports, subscription |
-| **Inspector** | `/inspector/` | Inspector | Daily schedule, checklist execution |
-| **Admin** | `/admin/` | Admin | Full platform management |
+| | `/accounts/onboarding/*` | Owner | 4-step onboarding (apartment, checklist, plan, confirm) |
+| | `/accounts/password-reset/` | -- | Password reset (email link flow) |
+| | `/accounts/delete-cancel/` | -- | Cancel account deletion (within 30-day grace) |
+| **Dashboard** | `/dashboard/` | Owner | Apartment list with status/inspection overview |
+| | `/dashboard/apartments/<id>/` | Owner | Apartment detail (checklist, recent inspections) |
+| | `/dashboard/apartments/<id>/edit/` | Owner | Edit apartment (address, access, status) |
+| | `/dashboard/apartments/<id>/inspections/` | Owner | Inspection timeline with filters |
+| | `/dashboard/apartments/<id>/inspections/<id>/report/` | Owner | Full inspection report |
+| | `/dashboard/buchen/` | Owner | Booking calendar (weekly view, 3 slots/day) |
+| | `/dashboard/subscription/` | Owner | Subscription overview |
+| | `/dashboard/subscription/change/` | Owner | Request plan change |
+| | `/dashboard/subscription/pause/` | Owner | Request pause |
+| | `/dashboard/subscription/cancel/` | Owner | Request cancellation |
+| | `/dashboard/account/delete/` | Owner | Delete account (password-confirmed) |
+| | `/dashboard/account/export/` | Owner | GDPR data export request |
+| **Inspector** | `/inspector/` | Inspector | Today's schedule with access details |
+| | `/inspector/schedule/` | Inspector | Full schedule view |
+| | `/inspector/<id>/execute/` | Inspector | Checklist execution (OK/Flag/N.A. per item) |
+| | `/inspector/<id>/review/` | Inspector | Review summary + overall rating |
+| | `/inspector/<id>/submit/` | Inspector | Submit completed inspection |
+| **Admin** | `/admin/` | Admin | Full platform management (django-unfold) |
 
 ## Plans and Pricing
 
-| Feature | Basis (EUR 59.90/mo) | Extra (EUR 99.90/mo) |
-|---------|---------------------|---------------------|
-| Inspections per month | 2 | 4 |
-| Photo documentation | Yes | Yes |
-| Instant reports | Yes | Yes |
-| Custom checklist | Yes | Yes |
-| Priority scheduling | -- | Yes |
+| Feature | Basis (€89/mo) | Standard (€149/mo) | Premium (€249/mo) |
+|---------|----------------|--------------------|--------------------|
+| Inspections per month | 2 | 4 | 8 |
+| Photo documentation | Yes | Yes | Yes |
+| Instant digital reports | Yes | Yes | Yes |
+| Custom checklist | Yes | Yes | Yes |
+| Immediate problem alerts | Yes | Yes | Yes |
+| Preferred scheduling | -- | Yes | Yes |
+| Priority scheduling | -- | -- | Yes |
+| Personal contact | -- | -- | Yes |
+
+All plans are per apartment, monthly cancellable. Plan changes, pauses, and cancellations are requested through the dashboard and processed within 1-2 business days.
+
+## Email Notifications
+
+All emails are sent via Resend (Mailpit in development at http://localhost:8026).
+
+| Trigger | Recipient | Subject |
+|---------|-----------|---------|
+| Account signup | New user | Willkommen bei BAKY! |
+| Email verification | New user | BAKY — E-Mail-Adresse bestatigen |
+| Password reset | User | BAKY — Passwort zurucksetzen |
+| Inspection completed | Owner | BAKY Inspektionsbericht — [Address] — [Date] |
+| Booking created | Admin | Neue Buchung — [Address] ([Slot]) |
+| Booking cancelled | Admin | Stornierung — [Address] ([Slot]) |
+| Plan change requested | Owner | Bestatigung: Ihre Plananderung wurde gesendet |
+| Pause requested | Owner | Bestatigung: Ihre Pausierung wurde angefragt |
+| Cancellation requested | Owner | Bestatigung: Ihre Kundigung wurde angefragt |
+
+## Authentication & Security
+
+- **Login accepts email**: Users register with email but login resolves email to username transparently
+- **Role-based access**: Owners see only their own apartments (404 for others); inspectors can't access owner pages; unauthenticated users get redirected to login
+- **CSRF protection**: All forms include CSRF tokens; logout is POST-only
+- **Encrypted fields**: Access codes and notes are stored encrypted (`EncryptedCharField`/`EncryptedTextField`)
+- **Account deletion**: Password-confirmed, 30-day soft-delete grace period with recovery option
+- **Password reset**: Email-based flow with time-limited tokens
 
 ## Quick Start
 
 ```bash
 # Prerequisites: Docker only
-cp .env.example .env
 make up
 make migrate
 make seed
-# Visit http://localhost:8000
+# Visit http://localhost:8010
+# Mailpit UI: http://localhost:8026
 ```
 
 ## Development
@@ -159,11 +258,11 @@ See [Issue #44](https://github.com/robert197/baky/issues/44) for the full build 
 **Build phases:**
 1. **Foundation** -- Django project, Docker, testing, design system (done)
 2. **Data Layer** -- Models, auth, checklists, storage, admin (done)
-3. **Public Website** -- Landing, pricing, legal, signup/onboarding (done, Google Maps in progress)
-4. **Inspector App** -- Scheduling, daily view, checklist execution, photo capture, submission
-5. **Reports** -- Auto-generation from inspection data, email delivery
-6. **Owner Dashboard** -- Apartment list, inspection timeline, subscription management
-7. **Compliance and Launch** -- GDPR, seed data, CI/CD, production deployment
+3. **Public Website** -- Landing, pricing, legal, signup/onboarding (done)
+4. **Inspector App** -- Scheduling, daily view, checklist execution, photo capture, submission (done)
+5. **Reports** -- Auto-generation from inspection data, email delivery (done)
+6. **Owner Dashboard** -- Apartment list, inspection timeline, booking calendar, subscription management (done)
+7. **Compliance and Launch** -- GDPR (data export, account deletion), seed data, CI/CD, production deployment (in progress)
 
 ## Tech Stack
 

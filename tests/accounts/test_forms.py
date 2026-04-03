@@ -23,9 +23,19 @@ class TestLoginForm:
         assert not form.is_valid()
         assert "password" in form.errors
 
+    def test_login_with_email(self, db):
+        UserFactory(username="testuser", email="test@example.com", password="testpass123")
+        form = LoginForm(data={"username": "test@example.com", "password": "testpass123"})
+        assert form.is_valid()
+
+    def test_login_with_nonexistent_email(self, db):
+        UserFactory(username="testuser", password="testpass123")
+        form = LoginForm(data={"username": "nobody@example.com", "password": "testpass123"})
+        assert not form.is_valid()
+
     def test_labels_are_german(self, db):
         form = LoginForm()
-        assert form.fields["username"].label == "Benutzername"
+        assert form.fields["username"].label == "E-Mail-Adresse"
         assert form.fields["password"].label == "Passwort"
 
 

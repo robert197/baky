@@ -12,13 +12,24 @@ INPUT_CSS = "w-full rounded-lg border border-border px-4 py-3"
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
-        label="Benutzername",
-        widget=forms.TextInput(attrs={"class": "w-full rounded-lg border border-border px-4 py-3", "autofocus": True}),
+        label="E-Mail-Adresse",
+        widget=forms.EmailInput(attrs={"class": "w-full rounded-lg border border-border px-4 py-3", "autofocus": True}),
     )
     password = forms.CharField(
         label="Passwort",
         widget=forms.PasswordInput(attrs={"class": "w-full rounded-lg border border-border px-4 py-3"}),
     )
+
+    def clean_username(self):
+        """Allow login with email address by resolving it to the username."""
+        username_or_email = self.cleaned_data.get("username", "")
+        if "@" in username_or_email:
+            try:
+                user = User.objects.get(email__iexact=username_or_email)
+                return user.username
+            except User.DoesNotExist:
+                return username_or_email
+        return username_or_email
 
 
 class BakyPasswordResetForm(PasswordResetForm):

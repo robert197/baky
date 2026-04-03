@@ -49,5 +49,7 @@
       </main>
     </div>
     {% include "components/_owner_bottom_nav.html" %}
+    {# Modal overlay container — lives outside #main-content so HTMX swaps don't destroy it #}
+    <div id="booking-result"></div>
   </div>
 {% endblock %}
