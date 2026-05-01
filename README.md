@@ -250,12 +250,12 @@ docker compose up -d web worker
 
 # 4. Verify
 docker compose ps
-curl -fsS https://baky.devs-group.com/health/
+curl -fsS https://baky.at/health/
 ```
 
 Production Compose path: `~/websites/baky/docker-compose.yml`.
 
-The public production URL currently configured in Traefik is `https://baky.devs-group.com`.
+The public production URL configured in Traefik is `https://baky.at`. `https://www.baky.at` redirects to the apex domain.
 
 ### Key Make Targets
 
