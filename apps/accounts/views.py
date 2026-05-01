@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.conf import settings
 from django.contrib import messages
@@ -21,6 +22,8 @@ from .forms import (
     SignupForm,
 )
 from .models import EmailVerificationToken, OnboardingProgress, Subscription, User
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -326,10 +329,16 @@ def _send_verification_email(request, user, token):
         "accounts/email_verification.txt",
         {"user": user, "verify_url": verify_url},
     )
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    except Exception:
+        logger.exception("Failed to send verification email to %s", user.email)
 
 
 def _send_welcome_email(user):
     subject = "Willkommen bei BAKY!"
     message = render_to_string("accounts/email_welcome.txt", {"user": user})
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    except Exception:
+        logger.exception("Failed to send welcome email to %s", user.email)
