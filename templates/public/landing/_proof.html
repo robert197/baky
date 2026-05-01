@@ -1,3 +1,4 @@
+{% load static %}
 <section class="border-y border-primary/10 bg-[#f8f5ee] py-20 lg:py-28">
   <div class="mx-auto max-w-[1400px] px-6 lg:px-12">
     <div class="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -18,6 +19,26 @@
       <p class="max-w-xl text-xl leading-relaxed text-secondary">
         Reinigungskräfte und Gäste melden selten jedes Detail. Als BAKY schaffen wir eine zweite, dokumentierte Sicht auf den Zustand Ihrer Wohnung.
       </p>
+    </div>
+    <div class="mt-16 grid gap-5 lg:grid-cols-5 lg:items-end">
+      <figure class="group relative overflow-hidden rounded-md border border-primary/10 bg-primary/5 lg:col-span-3">
+        <img src="{% static 'img/landing-flat-kitchen.jpg' %}"
+             alt="Saubere Apartmentküche mit vorbereiteten Schlüsseln und Handtüchern"
+             class="h-[420px] w-full object-cover transition duration-700 group-hover:scale-[1.025]">
+        <figcaption class="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-6 bg-[#f8f5ee]/86 p-5 backdrop-blur-sm">
+          <span class="font-mono text-xs uppercase tracking-[0.18em] text-secondary">Vor Ort</span>
+          <span class="max-w-xs text-right text-sm font-semibold text-primary">Zugang, Sauberkeit und Inventar dokumentiert.</span>
+        </figcaption>
+      </figure>
+      <figure class="group relative overflow-hidden rounded-md border border-primary/10 bg-primary/5 lg:col-span-2">
+        <img src="{% static 'img/landing-flat-bedroom.jpg' %}"
+             alt="Frisch vorbereitetes Schlafzimmer einer Kurzzeitvermietung"
+             class="h-[340px] w-full object-cover transition duration-700 group-hover:scale-[1.025] lg:h-[520px]">
+        <figcaption class="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-6 bg-primary/82 p-5 text-white backdrop-blur-sm">
+          <span class="font-mono text-xs uppercase tracking-[0.18em] text-white/70">Status</span>
+          <span class="text-right text-sm font-semibold">Bereit für den nächsten Aufenthalt.</span>
+        </figcaption>
+      </figure>
     </div>
     <div class="mt-16 grid gap-px bg-primary/10 md:grid-cols-3">
       <div class="bg-[#f8f5ee] p-8 lg:p-10">

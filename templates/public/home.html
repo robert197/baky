@@ -1,26 +1,182 @@
 {% extends "base.html" %}
-{% block title %}BAKY - Professionelle Wohnungsinspektion in Wien{% endblock %}
+{% load static %}
+{% block title %}Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY{% endblock %}
 {% block meta_description %}
-  Als BAKY prüfen wir Kurzzeitvermietungen in Wien mit dokumentierten Begehungen, Fotobeweisen und sofortigen Inspektionsberichten für Eigentümer.
+  Dokumentierte Wohnungsinspektionen für Airbnb- und Kurzzeitvermietungen in Wien. Fotos, Checkliste und Sofortbericht per E-Mail. Pakete ab € 89 pro Monat.
 {% endblock %}
 {% block extra_head %}
-  <meta property="og:title" content="BAKY - Professionelle Wohnungsinspektion in Wien">
+  <meta name="keywords"
+        content="Wohnungsinspektion Wien, Kurzzeitvermietung Wien, Airbnb Verwaltung Wien, Apartmentkontrolle, Wohnungsüberwachung, Property Management Wien, Hausverwaltung Kurzzeitmiete">
+  <meta name="author" content="BAKY">
+  <meta name="geo.region" content="AT-9">
+  <meta name="geo.placename" content="Wien">
+
+  <meta property="og:site_name" content="BAKY">
+  <meta property="og:title" content="Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY">
   <meta property="og:description"
-        content="Dokumentierte Wohnungsinspektionen, Fotobeweise und sofortige Berichte für Kurzzeitvermietungen in Wien.">
+        content="Dokumentierte Wohnungsinspektionen für Kurzzeitvermietungen in Wien. Fotos, Checkliste und Sofortbericht per E-Mail. Pakete ab € 89 pro Monat.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_AT">
+  <meta property="og:url" content="https://baky.at/">
+  <meta property="og:image" content="https://baky.at{% static 'img/og-baky.png' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="BAKY Inspektionsbericht im Eigentümer-Dashboard">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY">
+  <meta name="twitter:description"
+        content="Dokumentierte Inspektionen für Kurzzeitvermietungen in Wien. Fotos und Sofortbericht. Ab € 89 pro Monat.">
+  <meta name="twitter:image" content="https://baky.at{% static 'img/og-baky.png' %}">
+
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "BAKY",
-      "description": "Als BAKY prüfen und dokumentieren wir Kurzzeitvermietungen in Wien.",
-      "areaServed": {
-        "@type": "City",
-        "name": "Wien"
-      },
-      "priceRange": "€€",
-      "url": "https://baky.at"
+      "@graph": [
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://baky.at/#business",
+          "name": "BAKY",
+          "alternateName": "BAKY Wohnungsinspektion",
+          "description": "BAKY prüft und dokumentiert Kurzzeitvermietungen in Wien mit Fotos, Checklisten und Sofortbericht per E-Mail.",
+          "url": "https://baky.at",
+          "logo": "https://baky.at{% static 'img/logo.svg' %}",
+          "image": "https://baky.at{% static 'img/og-baky.png' %}",
+          "priceRange": "€€",
+          "telephone": "+43 1 000 000 00",
+          "email": "hallo@baky.at",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Wien",
+            "addressRegion": "Wien",
+            "postalCode": "1010",
+            "addressCountry": "AT"
+          },
+          "areaServed": {
+            "@type": "City",
+            "name": "Wien"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 48.2082,
+            "longitude": 16.3738
+          },
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              "opens": "08:00",
+              "closes": "18:00"
+            }
+          ],
+          "knowsLanguage": ["de", "en"],
+          "currenciesAccepted": "EUR",
+          "paymentAccepted": "Bank Transfer, Credit Card"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://baky.at/#website",
+          "url": "https://baky.at",
+          "name": "BAKY",
+          "inLanguage": "de-AT",
+          "publisher": { "@id": "https://baky.at/#business" }
+        },
+        {
+          "@type": "Service",
+          "@id": "https://baky.at/#service",
+          "name": "Wohnungsinspektion für Kurzzeitvermietung",
+          "serviceType": "Property Inspection",
+          "provider": { "@id": "https://baky.at/#business" },
+          "areaServed": { "@type": "City", "name": "Wien" },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Eigentümer von Kurzzeitvermietungen (Airbnb, Booking)"
+          },
+          "description": "Regelmäßige, dokumentierte Inspektion Ihrer Wiener Kurzzeitvermietung mit Fotos, standardisierter Checkliste und sofortigem Bericht per E-Mail.",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "EUR",
+            "lowPrice": "89",
+            "highPrice": "249",
+            "offerCount": 3,
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Basis",
+                "price": "89",
+                "priceCurrency": "EUR",
+                "description": "2 Inspektionen pro Monat",
+                "url": "https://baky.at/preise/"
+              },
+              {
+                "@type": "Offer",
+                "name": "Standard",
+                "price": "149",
+                "priceCurrency": "EUR",
+                "description": "4 Inspektionen pro Monat",
+                "url": "https://baky.at/preise/"
+              },
+              {
+                "@type": "Offer",
+                "name": "Premium",
+                "price": "249",
+                "priceCurrency": "EUR",
+                "description": "8 Inspektionen pro Monat",
+                "url": "https://baky.at/preise/"
+              }
+            ]
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://baky.at/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Wie oft wird meine Wohnung inspiziert?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Die Häufigkeit richtet sich nach Ihrem Paket: Basis 2x, Standard 4x und Premium 8x pro Monat. Zusätzliche Inspektionen können jederzeit gebucht werden."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Was wird bei einer Inspektion geprüft?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Allgemeiner Zustand, Sauberkeit, Inventar, Schäden, Geräte, Zugang und Sicherheitsaspekte. Die Checkliste mit über 22 Prüfpunkten ist pro Wohnung anpassbar."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Wie schnell erhalte ich den Bericht?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Direkt nach Abschluss der Inspektion erstellen wir den Bericht und stellen ihn per E-Mail zu — meist innerhalb weniger Minuten."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Ist BAKY nur in Wien verfügbar?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ja, aktuell konzentrieren wir uns ausschließlich auf Wien, um schnelle Vor-Ort-Inspektionen in allen 23 Bezirken sicherzustellen."
+              }
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Start",
+              "item": "https://baky.at/"
+            }
+          ]
+        }
+      ]
     }
   </script>
 {% endblock %}
@@ -33,6 +189,7 @@
     {% include "public/landing/_product.html" %}
     {% include "public/landing/_plans.html" %}
     {% include "public/landing/_testimonials.html" %}
+    {% include "public/landing/_seo_content.html" %}
     {% include "public/landing/_faq.html" %}
     {% include "public/landing/_cta.html" %}
   </main>
