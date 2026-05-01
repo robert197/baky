@@ -510,8 +510,9 @@ def booking_calendar(request):
         return redirect("dashboard:index")
 
     # Parse week offset for navigation
+    week_values = request.GET.getlist("week")
     try:
-        week_offset = int(request.GET.get("week", 0))
+        week_offset = int(week_values[0] if week_values else 0)
     except (ValueError, TypeError):
         week_offset = 0
     week_offset = max(0, min(52, week_offset))
@@ -560,6 +561,7 @@ def booking_calendar(request):
         "subscription": subscription,
         "upcoming_inspections": upcoming_inspections,
         "active": "booking",
+        "is_htmx": bool(request.headers.get("HX-Request")),
     }
 
     if request.headers.get("HX-Request"):

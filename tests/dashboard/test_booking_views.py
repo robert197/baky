@@ -116,6 +116,16 @@ class TestBookingCalendarView:
         assert resp.status_code == 200
         assert resp.context["week_offset"] == 0
 
+    def test_duplicate_week_params_use_requested_navigation_week(self):
+        owner = OwnerFactory()
+        SubscriptionFactory(owner=owner)
+        apt = ApartmentFactory(owner=owner)
+        client = Client()
+        client.force_login(owner)
+        resp = client.get(f"{reverse('dashboard:booking_calendar')}?apartment={apt.pk}&week=1&week=0")
+        assert resp.status_code == 200
+        assert resp.context["week_offset"] == 1
+
     def test_shows_subscription_usage(self):
         owner = OwnerFactory()
         SubscriptionFactory(owner=owner, plan="basis")
@@ -1214,6 +1224,22 @@ class TestCalendarUXRedesign:
         assert 'id="week-input"' in content
         assert "hx-swap-oob" in content
         assert 'value="3"' in content
+
+    def test_full_page_renders_single_week_input(self):
+        """Initial full page load does not duplicate the week state input."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        content = resp.content.decode()
+        assert content.count('id="week-input"') == 1
+        assert "hx-swap-oob" not in content
+
+    def test_week_navigation_pushes_browser_url(self):
+        """Week navigation updates the browser URL as well as the calendar partial."""
+        owner, sub, apt, client, url = self._setup()
+        resp = client.get(url, {"apartment": apt.pk})
+        content = resp.content.decode()
+        assert 'hx-push-url="true"' in content
+        assert 'hx-disinherit="hx-include"' in content
 
     def test_booked_slot_shows_apartment_name(self):
         """Owner's booked slot displays the apartment name."""

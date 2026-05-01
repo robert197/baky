@@ -5,328 +5,116 @@
 {% endblock %}
 {% block body %}
   {% include "components/_navbar.html" %}
-  <main id="main-content" role="main">
-    {# Hero / Header #}
-    <section class="bg-primary py-16 sm:py-20">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-3xl text-center">
-          <h1 class="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">Preise</h1>
-          <p class="mt-4 text-lg text-slate-300">
-            Transparente Preise, keine versteckten Kosten. Pro Wohnung, monatlich kündbar.
+  <main id="main-content" role="main" class="landing-noise overflow-hidden bg-[#f8f5ee] text-primary">
+    <section class="landing-grid relative isolate bg-[#f8f5ee] px-6 pb-20 pt-36 lg:px-12 lg:pb-28 lg:pt-44">
+      <div class="mx-auto max-w-[1400px]">
+        <span class="mb-8 inline-flex items-center gap-3 font-mono text-sm text-secondary">
+          <span class="h-px w-8 bg-primary/30"></span>
+          Preise
+        </span>
+        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <h1 class="font-display text-[clamp(4rem,11vw,9rem)] leading-[0.86] tracking-tight">
+            Pakete für dokumentierte Kontrolle.
+          </h1>
+          <p class="max-w-xl text-xl leading-relaxed text-secondary lg:pb-4">
+            Transparente Preise pro Wohnung, monatlich kündbar und passend zur Auslastung Ihrer Kurzzeitvermietung.
           </p>
         </div>
       </div>
     </section>
-    {# Pricing Cards #}
-    <section class="bg-surface py-16 sm:py-20">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mx-auto grid max-w-5xl gap-8 lg:grid-cols-3">
-          {# Basis Tier #}
-          <div class="rounded-2xl border border-border bg-white p-8 shadow-sm">
-            <h2 class="text-xl font-bold text-primary">Basis</h2>
-            <p class="mt-2 text-sm text-secondary">Für Eigentümer, die den Überblick behalten möchten.</p>
-            <div class="mt-6">
-              <span class="text-4xl font-bold text-primary">€ 89</span>
-              <span class="text-secondary">/ Monat</span>
-            </div>
-            <p class="mt-1 text-sm text-secondary">pro Wohnung</p>
-            <ul class="mt-8 space-y-4">
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">2 Inspektionen pro Monat</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Fotodokumentation</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Digitale Berichte</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Sofort-Meldungen bei Problemen</span>
-              </li>
+    <section class="border-y border-primary/10 bg-[#f8f5ee] px-6 py-20 lg:px-12 lg:py-28">
+      <div class="mx-auto max-w-[1400px]">
+        <div class="grid gap-px bg-primary/10 lg:grid-cols-3">
+          <article class="bg-[#f8f5ee] p-8 lg:p-10">
+            <p class="font-mono text-sm text-secondary">Basis</p>
+            <p class="mt-10 font-display text-7xl">€ 89</p>
+            <p class="mt-3 text-secondary">pro Wohnung / Monat</p>
+            <ul class="mt-10 space-y-4 text-secondary">
+              <li>2 Inspektionen pro Monat</li>
+              <li>Fotodokumentation</li>
+              <li>Digitale Berichte</li>
+              <li>Sofort-Meldungen bei Problemen</li>
             </ul>
-            <div class="mt-8">
-              <a href="{% url 'accounts:signup' %}?plan=basis"
-                 class="block w-full rounded-lg border-2 border-primary px-6 py-3 text-center text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
-                Basis wählen
-              </a>
-            </div>
-          </div>
-          {# Standard Tier — Recommended #}
-          <div class="relative rounded-2xl border-2 border-accent bg-white p-8 shadow-lg">
-            <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span class="rounded-full bg-accent px-4 py-1 text-xs font-semibold text-white">Empfohlen</span>
-            </div>
-            <h2 class="text-xl font-bold text-primary">Standard</h2>
-            <p class="mt-2 text-sm text-secondary">Der ideale Plan für aktive Vermieter.</p>
-            <div class="mt-6">
-              <span class="text-4xl font-bold text-primary">€ 149</span>
-              <span class="text-secondary">/ Monat</span>
-            </div>
-            <p class="mt-1 text-sm text-secondary">pro Wohnung</p>
-            <ul class="mt-8 space-y-4">
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary"><strong class="text-primary">4 Inspektionen</strong> pro Monat</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Alles aus Basis</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Bevorzugte Terminwahl</span>
-              </li>
+            <a href="{% url 'accounts:signup' %}?plan=basis"
+               class="mt-10 inline-flex h-12 w-full items-center justify-center rounded-full border border-primary/20 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
+              Basis wählen
+            </a>
+          </article>
+          <article class="relative bg-white p-8 shadow-2xl shadow-slate-900/10 lg:p-10">
+            <span class="absolute right-6 top-6 rounded-full bg-primary px-3 py-1 font-mono text-xs text-white">Empfohlen</span>
+            <p class="font-mono text-sm text-accent">Standard</p>
+            <p class="mt-10 font-display text-7xl">€ 149</p>
+            <p class="mt-3 text-secondary">pro Wohnung / Monat</p>
+            <ul class="mt-10 space-y-4 text-secondary">
+              <li>4 Inspektionen pro Monat</li>
+              <li>Alles aus Basis</li>
+              <li>Bevorzugte Terminwahl</li>
+              <li>Ideal für aktive Vermieter</li>
             </ul>
-            <div class="mt-8">
-              <a href="{% url 'accounts:signup' %}?plan=standard"
-                 class="block w-full rounded-lg bg-accent px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600">
-                Standard wählen
-              </a>
-            </div>
-          </div>
-          {# Premium Tier #}
-          <div class="rounded-2xl border border-border bg-white p-8 shadow-sm">
-            <h2 class="text-xl font-bold text-primary">Premium</h2>
-            <p class="mt-2 text-sm text-secondary">Maximaler Schutz mit persönlicher Betreuung.</p>
-            <div class="mt-6">
-              <span class="text-4xl font-bold text-primary">€ 249</span>
-              <span class="text-secondary">/ Monat</span>
-            </div>
-            <p class="mt-1 text-sm text-secondary">pro Wohnung</p>
-            <ul class="mt-8 space-y-4">
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary"><strong class="text-primary">8 Inspektionen</strong> pro Monat</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Alles aus Standard</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Prioritäts-Scheduling</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-secondary">Persönlicher Ansprechpartner</span>
-              </li>
+            <a href="{% url 'accounts:signup' %}?plan=standard"
+               class="mt-10 inline-flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-white transition hover:bg-primary-light">
+              Standard wählen
+            </a>
+          </article>
+          <article class="bg-[#f8f5ee] p-8 lg:p-10">
+            <p class="font-mono text-sm text-secondary">Premium</p>
+            <p class="mt-10 font-display text-7xl">€ 249</p>
+            <p class="mt-3 text-secondary">pro Wohnung / Monat</p>
+            <ul class="mt-10 space-y-4 text-secondary">
+              <li>8 Inspektionen pro Monat</li>
+              <li>Alles aus Standard</li>
+              <li>Prioritäts-Scheduling</li>
+              <li>Persönlicher Ansprechpartner</li>
             </ul>
-            <div class="mt-8">
-              <a href="{% url 'accounts:signup' %}?plan=premium"
-                 class="block w-full rounded-lg border-2 border-primary px-6 py-3 text-center text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
-                Premium wählen
-              </a>
-            </div>
-          </div>
+            <a href="{% url 'accounts:signup' %}?plan=premium"
+               class="mt-10 inline-flex h-12 w-full items-center justify-center rounded-full border border-primary/20 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
+              Premium wählen
+            </a>
+          </article>
         </div>
       </div>
     </section>
-    {# FAQ Section #}
-    <section class="bg-white py-16 sm:py-20">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-3xl">
-          <h2 class="text-center text-2xl font-bold text-primary sm:text-3xl">Häufige Fragen zu Preisen</h2>
-          <div class="mt-10 divide-y divide-border" x-data="{ open: null }">
-            <div class="py-4">
-              <button @click="open = open === 1 ? null : 1"
-                      class="flex w-full items-center justify-between text-left"
-                      aria-expanded="false"
-                      :aria-expanded="open === 1"
-                      aria-controls="faq-1">
-                <span class="font-semibold text-primary">Gibt es eine Mindestvertragslaufzeit?</span>
-                <svg class="h-5 w-5 shrink-0 text-secondary transition-transform"
-                     :class="{ 'rotate-180': open === 1 }"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="faq-1" x-show="open === 1" x-collapse x-cloak class="mt-3 text-secondary">
-                Nein, alle Pläne sind monatlich kündbar. Keine langfristigen Bindungen.
-              </div>
-            </div>
-            <div class="py-4">
-              <button @click="open = open === 2 ? null : 2"
-                      class="flex w-full items-center justify-between text-left"
-                      aria-expanded="false"
-                      :aria-expanded="open === 2"
-                      aria-controls="faq-2">
-                <span class="font-semibold text-primary">Sind die Preise pro Wohnung?</span>
-                <svg class="h-5 w-5 shrink-0 text-secondary transition-transform"
-                     :class="{ 'rotate-180': open === 2 }"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="faq-2" x-show="open === 2" x-collapse x-cloak class="mt-3 text-secondary">
-                Ja, die Preise gelten pro Wohnung pro Monat. Bei mehreren Wohnungen können wir individuelle Angebote erstellen.
-              </div>
-            </div>
-            <div class="py-4">
-              <button @click="open = open === 3 ? null : 3"
-                      class="flex w-full items-center justify-between text-left"
-                      aria-expanded="false"
-                      :aria-expanded="open === 3"
-                      aria-controls="faq-3">
-                <span class="font-semibold text-primary">Was passiert, wenn ein Problem gefunden wird?</span>
-                <svg class="h-5 w-5 shrink-0 text-secondary transition-transform"
-                     :class="{ 'rotate-180': open === 3 }"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="faq-3" x-show="open === 3" x-collapse x-cloak class="mt-3 text-secondary">
-                Bei dringenden Problemen werden Sie sofort benachrichtigt. Alle Befunde werden im Bericht mit Fotos dokumentiert.
-              </div>
-            </div>
-            <div class="py-4">
-              <button @click="open = open === 4 ? null : 4"
-                      class="flex w-full items-center justify-between text-left"
-                      aria-expanded="false"
-                      :aria-expanded="open === 4"
-                      aria-controls="faq-4">
-                <span class="font-semibold text-primary">Kann ich zusätzliche Inspektionen buchen?</span>
-                <svg class="h-5 w-5 shrink-0 text-secondary transition-transform"
-                     :class="{ 'rotate-180': open === 4 }"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="faq-4" x-show="open === 4" x-collapse x-cloak class="mt-3 text-secondary">
-                Ja, zusätzliche Inspektionen können jederzeit auf Anfrage gebucht werden. Kontaktieren Sie uns für Details.
-              </div>
-            </div>
-            <div class="py-4">
-              <button @click="open = open === 5 ? null : 5"
-                      class="flex w-full items-center justify-between text-left"
-                      aria-expanded="false"
-                      :aria-expanded="open === 5"
-                      aria-controls="faq-5">
-                <span class="font-semibold text-primary">In welchen Bezirken bieten Sie den Service an?</span>
-                <svg class="h-5 w-5 shrink-0 text-secondary transition-transform"
-                     :class="{ 'rotate-180': open === 5 }"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="faq-5" x-show="open === 5" x-collapse x-cloak class="mt-3 text-secondary">
-                Wir decken alle Wiener Bezirke ab. Unser Service ist in ganz Wien verfügbar.
-              </div>
+    <section class="bg-[#f8f5ee] px-6 py-20 lg:px-12 lg:py-28">
+      <div class="mx-auto grid max-w-[1400px] gap-12 lg:grid-cols-[0.7fr_1fr]">
+        <div>
+          <span class="mb-6 inline-flex items-center gap-3 font-mono text-sm text-secondary">
+            <span class="h-px w-8 bg-primary/30"></span>
+            FAQ
+          </span>
+          <h2 class="font-display text-5xl leading-none tracking-tight sm:text-7xl">Preisfragen</h2>
+        </div>
+        <div class="divide-y divide-primary/10 border-y border-primary/10" x-data="{ open: 1 }">
+          <div class="py-5">
+            <button @click="open = open === 1 ? null : 1"
+                    :aria-expanded="open === 1"
+                    class="flex w-full items-center justify-between gap-6 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-4">
+              <span class="text-lg font-semibold">Gibt es eine Mindestvertragslaufzeit?</span>
+              <span class="text-2xl text-secondary" x-text="open === 1 ? '-' : '+'"></span>
+            </button>
+            <div x-show="open === 1" x-transition class="mt-3 text-secondary">
+              Nein, alle Pläne sind monatlich kündbar. Keine langfristigen Bindungen.
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-    {# CTA Section #}
-    <section class="bg-primary py-16 sm:py-20">
-      <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold text-white sm:text-3xl">Bereit, Ihre Wohnung zu schützen?</h2>
-        <p class="mt-4 text-lg text-slate-300">Starten Sie jetzt mit einer professionellen Inspektion.</p>
-        <div class="mt-8">
-          <a href="{% url 'accounts:signup' %}"
-             class="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-amber-600">
-            Jetzt starten
-          </a>
+          <div class="py-5">
+            <button @click="open = open === 2 ? null : 2"
+                    :aria-expanded="open === 2"
+                    class="flex w-full items-center justify-between gap-6 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-4">
+              <span class="text-lg font-semibold">Sind die Preise pro Wohnung?</span>
+              <span class="text-2xl text-secondary" x-text="open === 2 ? '-' : '+'"></span>
+            </button>
+            <div x-show="open === 2" x-transition class="mt-3 text-secondary">Ja, die Preise gelten pro Wohnung pro Monat.</div>
+          </div>
+          <div class="py-5">
+            <button @click="open = open === 3 ? null : 3"
+                    :aria-expanded="open === 3"
+                    class="flex w-full items-center justify-between gap-6 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-4">
+              <span class="text-lg font-semibold">Was passiert, wenn ein Problem gefunden wird?</span>
+              <span class="text-2xl text-secondary" x-text="open === 3 ? '-' : '+'"></span>
+            </button>
+            <div x-show="open === 3" x-transition class="mt-3 text-secondary">
+              Sie erhalten den Bericht und bei dringenden Befunden eine sofortige Meldung.
+            </div>
+          </div>
         </div>
       </div>
     </section>

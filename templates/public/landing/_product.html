@@ -1,0 +1,28 @@
+{% load static %}
+<section id="produkt" class="border-y border-primary/10 bg-[#f8f5ee] py-24 lg:py-32">
+  <div class="mx-auto max-w-[1400px] px-6 lg:px-12">
+    <div class="grid gap-16 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+      <div>
+        <span class="mb-6 inline-flex items-center gap-3 font-mono text-sm text-secondary">
+          <span class="h-px w-8 bg-primary/30"></span>
+          Produkt
+        </span>
+        <h2 class="font-display text-5xl leading-none tracking-tight sm:text-7xl">Belege statt Bauchgefühl.</h2>
+        <p class="mt-8 text-xl leading-relaxed text-secondary">
+          Dashboard, Inspektor-Ansicht und Berichte greifen ineinander. Jeder Befund bleibt nachvollziehbar.
+        </p>
+      </div>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <img src="{% static 'img/landing-report.png' %}"
+             alt="BAKY Inspektionsbericht im Eigentümer-Dashboard"
+             class="h-[520px] w-full rounded-md border border-primary/10 object-cover object-top shadow-2xl shadow-slate-900/10 sm:col-span-2">
+        <img src="{% static 'img/landing-booking.png' %}"
+             alt="BAKY Buchungsbestätigung im Dashboard"
+             class="h-80 w-full rounded-md border border-primary/10 object-cover object-top shadow-xl shadow-slate-900/10">
+        <img src="{% static 'img/landing-inspector.png' %}"
+             alt="BAKY Inspektor Review Ansicht"
+             class="h-80 w-full rounded-md border border-primary/10 object-cover object-top shadow-xl shadow-slate-900/10">
+      </div>
+    </div>
+  </div>
+</section>

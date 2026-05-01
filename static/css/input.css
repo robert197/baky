@@ -3,6 +3,370 @@
 @tailwind utilities;
 
 @layer utilities {
+  .font-display {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .landing-noise {
+    position: relative;
+  }
+
+  .landing-noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  .landing-noise > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .landing-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.55;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+    background-size: 12.5% 12.5%, 8.333% 8.333%;
+  }
+
+  .ascii-sphere {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    border-radius: 9999px;
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 15px;
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: rgba(15, 23, 42, 0.72);
+    mask-image: radial-gradient(circle, #000 0 54%, transparent 72%);
+    -webkit-mask-image: radial-gradient(circle, #000 0 54%, transparent 72%);
+    animation: sphereDrift 12s ease-in-out infinite alternate;
+  }
+
+  .ascii-sphere::before {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border-radius: 9999px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow:
+      inset 0 0 80px rgba(15, 23, 42, 0.1),
+      0 0 80px rgba(15, 23, 42, 0.06);
+  }
+
+  .ascii-sphere span {
+    display: block;
+    animation: sphereRows 8s linear infinite;
+  }
+
+  .ascii-sphere span:nth-child(2n) {
+    animation-direction: reverse;
+    opacity: 0.7;
+  }
+
+  .ascii-sphere span:nth-child(3n) {
+    opacity: 0.45;
+  }
+
+  .inspection-orbit {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    perspective: 1100px;
+  }
+
+  .inspection-orbit__ring {
+    position: absolute;
+    border-radius: 9999px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: inset 0 0 80px rgba(15, 23, 42, 0.05);
+  }
+
+  .inspection-orbit__ring--outer {
+    inset: 8%;
+    animation: orbitSpin 28s linear infinite;
+  }
+
+  .inspection-orbit__ring--inner {
+    inset: 21%;
+    border-style: dashed;
+    animation: orbitSpinReverse 22s linear infinite;
+  }
+
+  .inspection-orbit__plan {
+    position: absolute;
+    inset: 18%;
+    display: grid;
+    place-items: center;
+    transform: rotateX(58deg) rotateZ(-34deg);
+    transform-style: preserve-3d;
+    animation: planFloat 8s ease-in-out infinite alternate;
+  }
+
+  .inspection-orbit__wall,
+  .inspection-orbit__door,
+  .inspection-orbit__room {
+    stroke: rgba(15, 23, 42, 0.48);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .inspection-orbit__door {
+    stroke-dasharray: 5 7;
+  }
+
+  .inspection-orbit__room {
+    fill: rgba(15, 23, 42, 0.035);
+  }
+
+  .inspection-orbit__scan {
+    stroke: rgba(245, 158, 11, 0.72);
+    stroke-width: 2;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.25));
+    animation: scanPulse 2.8s ease-in-out infinite;
+  }
+
+  .inspection-orbit__node {
+    fill: #f59e0b;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: nodePulse 2.4s ease-in-out infinite;
+  }
+
+  .inspection-orbit__node--b {
+    animation-delay: 400ms;
+  }
+
+  .inspection-orbit__node--c {
+    animation-delay: 800ms;
+  }
+
+  .inspection-orbit__node--d {
+    animation-delay: 1200ms;
+  }
+
+  .inspection-orbit__badge {
+    position: absolute;
+    min-width: 112px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 0.75rem;
+    background: rgba(248, 245, 238, 0.82);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+    padding: 0.85rem 1rem;
+    backdrop-filter: blur(14px);
+    animation: badgeFloat 7s ease-in-out infinite alternate;
+  }
+
+  .inspection-orbit__badge span {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(71, 85, 105, 0.9);
+  }
+
+  .inspection-orbit__badge strong {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 1.45rem;
+    line-height: 1;
+    color: #1e293b;
+  }
+
+  .inspection-orbit__badge--status {
+    left: 13%;
+    top: 29%;
+  }
+
+  .inspection-orbit__badge--photo {
+    right: 17%;
+    top: 38%;
+    animation-delay: 700ms;
+  }
+
+  .inspection-orbit__badge--report {
+    bottom: 22%;
+    left: 47%;
+    animation-delay: 1100ms;
+  }
+
+  @media (max-width: 1023px) {
+    .inspection-orbit__badge {
+      min-width: 82px;
+      padding: 0.65rem 0.75rem;
+      opacity: 0.78;
+    }
+
+    .inspection-orbit__badge span {
+      font-size: 0.56rem;
+    }
+
+    .inspection-orbit__badge strong {
+      font-size: 1.05rem;
+    }
+
+    .inspection-orbit__badge--status {
+      left: 18%;
+      top: 20%;
+    }
+
+    .inspection-orbit__badge--photo {
+      right: 12%;
+      top: 40%;
+    }
+
+    .inspection-orbit__badge--report {
+      bottom: 18%;
+      left: 42%;
+    }
+  }
+
+  @keyframes orbitSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes orbitSpinReverse {
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  @keyframes planFloat {
+    from {
+      transform: rotateX(58deg) rotateZ(-34deg) translate3d(0, -6px, 0);
+    }
+    to {
+      transform: rotateX(58deg) rotateZ(-28deg) translate3d(0, 8px, 28px);
+    }
+  }
+
+  @keyframes scanPulse {
+    0%,
+    100% {
+      opacity: 0.15;
+      transform: translateY(-70px);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(70px);
+    }
+  }
+
+  @keyframes nodePulse {
+    0%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.85);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.25);
+    }
+  }
+
+  @keyframes badgeFloat {
+    from {
+      transform: translate3d(0, -8px, 0);
+    }
+    to {
+      transform: translate3d(0, 10px, 0);
+    }
+  }
+
+  @keyframes sphereRows {
+    from {
+      transform: translateX(-10px);
+    }
+    to {
+      transform: translateX(10px);
+    }
+  }
+
+  @keyframes sphereDrift {
+    from {
+      transform: rotate(-4deg) scale(0.98);
+    }
+    to {
+      transform: rotate(4deg) scale(1.02);
+    }
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .reveal-in {
+    animation: fadeUp 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hover-lift {
+    transition:
+      transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      border-color 300ms ease,
+      box-shadow 300ms ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  }
+
+  .landing-marquee {
+    animation: landingMarquee 34s linear infinite;
+  }
+
+  @keyframes landingMarquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-in,
+    .landing-marquee,
+    .ascii-sphere,
+    .ascii-sphere span,
+    .inspection-orbit__ring,
+    .inspection-orbit__plan,
+    .inspection-orbit__scan,
+    .inspection-orbit__node,
+    .inspection-orbit__badge {
+      animation: none;
+    }
+
+    .hover-lift,
+    .hover-lift:hover {
+      transform: none;
+    }
+  }
+
   .htmx-indicator {
     display: none;
   }

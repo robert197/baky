@@ -5,116 +5,70 @@
 {% endblock %}
 {% block body %}
   {% include "components/_navbar.html" %}
-  <main id="main-content" role="main">
-    <section class="bg-primary py-12 sm:py-16">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold text-white sm:text-4xl">Datenschutzerklärung</h1>
+  <main id="main-content" role="main" class="landing-noise bg-[#f8f5ee] text-primary">
+    <section class="landing-grid px-6 pb-16 pt-36 lg:px-12 lg:pb-24 lg:pt-44">
+      <div class="mx-auto max-w-[1400px]">
+        <span class="mb-8 inline-flex items-center gap-3 font-mono text-sm text-secondary">
+          <span class="h-px w-8 bg-primary/30"></span>
+          Datenschutz
+        </span>
+        <h1 class="max-w-5xl font-display text-[clamp(4rem,10vw,8rem)] leading-[0.88] tracking-tight">Datenschutzerklärung</h1>
       </div>
     </section>
-    <section class="bg-surface py-12 sm:py-16">
-      <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-slate max-w-none">
-          <p class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-            <strong>Hinweis:</strong> Die nachfolgende Datenschutzerklärung ist ein Platzhalter und muss
-            vor Veröffentlichung durch rechtlich geprüfte Inhalte ersetzt werden.
-            [PLATZHALTER - Rechtliche Prüfung erforderlich]
+    <section class="border-y border-primary/10 px-6 py-16 lg:px-12 lg:py-24">
+      <div class="mx-auto grid max-w-[1400px] gap-12 lg:grid-cols-[0.35fr_0.65fr]">
+        <aside class="font-mono text-sm text-secondary">
+          BAKY / DSGVO
+        </aside>
+        <article class="space-y-10 text-lg leading-8 text-secondary">
+          <p class="border border-amber-300 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
+            <strong>Hinweis:</strong> Die nachfolgende Datenschutzerklärung ist ein Platzhalter und muss vor Veröffentlichung durch rechtlich geprüfte Inhalte ersetzt werden.
           </p>
-          <h2 class="mt-8 text-xl font-bold text-primary">1. Verantwortlicher</h2>
-          <p>
-            Verantwortlich für die Datenverarbeitung auf dieser Website ist:
-            <br>
-            [BAKY GmbH]
-            <br>
-            [Musterstraße 1, 1010 Wien]
-            <br>
-            E-Mail: [office@baky.at]
-          </p>
-          <h2 class="mt-8 text-xl font-bold text-primary">2. Datenerhebung und -verarbeitung</h2>
-          <p>
-            Wir erheben und verarbeiten personenbezogene Daten nur, soweit dies zur Bereitstellung
-            unserer Dienstleistungen erforderlich ist. Die Verarbeitung erfolgt auf Grundlage der
-            DSGVO und des österreichischen Datenschutzgesetzes (DSG).
-          </p>
-          <h3 class="mt-6 text-lg font-semibold text-primary">2.1 Bei Nutzung der Website</h3>
-          <p>
-            Bei jedem Zugriff auf unsere Website werden automatisch Informationen erfasst
-            (Server-Logfiles): IP-Adresse, Datum und Uhrzeit, aufgerufene Seite, Browsertyp.
-            Diese Daten dienen der technischen Bereitstellung und der Sicherheit.
-          </p>
-          <h3 class="mt-6 text-lg font-semibold text-primary">2.2 Bei Registrierung und Nutzung des Service</h3>
-          <p>
-            Bei der Registrierung als Eigentümer erheben wir: Name, E-Mail-Adresse, Telefonnummer,
-            Adressdaten der zu betreuenden Wohnungen. Diese Daten sind zur Vertragserfüllung
-            erforderlich (Art. 6 Abs. 1 lit. b DSGVO).
-          </p>
-          <h2 class="mt-8 text-xl font-bold text-primary">3. Fotodokumentation</h2>
-          <p>
-            Im Rahmen unserer Inspektionsdienstleistung erstellen unsere Inspektoren
-            Fotodokumentationen der betreuten Wohnungen. Diese Fotos werden ausschließlich
-            zur Dokumentation des Wohnungszustands verwendet und nur dem jeweiligen Eigentümer
-            zur Verfügung gestellt.
-          </p>
-          <p>
-            Die Fotos werden verschlüsselt auf sicheren Servern (AWS/Cloudflare) in der EU
-            gespeichert und sind nur über signierte URLs mit begrenzter Gültigkeit abrufbar.
-          </p>
-          <h2 class="mt-8 text-xl font-bold text-primary">4. Speicherdauer und Löschung</h2>
-          <p>
-            Personenbezogene Daten werden nur so lange gespeichert, wie dies für die Erbringung
-            unserer Dienstleistungen erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen.
-          </p>
-          <ul class="list-disc pl-6">
-            <li>Kontodaten: Bis zur Löschung des Kontos, danach 30 Tage Nachfrist</li>
-            <li>Inspektionsberichte: Dauerhaft, solange Konto aktiv</li>
-            <li>Fotodokumentation: 90 Tage nach Erstellung (sofern nicht vom Eigentümer als wichtig markiert)</li>
-            <li>Rechnungsdaten: 7 Jahre (gesetzliche Aufbewahrungspflicht)</li>
-          </ul>
-          <h2 class="mt-8 text-xl font-bold text-primary">5. Ihre Rechte</h2>
-          <p>Nach der DSGVO stehen Ihnen folgende Rechte zu:</p>
-          <ul class="list-disc pl-6">
-            <li>
-              <strong>Auskunftsrecht</strong> (Art. 15 DSGVO): Sie haben das Recht, Auskunft über Ihre gespeicherten Daten zu erhalten.
-            </li>
-            <li>
-              <strong>Berichtigungsrecht</strong> (Art. 16 DSGVO): Sie können die Berichtigung unrichtiger Daten verlangen.
-            </li>
-            <li>
-              <strong>Löschungsrecht</strong> (Art. 17 DSGVO): Sie können die Löschung Ihrer Daten verlangen.
-            </li>
-            <li>
-              <strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO)
-            </li>
-            <li>
-              <strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO)
-            </li>
-            <li>
-              <strong>Widerspruchsrecht</strong> (Art. 21 DSGVO)
-            </li>
-          </ul>
-          <p>
-            <strong>Datenexport:</strong> Sie können Ihre Daten jederzeit über Ihr Dashboard exportieren
-            (Menüpunkt „Datenexport"). Der Export enthält alle gespeicherten Daten als ZIP-Datei.
-          </p>
-          <p>
-            <strong>Kontolöschung:</strong> Sie können Ihr Konto jederzeit über das Dashboard löschen.
-            Nach Ihrer Löschungsanfrage haben Sie 30 Tage Zeit, die Löschung rückgängig zu machen.
-            Danach werden alle Daten unwiderruflich gelöscht.
-          </p>
-          <p>Zur Ausübung Ihrer Rechte kontaktieren Sie uns unter [office@baky.at].</p>
-          <h2 class="mt-8 text-xl font-bold text-primary">6. Beschwerderecht</h2>
-          <p>
-            Sie haben das Recht, eine Beschwerde bei der österreichischen Datenschutzbehörde
-            einzureichen: Österreichische Datenschutzbehörde, Barichgasse 40-42, 1030 Wien,
-            dsb@dsb.gv.at.
-          </p>
-          <h2 class="mt-8 text-xl font-bold text-primary">7. Cookies</h2>
-          <p>
-            Unsere Website verwendet technisch notwendige Cookies für die Sitzungsverwaltung
-            und den CSRF-Schutz. Diese Cookies sind für den Betrieb der Website erforderlich
-            und können nicht deaktiviert werden.
-          </p>
-          <p class="mt-8 text-sm text-secondary">Stand: April 2026</p>
-        </div>
+          <section>
+            <h2 class="font-display text-3xl text-primary">1. Verantwortlicher</h2>
+            <p class="mt-4">
+              Verantwortlich für die Datenverarbeitung ist [BAKY GmbH], [Musterstraße 1, 1010 Wien], E-Mail: [office@baky.at].
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">2. Datenerhebung und -verarbeitung</h2>
+            <p class="mt-4">
+              Wir erheben und verarbeiten personenbezogene Daten nur, soweit dies zur Bereitstellung unserer Dienstleistungen erforderlich ist. Die Verarbeitung erfolgt auf Grundlage der DSGVO und des österreichischen Datenschutzgesetzes.
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">3. Fotodokumentation</h2>
+            <p class="mt-4">
+              Im Rahmen der Inspektionsdienstleistung erstellen unsere Inspektoren Fotodokumentationen der betreuten Wohnungen. Diese Fotos werden ausschließlich zur Dokumentation des Wohnungszustands verwendet und dem jeweiligen Eigentümer zur Verfügung gestellt.
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">4. Speicherdauer und Löschung</h2>
+            <ul class="mt-4 list-disc space-y-2 pl-6">
+              <li>Kontodaten: Bis zur Löschung des Kontos, danach 30 Tage Nachfrist</li>
+              <li>Inspektionsberichte: Solange das Konto aktiv ist</li>
+              <li>Fotodokumentation: 90 Tage nach Erstellung, sofern nicht als wichtig markiert</li>
+              <li>Rechnungsdaten: 7 Jahre aufgrund gesetzlicher Aufbewahrungspflichten</li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">5. Ihre Rechte</h2>
+            <p class="mt-4">
+              Nach der DSGVO stehen Ihnen Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Einen Datenexport Ihrer bei BAKY gespeicherten Informationen können Sie im Eigentümer-Dashboard anfordern.
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">6. Cookies</h2>
+            <p class="mt-4">
+              Unsere Website verwendet technisch notwendige Cookies für Sitzungsverwaltung und CSRF-Schutz. Diese Cookies sind für den Betrieb erforderlich.
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">7. Beschwerderecht</h2>
+            <p class="mt-4">Sie haben das Recht, eine Beschwerde bei der österreichischen Datenschutzbehörde einzureichen.</p>
+          </section>
+          <p class="font-mono text-sm text-secondary">Stand: April 2026</p>
+        </article>
       </div>
     </section>
   </main>

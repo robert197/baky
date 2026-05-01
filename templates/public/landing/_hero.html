@@ -1,0 +1,108 @@
+<section class="landing-grid relative isolate min-h-screen overflow-hidden bg-[#f8f5ee] text-primary">
+  <div class="absolute right-[-15rem] top-[13rem] h-[430px] w-[430px] opacity-[0.35] sm:right-[-11rem] sm:h-[520px] sm:w-[520px] lg:right-[-14rem] lg:top-1/2 lg:h-[720px] lg:w-[720px] lg:-translate-y-1/2 lg:opacity-80">
+    <div class="inspection-orbit" aria-hidden="true">
+      <div class="inspection-orbit__ring inspection-orbit__ring--outer"></div>
+      <div class="inspection-orbit__ring inspection-orbit__ring--inner"></div>
+      <div class="inspection-orbit__plan">
+        <svg viewBox="0 0 420 420" class="h-full w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="inspection-orbit__wall" d="M95 105h230v210H95z" />
+          <path class="inspection-orbit__wall" d="M95 185h94v130" />
+          <path class="inspection-orbit__wall" d="M189 105v80h136" />
+          <path class="inspection-orbit__wall" d="M248 185v130" />
+          <path class="inspection-orbit__door" d="M147 185c0-28 18-52 42-62" />
+          <path class="inspection-orbit__door" d="M248 238c25 0 46 18 51 42" />
+          <rect class="inspection-orbit__room" x="118" y="126" width="48" height="34" rx="4" />
+          <rect class="inspection-orbit__room" x="267" y="126" width="34" height="42" rx="4" />
+          <rect class="inspection-orbit__room" x="116" y="252" width="52" height="34" rx="4" />
+          <path class="inspection-orbit__scan" d="M76 218h268" />
+          <circle class="inspection-orbit__node inspection-orbit__node--a" cx="142" cy="144" r="7" />
+          <circle class="inspection-orbit__node inspection-orbit__node--b" cx="284" cy="148" r="7" />
+          <circle class="inspection-orbit__node inspection-orbit__node--c" cx="145" cy="268" r="7" />
+          <circle class="inspection-orbit__node inspection-orbit__node--d" cx="285" cy="268" r="7" />
+        </svg>
+      </div>
+      <div class="inspection-orbit__badge inspection-orbit__badge--status">
+        <span>Status</span>
+        <strong>OK</strong>
+      </div>
+      <div class="inspection-orbit__badge inspection-orbit__badge--photo">
+        <span>Foto</span>
+        <strong>18</strong>
+      </div>
+      <div class="inspection-orbit__badge inspection-orbit__badge--report">
+        <span>Report</span>
+        <strong>Live</strong>
+      </div>
+    </div>
+  </div>
+  <div class="relative z-10 mx-auto flex min-h-screen max-w-[1400px] flex-col justify-center px-6 pb-36 pt-32 lg:px-12 lg:pt-40">
+    <div class="reveal-in mb-8">
+      <span class="inline-flex items-center gap-3 font-mono text-sm text-secondary">
+        <span class="h-px w-8 bg-primary/30"></span>
+        Plattform für dokumentierte Wohnungsaufsicht
+      </span>
+      <p class="mt-3 text-sm font-semibold text-secondary">Betreuung. Absicherung. Kontrolle. Your Home.</p>
+    </div>
+    <h1 class="reveal-in max-w-6xl font-display text-[clamp(3rem,12vw,10rem)] font-normal leading-[0.86] tracking-tight [animation-delay:90ms]">
+      <span class="block">Die Plattform</span>
+      <span class="block">
+        für <span class="relative inline-block">Kontrolle<span class="absolute -bottom-2 left-0 right-0 h-3 bg-primary/10"></span></span>.
+      </span>
+    </h1>
+    <div class="mt-12 grid gap-10 lg:grid-cols-2 lg:items-end">
+      <p class="reveal-in max-w-xl text-xl leading-relaxed text-secondary [animation-delay:180ms] lg:text-2xl">
+        Als BAKY prüfen wir Kurzzeitvermietungen in Wien, dokumentieren den Zustand mit Fotos und senden Berichte sofort an Eigentümer.
+      </p>
+      <div class="reveal-in flex flex-col gap-4 sm:flex-row lg:justify-end [animation-delay:260ms]">
+        <a href="{% url 'accounts:signup' %}"
+           class="inline-flex h-14 items-center justify-center rounded-full bg-primary px-8 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+          Wohnung absichern
+        </a>
+        <a href="#prozess"
+           class="inline-flex h-14 items-center justify-center rounded-full border border-primary/20 px-8 text-base font-semibold text-primary transition hover:-translate-y-0.5 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+          Ablauf ansehen
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="absolute bottom-12 left-0 right-0 z-10 overflow-hidden">
+    <div class="landing-marquee flex gap-16 whitespace-nowrap">
+      <div class="flex gap-16">
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">sofort</span>
+          <span class="text-sm text-secondary">Bericht nach Inspektion<span class="block font-mono text-xs">BAKY REPORT</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">22+</span>
+          <span class="text-sm text-secondary">standardisierte Prüfpunkte<span class="block font-mono text-xs">CHECKLISTE</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">Wien</span>
+          <span class="text-sm text-secondary">lokale Inspektionen<span class="block font-mono text-xs">VOR ORT</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">OK</span>
+          <span class="text-sm text-secondary">klare Bewertung<span class="block font-mono text-xs">STATUS</span></span>
+        </div>
+      </div>
+      <div class="flex gap-16" aria-hidden="true">
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">sofort</span>
+          <span class="text-sm text-secondary">Bericht nach Inspektion<span class="block font-mono text-xs">BAKY REPORT</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">22+</span>
+          <span class="text-sm text-secondary">standardisierte Prüfpunkte<span class="block font-mono text-xs">CHECKLISTE</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">Wien</span>
+          <span class="text-sm text-secondary">lokale Inspektionen<span class="block font-mono text-xs">VOR ORT</span></span>
+        </div>
+        <div class="flex items-baseline gap-4">
+          <span class="font-display text-5xl">OK</span>
+          <span class="text-sm text-secondary">klare Bewertung<span class="block font-mono text-xs">STATUS</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

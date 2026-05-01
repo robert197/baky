@@ -1,19 +1,25 @@
 {# Component: _navbar.html - Public site navigation with mobile hamburger menu #}
-<nav role="navigation" aria-label="Hauptnavigation" class="border-b border-border bg-white" x-data="{ mobileOpen: false }">
-  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-    <a href="{% url 'public:home' %}" class="text-xl font-bold text-primary">BAKY</a>
-    <div class="hidden items-center gap-6 md:flex">
-      <a href="{% url 'public:home' %}" class="text-sm text-secondary hover:text-primary">Startseite</a>
-      <a href="{% url 'public:pricing' %}" class="text-sm text-secondary hover:text-primary">Preise</a>
-      <a href="#" class="text-sm text-secondary hover:text-primary">Kontakt</a>
-      <a href="{% url 'accounts:login' %}" class="text-sm text-secondary hover:text-primary">Anmelden</a>
+<nav role="navigation"
+     aria-label="Hauptnavigation"
+     class="fixed left-0 right-0 top-0 z-40 px-4 py-4"
+     x-data="{ mobileOpen: false }">
+  <div class="mx-auto flex h-14 max-w-7xl items-center justify-between rounded-2xl border border-primary/10 bg-[#f8f5ee]/80 px-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-6 lg:px-8">
+    <a href="{% url 'public:home' %}"
+       class="font-display text-2xl tracking-tight text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-4">
+      BAKY
+    </a>
+    <div class="hidden items-center gap-10 md:flex">
+      <a href="{% url 'public:home' %}" class="text-sm font-medium text-secondary transition hover:text-primary">Startseite</a>
+      <a href="{% url 'public:pricing' %}" class="text-sm font-medium text-secondary transition hover:text-primary">Preise</a>
+      <a href="{% url 'public:home' %}#kontakt" class="text-sm font-medium text-secondary transition hover:text-primary">Kontakt</a>
+      <a href="{% url 'accounts:login' %}" class="text-sm font-medium text-secondary transition hover:text-primary">Anmelden</a>
       <a href="{% url 'accounts:signup' %}"
-         class="inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-light">
+         class="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
         Registrieren
       </a>
     </div>
     <button @click="mobileOpen = !mobileOpen"
-            class="inline-flex items-center justify-center rounded-md p-2 text-secondary hover:text-primary md:hidden"
+            class="inline-flex items-center justify-center rounded-md p-2 text-secondary transition hover:bg-surface hover:text-primary focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 md:hidden"
             aria-label="Menü öffnen">
       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path x-show="!mobileOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -28,13 +34,14 @@
        x-transition:leave="transition ease-in duration-150"
        x-transition:leave-start="opacity-100 translate-y-0"
        x-transition:leave-end="opacity-0 -translate-y-1"
-       class="border-t border-border md:hidden">
+       class="mt-3 rounded-2xl border border-primary/10 bg-[#f8f5ee] shadow-lg md:hidden">
     <div class="space-y-1 px-4 pb-4 pt-2">
       <a href="{% url 'public:home' %}"
          class="block rounded-md px-3 py-2 text-sm text-secondary hover:bg-surface hover:text-primary">Startseite</a>
       <a href="{% url 'public:pricing' %}"
          class="block rounded-md px-3 py-2 text-sm text-secondary hover:bg-surface hover:text-primary">Preise</a>
-      <a href="#" class="block rounded-md px-3 py-2 text-sm text-secondary hover:bg-surface hover:text-primary">Kontakt</a>
+      <a href="{% url 'public:home' %}#kontakt"
+         class="block rounded-md px-3 py-2 text-sm text-secondary hover:bg-surface hover:text-primary">Kontakt</a>
       <a href="{% url 'accounts:login' %}"
          class="block rounded-md px-3 py-2 text-sm text-secondary hover:bg-surface hover:text-primary">Anmelden</a>
       <a href="{% url 'accounts:signup' %}"

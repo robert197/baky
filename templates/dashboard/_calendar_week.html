@@ -1,10 +1,13 @@
 {% load i18n %}
 {# Week navigation #}
-<div class="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
+<div hx-disinherit="hx-include"
+     class="flex items-center justify-between rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
   {% if week_offset > 0 %}
     <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset|add:"-1" }}"
             hx-target="#calendar-container"
             hx-swap="innerHTML"
+            hx-push-url="true"
+            hx-disinherit="hx-include"
             class="flex items-center gap-1 text-sm font-medium text-accent hover:text-amber-600">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -19,6 +22,8 @@
       <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week=0"
               hx-target="#calendar-container"
               hx-swap="innerHTML"
+              hx-push-url="true"
+              hx-disinherit="hx-include"
               class="rounded-md border border-border px-2 py-1 text-xs font-medium text-accent transition hover:bg-surface hover:text-amber-600">
         Heute
       </button>
@@ -31,6 +36,8 @@
     <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset|add:"1" }}"
             hx-target="#calendar-container"
             hx-swap="innerHTML"
+            hx-push-url="true"
+            hx-disinherit="hx-include"
             class="flex items-center gap-1 text-sm font-medium text-accent hover:text-amber-600">
       Nächste
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +83,7 @@
 </div>
 {# Empty state for weeks with no availability #}
 {% if not availability.has_available_slots %}
-  <div class="mt-4 rounded-xl border border-border bg-white p-6 text-center shadow-sm">
+  <div hx-disinherit="hx-include" class="mt-4 rounded-xl border border-border bg-white p-6 text-center shadow-sm">
     <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
@@ -85,6 +92,8 @@
       <button hx-get="{% url 'dashboard:booking_calendar' %}?apartment={{ selected_apartment.pk }}&week={{ week_offset|add:"1" }}"
               hx-target="#calendar-container"
               hx-swap="innerHTML"
+              hx-push-url="true"
+              hx-disinherit="hx-include"
               class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent hover:text-amber-600">
         Nächste Woche anzeigen
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,5 +116,7 @@
     </p>
   </div>
 {% endif %}
-{# OOB swap to keep week input in sync after HTMX week navigation #}
-<input id="week-input" name="week" type="hidden" value="{{ week_offset }}" hx-swap-oob="true">
+{% if is_htmx %}
+  {# OOB swap to keep week input in sync after HTMX week navigation #}
+  <input id="week-input" name="week" type="hidden" value="{{ week_offset }}" hx-swap-oob="true">
+{% endif %}

@@ -1,0 +1,49 @@
+<section id="kontakt" class="bg-[#f8f5ee] py-24 lg:py-32">
+  <div class="mx-auto max-w-[1400px] px-6 lg:px-12">
+    <div class="relative overflow-hidden border border-primary/20 bg-[#f8f5ee]">
+      <div class="pointer-events-none absolute inset-0 opacity-60">
+        <div class="absolute right-[-8rem] top-1/2 hidden h-[420px] w-[420px] -translate-y-1/2 lg:block">
+          <div class="ascii-sphere" aria-hidden="true">
+            <span>░▒▓█▀▄▌▐│─┤├┴┬╭╮╰╯░▒▓█</span>
+            <span>▒▓█▀▄▌▐│─┤├┴┬╭╮╰╯░▒▓█▀</span>
+            <span>▓█▀▄▌▐│─┤├┴┬╭╮╰╯░▒▓█▀▄</span>
+            <span>█▀▄▌▐│─┤├┴┬╭╮╰╯░▒▓█▀▄▌</span>
+            <span>▀▄▌▐│─┤├┴┬╭╮╰╯░▒▓█▀▄▌▐</span>
+            <span>▄▌▐│─┤├┴┬╭╮╰╯░▒▓█▀▄▌▐│</span>
+            <span>▌▐│─┤├┴┬╭╮╰╯░▒▓█▀▄▌▐│─</span>
+            <span>▐│─┤├┴┬╭╮╰╯░▒▓█▀▄▌▐│─┤</span>
+          </div>
+        </div>
+      </div>
+      <div class="relative z-10 px-8 py-16 lg:px-16 lg:py-24">
+        <div class="max-w-4xl">
+          <span class="mb-6 inline-flex items-center gap-3 font-mono text-sm text-secondary">
+            <span class="h-px w-8 bg-primary/30"></span>
+            Start
+          </span>
+          <h2 class="font-display text-5xl leading-[0.95] tracking-tight sm:text-7xl">
+            Bereit für
+            <br>
+            dokumentierte Kontrolle?
+          </h2>
+          <p class="mt-8 max-w-2xl text-xl leading-relaxed text-secondary">
+            Richten Sie Ihre Wohnung ein und buchen Sie professionelle Inspektionen für Ihre Kurzzeitvermietung.
+          </p>
+          <div class="mt-10 flex flex-col gap-4 sm:flex-row">
+            <a href="{% url 'accounts:signup' %}"
+               class="inline-flex h-14 items-center justify-center rounded-full bg-primary px-8 text-base font-semibold text-white transition hover:-translate-y-0.5 hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+              Jetzt registrieren
+            </a>
+            <a href="{% url 'public:pricing' %}"
+               class="inline-flex h-14 items-center justify-center rounded-full border border-primary/20 px-8 text-base font-semibold text-primary transition hover:-translate-y-0.5 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+              Pakete ansehen
+            </a>
+          </div>
+          <p class="mt-8 font-mono text-sm text-secondary">Keine Mindestlaufzeit. Pro Wohnung monatlich kündbar.</p>
+        </div>
+      </div>
+      <div class="absolute right-0 top-0 h-32 w-32 border-b border-l border-primary/10"></div>
+      <div class="absolute bottom-0 left-0 h-32 w-32 border-r border-t border-primary/10"></div>
+    </div>
+  </div>
+</section>

@@ -1,19 +1,66 @@
 {# Component: _footer.html - Public site footer #}
-<footer role="contentinfo" class="border-t border-border bg-white">
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-      <div>
-        <span class="font-bold text-primary">BAKY</span>
-        <span class="ml-2 text-sm text-secondary">Betreuung. Absicherung. Kontrolle. Your Home.</span>
+<footer role="contentinfo" class="border-t border-primary/10 bg-[#f8f5ee]">
+  <div class="mx-auto max-w-[1400px] px-6 lg:px-12">
+    <div class="grid gap-12 py-16 md:grid-cols-6 lg:py-24">
+      <div class="md:col-span-2">
+        <a href="{% url 'public:home' %}" class="font-display text-3xl tracking-tight text-primary">BAKY</a>
+        <p class="mt-6 max-w-xs leading-7 text-secondary">
+          Betreuung, Absicherung und Kontrolle für Kurzzeitvermietungen in Wien.
+        </p>
       </div>
-      <div class="flex gap-6 text-sm text-secondary">
-        <a href="{% url 'public:impressum' %}" class="hover:text-primary">Impressum</a>
-        <a href="{% url 'public:datenschutz' %}" class="hover:text-primary">Datenschutz</a>
-        <a href="{% url 'public:agb' %}" class="hover:text-primary">AGB</a>
+      <div>
+        <h3 class="mb-6 text-sm font-semibold text-primary">Produkt</h3>
+        <ul class="space-y-4 text-sm text-secondary">
+          <li>
+            <a href="{% url 'public:home' %}#prozess" class="transition hover:text-primary">Ablauf</a>
+          </li>
+          <li>
+            <a href="{% url 'public:home' %}#produkt" class="transition hover:text-primary">Produkt</a>
+          </li>
+          <li>
+            <a href="{% url 'public:pricing' %}" class="transition hover:text-primary">Preise</a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="mb-6 text-sm font-semibold text-primary">Zugang</h3>
+        <ul class="space-y-4 text-sm text-secondary">
+          <li>
+            <a href="{% url 'accounts:signup' %}" class="transition hover:text-primary">Registrieren</a>
+          </li>
+          <li>
+            <a href="{% url 'accounts:login' %}" class="transition hover:text-primary">Anmelden</a>
+          </li>
+          <li>
+            <a href="{% url 'public:home' %}#kontakt" class="transition hover:text-primary">Kontakt</a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="mb-6 text-sm font-semibold text-primary">Legal</h3>
+        <ul class="space-y-4 text-sm text-secondary">
+          <li>
+            <a href="{% url 'public:impressum' %}" class="transition hover:text-primary">Impressum</a>
+          </li>
+          <li>
+            <a href="{% url 'public:datenschutz' %}" class="transition hover:text-primary">Datenschutz</a>
+          </li>
+          <li>
+            <a href="{% url 'public:agb' %}" class="transition hover:text-primary">AGB</a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="mb-6 text-sm font-semibold text-primary">Status</h3>
+        <p class="inline-flex items-center gap-2 text-sm text-secondary">
+          <span class="h-2 w-2 rounded-full bg-success"></span>
+          Wien aktiv
+        </p>
       </div>
     </div>
-    <div class="mt-6 text-center text-xs text-secondary">
-      © {{ current_year|default:"2026" }} BAKY. Alle Rechte vorbehalten.
+    <div class="flex flex-col items-start justify-between gap-4 border-t border-primary/10 py-8 text-sm text-secondary md:flex-row md:items-center">
+      <p>© {{ current_year|default:"2026" }} BAKY. Alle Rechte vorbehalten.</p>
+      <p class="font-mono">REPORTS / INSPECTIONS / VIENNA</p>
     </div>
   </div>
 </footer>
