@@ -228,6 +228,35 @@ make seed
 
 This project is built with Claude Code. See [CLAUDE.md](CLAUDE.md) for conventions, architecture, and workflow.
 
+## Production Deployment
+
+Production runs on the Devs Group server via Docker Compose. The server does not contain a Git checkout of this repository; it contains a Compose project that pulls the published GHCR image.
+
+### Deploy Steps
+
+```bash
+# 1. Commit and push to main. GitHub Actions builds and pushes:
+#    ghcr.io/robert197/baky:latest
+git push origin main
+
+# 2. SSH into production
+ssh devsgroup@45.83.105.86 -p 2222
+
+# 3. Pull the latest image and restart services
+cd ~/websites/baky
+docker compose pull web worker
+docker compose run --rm web python manage.py migrate --noinput
+docker compose up -d web worker
+
+# 4. Verify
+docker compose ps
+curl -fsS https://baky.devs-group.com/health/
+```
+
+Production Compose path: `~/websites/baky/docker-compose.yml`.
+
+The public production URL currently configured in Traefik is `https://baky.devs-group.com`.
+
 ### Key Make Targets
 
 ```bash
