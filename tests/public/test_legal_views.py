@@ -52,7 +52,7 @@ class TestImpressumPage:
     def test_german_language(self, client: Client):
         response = client.get(reverse("public:impressum"))
         content = response.content.decode()
-        assert 'lang="de"' in content
+        assert 'lang="de-AT"' in content
 
     def test_footer_links_present(self, client: Client):
         response = client.get(reverse("public:impressum"))
@@ -120,7 +120,7 @@ class TestDatenschutzPage:
     def test_german_language(self, client: Client):
         response = client.get(reverse("public:datenschutz"))
         content = response.content.decode()
-        assert 'lang="de"' in content
+        assert 'lang="de-AT"' in content
 
     def test_footer_links_present(self, client: Client):
         response = client.get(reverse("public:datenschutz"))
@@ -187,7 +187,7 @@ class TestAGBPage:
     def test_german_language(self, client: Client):
         response = client.get(reverse("public:agb"))
         content = response.content.decode()
-        assert 'lang="de"' in content
+        assert 'lang="de-AT"' in content
 
     def test_footer_links_present(self, client: Client):
         response = client.get(reverse("public:agb"))

@@ -34,7 +34,7 @@ class TestLandingPage:
         response = client.get(reverse("public:home"))
         content = response.content.decode()
         # Pain points for absentee owners
-        assert "Keine Kontrolle" in content or "keine Kontrolle" in content
+        assert "alles selbst" in content or "Wir schauen" in content
 
     def test_how_it_works_section(self, client: Client):
         response = client.get(reverse("public:home"))
@@ -70,7 +70,7 @@ class TestLandingPage:
     def test_german_language(self, client: Client):
         response = client.get(reverse("public:home"))
         content = response.content.decode()
-        assert 'lang="de"' in content
+        assert 'lang="de-AT"' in content
 
     def test_seo_meta_description(self, client: Client):
         response = client.get(reverse("public:home"))
@@ -209,4 +209,4 @@ class TestPricingPage:
     def test_german_language(self, client: Client):
         response = client.get(reverse("public:pricing"))
         content = response.content.decode()
-        assert 'lang="de"' in content
+        assert 'lang="de-AT"' in content

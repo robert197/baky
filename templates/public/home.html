@@ -1,30 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY{% endblock %}
+{% block title %}Diskrete Wohnungsbetreuung in Wien | BAKY{% endblock %}
 {% block meta_description %}
-  Dokumentierte Wohnungsinspektionen für Airbnb- und Kurzzeitvermietungen in Wien. Fotos, Checkliste und Sofortbericht per E-Mail. Pakete ab € 89 pro Monat.
+  Diskrete Betreuung für Wohnungen in Wien — bei Kurzzeitvermietung, längerer Abwesenheit oder Immobilien im Übergang. Persönlicher Besuch, Fotos und klarer Bericht. Ab € 89 pro Monat.
 {% endblock %}
 {% block extra_head %}
   <meta name="keywords"
-        content="Wohnungsinspektion Wien, Kurzzeitvermietung Wien, Airbnb Verwaltung Wien, Apartmentkontrolle, Wohnungsüberwachung, Property Management Wien, Hausverwaltung Kurzzeitmiete">
+        content="Wohnungsbetreuung Wien, Wohnungsinspektion Wien, Kurzzeitvermietung Wien, Hausbetreuung bei Abwesenheit, Leerstandsbetreuung, Wohnung kontrollieren lassen, Property Management Wien, Apartmentkontrolle">
   <meta name="author" content="BAKY">
   <meta name="geo.region" content="AT-9">
   <meta name="geo.placename" content="Wien">
   <meta property="og:site_name" content="BAKY">
-  <meta property="og:title" content="Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY">
+  <meta property="og:title" content="Diskrete Wohnungsbetreuung in Wien | BAKY">
   <meta property="og:description"
-        content="Dokumentierte Wohnungsinspektionen für Kurzzeitvermietungen in Wien. Fotos, Checkliste und Sofortbericht per E-Mail. Pakete ab € 89 pro Monat.">
+        content="Diskrete Betreuung für Wohnungen in Wien — bei Kurzzeitvermietung, längerer Abwesenheit oder Immobilien im Übergang. Persönlicher Besuch, Fotos und klarer Bericht.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_AT">
   <meta property="og:url" content="https://baky.at/">
   <meta property="og:image" content="https://baky.at{% static 'img/landing-flat-living.jpg' %}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="BAKY Inspektionsbericht im Eigentümer-Dashboard">
+  <meta property="og:image:alt" content="BAKY — Wohnungsbetreuung in Wien">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Wohnungsinspektion Wien für Airbnb & Kurzzeitvermietung | BAKY">
+  <meta name="twitter:title" content="Diskrete Wohnungsbetreuung in Wien | BAKY">
   <meta name="twitter:description"
-        content="Dokumentierte Inspektionen für Kurzzeitvermietungen in Wien. Fotos und Sofortbericht. Ab € 89 pro Monat.">
+        content="Wir schauen für Sie nach der Wohnung — bei Kurzzeitvermietung, Abwesenheit oder im Übergang. Persönlich, mit Fotos, klarem Bericht. Ab € 89.">
   <meta name="twitter:image" content="https://baky.at{% static 'img/landing-flat-living.jpg' %}">
   <script type="application/ld+json">
     {
@@ -34,8 +34,8 @@
           "@type": "LocalBusiness",
           "@id": "https://baky.at/#business",
           "name": "BAKY",
-          "alternateName": "BAKY Wohnungsinspektion",
-          "description": "BAKY prüft und dokumentiert Kurzzeitvermietungen in Wien mit Fotos, Checklisten und Sofortbericht per E-Mail.",
+          "alternateName": "BAKY Wohnungsbetreuung",
+          "description": "BAKY ist die diskrete Wohnungsbetreuung in Wien für Kurzzeitvermietung, längere Abwesenheit und Immobilien im Übergang — mit persönlichem Besuch, Fotos und klarem Bericht.",
           "url": "https://baky.at",
           "image": "https://baky.at{% static 'img/landing-flat-living.jpg' %}",
           "priceRange": "€€",
@@ -80,15 +80,15 @@
         {
           "@type": "Service",
           "@id": "https://baky.at/#service",
-          "name": "Wohnungsinspektion für Kurzzeitvermietung",
-          "serviceType": "Property Inspection",
+          "name": "Diskrete Wohnungsbetreuung in Wien",
+          "serviceType": "Property Care & Inspection",
           "provider": { "@id": "https://baky.at/#business" },
           "areaServed": { "@type": "City", "name": "Wien" },
           "audience": {
             "@type": "Audience",
-            "audienceType": "Eigentümer von Kurzzeitvermietungen (Airbnb, Booking)"
+            "audienceType": "Eigentümer von Wohnungen in Kurzzeitvermietung, längerer Abwesenheit oder Immobilien im Übergang"
           },
-          "description": "Regelmäßige, dokumentierte Inspektion Ihrer Wiener Kurzzeitvermietung mit Fotos, standardisierter Checkliste und sofortigem Bericht per E-Mail.",
+          "description": "Diskrete Betreuung für Wohnungen in Kurzzeitvermietung, längerer Abwesenheit oder Immobilien im Übergang. Persönlicher Besuch, Fotodokumentation und klarer Bericht direkt nach jedem Termin.",
           "offers": {
             "@type": "AggregateOffer",
             "priceCurrency": "EUR",
@@ -129,31 +129,31 @@
           "mainEntity": [
             {
               "@type": "Question",
-              "name": "Wie oft wird meine Wohnung inspiziert?",
+              "name": "Für wen ist BAKY gedacht?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Die Häufigkeit richtet sich nach Ihrem Paket: Basis 2x, Standard 4x und Premium 8x pro Monat. Zusätzliche Inspektionen können jederzeit gebucht werden."
+                "text": "Für Eigentümer in Wien, die ihre Wohnung nicht selbst im Blick haben können — bei Kurzzeitvermietung (Airbnb, Booking), längerer Abwesenheit (Reise, Zweitwohnsitz, Pflege) oder Wohnungen im Übergang (Leerstand, Mieterwechsel, Verkauf, Renovierung)."
               }
             },
             {
               "@type": "Question",
-              "name": "Was wird bei einer Inspektion geprüft?",
+              "name": "Was schauen Sie bei einem Besuch an?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Allgemeiner Zustand, Sauberkeit, Inventar, Schäden, Geräte, Zugang und Sicherheitsaspekte. Die Checkliste mit über 22 Prüfpunkten ist pro Wohnung anpassbar."
+                "text": "Allgemeiner Zustand, Sauberkeit, Inventar, mögliche Schäden, Geräte, Zugang und Sicherheit. Die Checkliste passen wir auf Ihre Wohnung an."
               }
             },
             {
               "@type": "Question",
-              "name": "Wie schnell erhalte ich den Bericht?",
+              "name": "Wie schnell bekomme ich den Bericht?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Direkt nach Abschluss der Inspektion erstellen wir den Bericht und stellen ihn per E-Mail zu — meist innerhalb weniger Minuten."
+                "text": "Direkt nach dem Besuch. In der Regel haben Sie den Bericht mit Fotos noch am gleichen Tag im Postfach."
               }
             },
             {
               "@type": "Question",
-              "name": "Ist BAKY nur in Wien verfügbar?",
+              "name": "Sind Sie nur in Wien tätig?",
               "acceptedAnswer": {
                 "@type": "Answer",
                 "text": "Ja, aktuell konzentrieren wir uns ausschließlich auf Wien, um schnelle Vor-Ort-Inspektionen in allen 23 Bezirken sicherzustellen."

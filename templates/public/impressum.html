@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Impressum — BAKY{% endblock %}
-{% block meta_description %}Impressum der BAKY GmbH. Angaben gemäß E-Commerce-Gesetz und Mediengesetz.{% endblock %}
+{% block meta_description %}
+  Impressum von BAKY, betrieben von der devs group GmbH, Kreuzlingen (Schweiz). Angaben gemäß schweizerischem Recht und § 5 ECG.
+{% endblock %}
 {% block body %}
   {% include "components/_navbar.html" %}
   <main id="main-content" role="main" class="landing-noise bg-[#f8f5ee] text-primary">
@@ -16,59 +18,74 @@
     <section class="border-y border-primary/10 px-6 py-16 lg:px-12 lg:py-24">
       <div class="mx-auto grid max-w-[1400px] gap-12 lg:grid-cols-[0.35fr_0.65fr]">
         <aside class="font-mono text-sm text-secondary">
-          BAKY / Angaben gemäß ECG
+          BAKY / Angaben zum Anbieter
         </aside>
         <article class="space-y-10 text-lg leading-8 text-secondary">
-          <p class="border border-amber-300 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
-            <strong>Hinweis:</strong> Die nachfolgenden Angaben sind Platzhalter und müssen vor Veröffentlichung durch rechtlich geprüfte Inhalte ersetzt werden.
-          </p>
           <section>
-            <h2 class="font-display text-3xl text-primary">Angaben gemäß E-Commerce-Gesetz</h2>
+            <h2 class="font-display text-3xl text-primary">Anbieter</h2>
             <p class="mt-4">
-              <strong class="text-primary">Firmenname:</strong> [BAKY GmbH]
+              BAKY ist ein Angebot der
               <br>
-              <strong class="text-primary">Rechtsform:</strong> [Gesellschaft mit beschränkter Haftung]
+              <strong class="text-primary">devs group GmbH</strong>
               <br>
-              <strong class="text-primary">Firmenbuchnummer:</strong> [FN XXXXXX z]
+              Hauptstrasse 35
               <br>
-              <strong class="text-primary">Firmenbuchgericht:</strong> [Handelsgericht Wien]
+              8280 Kreuzlingen
               <br>
-              <strong class="text-primary">UID-Nummer:</strong> [ATU XXXXXXXX]
+              Schweiz
             </p>
           </section>
           <section>
-            <h2 class="font-display text-3xl text-primary">Sitz und Geschäftsadresse</h2>
+            <h2 class="font-display text-3xl text-primary">Eintragung im Handelsregister</h2>
             <p class="mt-4">
-              [BAKY GmbH]
+              <strong class="text-primary">Handelsregister:</strong> Kanton Thurgau (TG), Schweiz
               <br>
-              [Musterstraße 1]
+              <strong class="text-primary">Handelsregister-Nr.:</strong> CH-440.4.034.270-0
               <br>
-              [1010 Wien]
+              <strong class="text-primary">UID / MwSt.-Nr.:</strong> CHE-378.688.671
               <br>
-              Österreich
-            </p>
-          </section>
-          <section>
-            <h2 class="font-display text-3xl text-primary">Kontakt</h2>
-            <p class="mt-4">
-              <strong class="text-primary">E-Mail:</strong> [office@baky.at]
-              <br>
-              <strong class="text-primary">Telefon:</strong> [+43 1 XXX XXXX]
+              <strong class="text-primary">Rechtsform:</strong> Gesellschaft mit beschränkter Haftung (GmbH) nach schweizerischem Recht
             </p>
           </section>
           <section>
             <h2 class="font-display text-3xl text-primary">Geschäftsführung</h2>
             <p class="mt-4">
-              <strong class="text-primary">Geschäftsführer:</strong> [Vorname Nachname]
+              Ralph Segi
+              <br>
+              Robert Pupel
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">Kontakt</h2>
+            <p class="mt-4">
+              <strong class="text-primary">E-Mail:</strong> office@baky.at
+              <br>
+              <strong class="text-primary">Web:</strong> https://baky.at
+            </p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">Verantwortlich für den Inhalt</h2>
+            <p class="mt-4">devs group GmbH, Hauptstrasse 35, 8280 Kreuzlingen, Schweiz, vertreten durch die Geschäftsführung.</p>
+          </section>
+          <section>
+            <h2 class="font-display text-3xl text-primary">Hinweis für Nutzer aus Österreich (§ 5 ECG)</h2>
+            <p class="mt-4">
+              Die devs group GmbH erbringt ihre Leistungen unter der Marke „BAKY“ auch in Österreich. Aufsichtsbehörde
+              im Sitzstaat ist das Handelsregisteramt des Kantons Thurgau. Auf das Vertragsverhältnis ist
+              schweizerisches Recht anwendbar, soweit zwingende Verbraucherschutzbestimmungen am Wohnsitz des Kunden
+              dem nicht entgegenstehen.
             </p>
           </section>
           <section>
             <h2 class="font-display text-3xl text-primary">Streitbeilegung</h2>
             <p class="mt-4">
-              Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung bereit. Wir sind nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+              Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+              <a href="https://ec.europa.eu/consumers/odr/" class="underline decoration-accent decoration-2 underline-offset-4">https://ec.europa.eu/consumers/odr/</a>.
+              Wir sind nicht verpflichtet und grundsätzlich nicht bereit, an einem Streitbeilegungsverfahren vor einer
+              Verbraucherschlichtungsstelle teilzunehmen.
             </p>
           </section>
-          <p class="font-mono text-sm text-secondary">Stand: [Datum einfügen]</p>
+          <p class="font-mono text-sm text-secondary">Stand: Mai 2026</p>
         </article>
       </div>
     </section>

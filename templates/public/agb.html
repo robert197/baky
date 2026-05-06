@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Allgemeine Geschäftsbedingungen — BAKY{% endblock %}
 {% block meta_description %}
-  Allgemeine Geschäftsbedingungen der BAKY GmbH für den Wohnungsinspektionsservice in Wien.
+  Allgemeine Geschäftsbedingungen für den Wohnungsbetreuungs-Service BAKY der devs group GmbH (Kreuzlingen, Schweiz) in Wien.
 {% endblock %}
 {% block body %}
   {% include "components/_navbar.html" %}
@@ -23,23 +23,26 @@
           BAKY / AGB
         </aside>
         <article class="space-y-10 text-lg leading-8 text-secondary">
-          <p class="border border-amber-300 bg-amber-50 p-5 text-sm leading-6 text-amber-800">
-            <strong>Hinweis:</strong> Die nachfolgenden AGB sind Platzhalter und müssen vor Veröffentlichung durch rechtlich geprüfte Inhalte ersetzt werden.
-          </p>
           <section>
-            <h2 class="font-display text-3xl text-primary">1. Geltungsbereich</h2>
+            <h2 class="font-display text-3xl text-primary">1. Geltungsbereich und Anbieter</h2>
             <p class="mt-4">
-              Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge zwischen [BAKY GmbH] und dem Kunden über Wohnungsinspektionsdienstleistungen.
+              Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Verträge zwischen der
+              <strong class="text-primary">devs group GmbH</strong>, Hauptstrasse 35, 8280 Kreuzlingen, Schweiz
+              (Handelsregister-Nr. CH-440.4.034.270-0, UID CHE-378.688.671), die ihre Leistungen unter der Marke
+              „BAKY“ anbietet, und dem Kunden über Wohnungsbetreuungs- und Inspektionsdienstleistungen in Wien.
             </p>
           </section>
           <section>
             <h2 class="font-display text-3xl text-primary">2. Leistungsbeschreibung</h2>
-            <p class="mt-4">Als BAKY bieten wir professionelle Inspektionen für Kurzzeitvermietungswohnungen in Wien an.</p>
+            <p class="mt-4">
+              BAKY bietet diskrete Betreuung für Wohnungen in Kurzzeitvermietung, längerer Abwesenheit oder
+              Immobilien im Übergang in Wien an.
+            </p>
             <ul class="mt-4 list-disc space-y-2 pl-6">
-              <li>Regelmäßige Wohnungsinspektionen</li>
-              <li>Checklisten-basierte Zustandsüberprüfung</li>
-              <li>Fotodokumentation und digitale Berichte</li>
-              <li>Sofortige Benachrichtigung bei dringenden Problemen</li>
+              <li>Regelmäßige Vor-Ort-Begehungen</li>
+              <li>Checklisten-basierte Zustandsprüfung</li>
+              <li>Fotodokumentation und digitale Berichte per E-Mail</li>
+              <li>Hinweis bei auffälligen oder dringenden Beobachtungen</li>
             </ul>
           </section>
           <section>
@@ -69,7 +72,16 @@
               <a href="{% url 'public:datenschutz' %}" class="text-accent hover:underline">Datenschutzerklärung</a>.
             </p>
           </section>
-          <p class="font-mono text-sm text-secondary">Stand: [Datum einfügen]</p>
+          <section>
+            <h2 class="font-display text-3xl text-primary">8. Anwendbares Recht und Gerichtsstand</h2>
+            <p class="mt-4">
+              Auf das Vertragsverhältnis findet schweizerisches Recht Anwendung, soweit zwingende
+              Verbraucherschutzbestimmungen am Wohnsitz des Kunden dem nicht entgegenstehen. Gerichtsstand ist
+              Kreuzlingen (Kanton Thurgau, Schweiz). Verbraucher mit Wohnsitz in Österreich können die Klage zudem
+              an ihrem Wohnsitz einbringen.
+            </p>
+          </section>
+          <p class="font-mono text-sm text-secondary">Stand: Mai 2026</p>
         </article>
       </div>
     </section>

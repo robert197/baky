@@ -309,6 +309,131 @@ Django 5.x + HTMX + Alpine.js + Tailwind CSS + PostgreSQL -- all running in Dock
 | Admin | Django Admin + django-unfold |
 | Hosting | Docker everywhere |
 
+## Deployment (SSH method)
+
+BAKY runs as a Docker Compose stack on a single Linux VPS. CI builds images and pushes them
+to **GitHub Container Registry** (`ghcr.io/robert197/baky`); the server pulls the latest image
+over SSH and recreates the stack with `docker-compose.prod.yml`.
+
+### One-time server setup
+
+Run on the production host as root (or sudo user):
+
+```bash
+# 1. Install Docker Engine + Compose plugin
+curl -fsSL https://get.docker.com | sh
+sudo apt-get install -y docker-compose-plugin
+
+# 2. Create deploy user that can run docker
+sudo useradd -m -s /bin/bash baky
+sudo usermod -aG docker baky
+
+# 3. Add your SSH public key
+sudo mkdir -p /home/baky/.ssh
+sudo cp ~/.ssh/authorized_keys /home/baky/.ssh/authorized_keys
+sudo chown -R baky:baky /home/baky/.ssh
+sudo chmod 700 /home/baky/.ssh && sudo chmod 600 /home/baky/.ssh/authorized_keys
+
+# 4. App directory
+sudo -u baky mkdir -p /srv/baky /srv/baky/backups
+```
+
+Place these files in `/srv/baky/` on the server:
+
+| File | Source | Notes |
+|------|--------|-------|
+| `docker-compose.prod.yml` | This repo | `scp` from your machine, or `curl` from a release tag |
+| `.env.production`         | Created on server | Use `.env.example` as template — never commit secrets |
+| `gunicorn.conf.py`        | Baked into image | Nothing to do |
+
+Log in to GHCR so the server can pull the image (one-time):
+
+```bash
+echo "$GHCR_PAT" | docker login ghcr.io -u robert197 --password-stdin
+```
+`GHCR_PAT` is a GitHub Personal Access Token with `read:packages` scope.
+
+### TLS / reverse proxy
+
+Put **Caddy** (or **nginx + Certbot**) in front of the `web` container on `127.0.0.1:8000`.
+Caddy is the shortest path:
+
+```caddyfile
+baky.at, www.baky.at {
+    reverse_proxy 127.0.0.1:8000
+    encode zstd gzip
+}
+```
+
+Caddy handles Let's Encrypt automatically. Make sure `ALLOWED_HOSTS` and
+`CSRF_TRUSTED_ORIGINS` in `.env.production` match `baky.at` and `www.baky.at`.
+
+### Deploy a new release
+
+CI pushes `ghcr.io/robert197/baky:latest` (and `:sha-<commit>`) on every push to `main`. Roll
+out by pulling + recreating on the server:
+
+```bash
+ssh baky@baky.at
+cd /srv/baky
+
+# 1. Pull latest image
+docker compose -f docker-compose.prod.yml pull
+
+# 2. Recreate web + worker (db keeps running)
+docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+# 3. Run migrations
+docker compose -f docker-compose.prod.yml exec web python manage.py migrate --noinput
+
+# 4. Verify
+curl -fsS https://baky.at/health/
+```
+
+### One-shot deploy from your machine
+
+```bash
+ssh baky@baky.at '
+  cd /srv/baky &&
+  docker compose -f docker-compose.prod.yml pull &&
+  docker compose -f docker-compose.prod.yml up -d --remove-orphans &&
+  docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate --noinput &&
+  curl -fsS http://localhost:8000/health/
+'
+```
+
+Wrap that into `bin/deploy.sh` if you want a `make deploy` target later.
+
+### Rollback
+
+```bash
+ssh baky@baky.at
+cd /srv/baky
+IMAGE_TAG=sha-<previous-commit> docker compose -f docker-compose.prod.yml up -d
+```
+
+(For this to work, reference `image: ghcr.io/robert197/baky:${IMAGE_TAG:-latest}` in
+`docker-compose.prod.yml`.) If a migration is the problem, restore the database from the
+latest dump in `/srv/baky/backups/` before rolling the image back.
+
+### Backups
+
+Daily `pg_dump` via host crontab:
+
+```cron
+0 3 * * * docker compose -f /srv/baky/docker-compose.prod.yml exec -T db \
+  pg_dump -U $POSTGRES_USER $POSTGRES_DB | gzip > /srv/baky/backups/baky-$(date +\%F).sql.gz
+```
+
+Keep ~14 days locally; ship one offsite (S3/R2) weekly.
+
+### Required environment variables
+
+See `.env.example` for the full list. Production needs at minimum: `SECRET_KEY`, `DEBUG=False`,
+`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `DATABASE_URL`, `FIELD_ENCRYPTION_KEY`,
+`RESEND_API_KEY`, AWS S3/R2 credentials, and `POSTGRES_DB` / `POSTGRES_USER` /
+`POSTGRES_PASSWORD` for the bundled `db` service.
+
 ## License
 
 Proprietary. All rights reserved.
